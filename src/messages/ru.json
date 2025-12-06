@@ -1,1 +1,49 @@
-{ "HomePage": { "title": "Главная страница" } }
+{ 
+  "HomePage": { 
+    "title": "Главная страница" 
+  },
+  "Header": {
+    "menu": "Меню",
+    "home": "Главная",
+    "collection": "Коллекция",
+    "sale": "Распродажа",
+    "about": "О нас",
+    "contact": "Контакты",
+    "language_switch": "Сменить язык",
+    "shop": "Магазин"
+  },
+  "Hero": {
+    "new_season_label": "НОВЫЙ СЕЗОН 2025",
+    "title": "Обновите Ваш <br /> Повседневный Стиль.",
+    "subtitle": "Откройте для себя сумки премиум качества по эксклюзивным ценам. Бесплатная доставка по всей Грузии.",
+    "new_in_tag": "НОВИНКА",
+    "premium_tag": "ПРЕМИУМ",
+    "button_text": "Смотреть коллекцию",
+    "best_seller_tag": "Бестселлер",
+    "product_name": "Классический тоут",
+    "product_price": "189.00 GEL"
+  },
+  "Categories": {
+    "title": "Категории"
+  },
+  "ProductGrid": {
+    "popular_title": "Популярные товары"
+  },
+  "BottomNav": {
+    "home": "Поиск",
+    "search": "Поиск",
+    "cart": "Корзина",
+    "profile": "Профиль"
+  },
+  "ProductPage": {
+    "category_default": "Аксессуар",
+    "select_size": "Выберите размер",
+    "add_to_cart": "Добавить в корзину",
+    "in_stock": "В наличии",
+    "out_of_stock": "Нет в наличии",
+    "description_title": "Описание",
+    "no_description": "У этого товара нет описания.",
+    "related_products": "Похожие товары",
+    "related_placeholder": "Похожие товары будут добавлены скоро."
+  }
+}

@@ -1,3 +1,5 @@
+// ფაილის გზა: next.config.ts
+
 import type { NextConfig } from "next";
 import createNextIntlPlugin from 'next-intl/plugin';
 
@@ -18,10 +20,15 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'images.unsplash.com',
       },
-      // --- დაამატე შენი WordPress-ის დომენი აქ ---
+      // Headless WordPress API Hostname
       {
         protocol: 'https',
-        hostname: 'sheni-wordpress-domaini.ge', // <--- შეცვალე ეს შენი რეალური დომენით (მაგ: wp.chantashop.ge)
+        hostname: 'chantashop.ge', 
+      },
+      // ✅ PLACEHOLDER HOSTNAME ADDED
+      {
+        protocol: 'https',
+        hostname: 'placehold.co', 
       },
     ],
   },

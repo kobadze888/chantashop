@@ -1,1 +1,49 @@
-{ "HomePage": { "title": "Home Page" } }
+{ 
+  "HomePage": { 
+    "title": "Home Page" 
+  },
+  "Header": {
+    "menu": "Menu",
+    "home": "Home",
+    "collection": "Collection",
+    "sale": "Sale",
+    "about": "About Us",
+    "contact": "Contact",
+    "language_switch": "Switch Language",
+    "shop": "Shop"
+  },
+  "Hero": {
+    "new_season_label": "NEW SEASON 2025",
+    "title": "Elevate Your <br /> Everyday Style.",
+    "subtitle": "Discover premium quality bags at exclusive prices. Free delivery across Georgia.",
+    "new_in_tag": "NEW IN",
+    "premium_tag": "PREMIUM",
+    "button_text": "View Collection",
+    "best_seller_tag": "Best Seller",
+    "product_name": "Classic Tote",
+    "product_price": "189.00 GEL"
+  },
+  "Categories": {
+    "title": "Categories"
+  },
+  "ProductGrid": {
+    "popular_title": "Popular Products"
+  },
+  "BottomNav": {
+    "home": "Home",
+    "search": "Search",
+    "cart": "Cart",
+    "profile": "Profile"
+  },
+  "ProductPage": {
+    "category_default": "Accessory",
+    "select_size": "Select Size",
+    "add_to_cart": "Add to Cart",
+    "in_stock": "In Stock",
+    "out_of_stock": "Out of Stock",
+    "description_title": "Description",
+    "no_description": "This product has no description.",
+    "related_products": "Related Products",
+    "related_placeholder": "Related products coming soon."
+  }
+}

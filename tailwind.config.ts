@@ -1,3 +1,5 @@
+// ფაილის გზა: tailwind.config.ts
+
 import type { Config } from "tailwindcss";
 
 const config: Config = {
@@ -10,10 +12,10 @@ const config: Config = {
     extend: {
       colors: {
         mocha: {
-          light: '#FDFBF7',   // Cream Background
-          medium: '#D6CCC2',  // Latte / Borders
-          DEFAULT: '#A68A64', // Leather / Primary Accent
-          dark: '#4A403A',    // Coffee / Text
+          light: '#FDFBF7',
+          medium: '#D6CCC2',
+          DEFAULT: '#A68A64',
+          dark: '#4A403A',
         },
         glass: {
           DEFAULT: 'rgba(255, 255, 255, 0.7)',
