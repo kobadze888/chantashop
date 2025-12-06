@@ -16,7 +16,12 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'images.unsplash.com', // <-- ეს დავამატეთ
+        hostname: 'images.unsplash.com',
+      },
+      // --- დაამატე შენი WordPress-ის დომენი აქ ---
+      {
+        protocol: 'https',
+        hostname: 'sheni-wordpress-domaini.ge', // <--- შეცვალე ეს შენი რეალური დომენით (მაგ: wp.chantashop.ge)
       },
     ],
   },

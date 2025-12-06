@@ -9,22 +9,24 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // --- ჩვენი Mocha & Cream პალიტრა ---
         mocha: {
-          light: '#FDFBF7',   // Cream (ძირითადი ფონი)
-          medium: '#D6CCC2',  // Latte (ბორდერები/ღია ტექსტი)
-          DEFAULT: '#A68A64', // Leather (ღილაკები/აქცენტები)
-          dark: '#4A403A',    // Coffee (მთავარი ტექსტი/ჰედერი)
+          light: '#FDFBF7',   // Cream Background
+          medium: '#D6CCC2',  // Latte / Borders
+          DEFAULT: '#A68A64', // Leather / Primary Accent
+          dark: '#4A403A',    // Coffee / Text
         },
-        // თეთრი ფერი "შუშის" ეფექტებისთვის
         glass: {
           DEFAULT: 'rgba(255, 255, 255, 0.7)',
-          border: 'rgba(255, 255, 255, 0.5)',
+          border: 'rgba(255, 255, 255, 0.2)',
+          dark: 'rgba(0, 0, 0, 0.3)',
         }
       },
       fontFamily: {
-        sans: ['var(--font-inter)', 'sans-serif'], // ან რაც გაქვს ფონტი
+        sans: ['var(--font-inter)', 'sans-serif'],
       },
+      backdropBlur: {
+        'xs': '2px',
+      }
     },
   },
   plugins: [],

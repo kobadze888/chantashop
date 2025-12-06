@@ -1,43 +1,45 @@
-import Navbar from '@/components/layout/Navbar';
-// Убедись, что путь правильный. Если Hero.tsx лежит в src/components/home/Hero.tsx, то импорт верный.
-import { Hero } from '@/components/home/Hero';
+import Header from '@/components/layout/Header';
+import Hero from '@/components/home/Hero';
+import Categories from '@/components/home/Categories';
+import ProductGrid from '@/components/products/ProductGrid';
+import BottomNav from '@/components/layout/BottomNav';
+import { getProducts } from '@/lib/api';
 
-export default async function Home({
-  params
-}: {
-  params: Promise<{ locale: string }>;
-}) {
-  // В новых версиях Next.js params это Promise, поэтому нужно использовать await
+// Dummy data for visual check if API is empty
+const dummyProducts = [
+    { id: 1, title: 'Urban Leather Tote', price: '145.00 ₾', image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=500' },
+    { id: 2, title: 'Black Edition Mini', price: '240.00 ₾', image: 'https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=500' },
+    { id: 3, title: 'Classic Beige', price: '189.00 ₾', image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=500' },
+    { id: 4, title: 'Travel Duffel', price: '320.00 ₾', image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=500' },
+];
+
+export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
+  
+  // Try to fetch real products, fallback to dummy
+  let products = [];
+  try {
+      products = await getProducts(4);
+      if (!products || products.length === 0) products = dummyProducts;
+  } catch (e) {
+      products = dummyProducts;
+  }
+
+  // Transform WP data if needed
+  const displayProducts = products.map((p: any) => ({
+      id: p.id || p.databaseId,
+      title: p.name || p.title,
+      price: p.price || p.price, // Format properly based on WP data
+      image: p.image?.sourceUrl || p.image 
+  }));
 
   return (
-    <main className="min-h-screen bg-[#FDFBF7] font-sans selection:bg-[#A68A64] selection:text-white">
-      <Navbar />
+    <main className="min-h-screen bg-[#F8F5F2] pb-10">
+      <Header />
       <Hero />
-      
-      {/* Секция категорий */}
-      <section className="py-20 container mx-auto px-6">
-        <div className="flex justify-between items-end mb-8">
-          <h3 className="text-2xl font-bold text-mocha-dark">Категории</h3>
-          <a href="#" className="text-sm font-bold text-mocha-DEFAULT hover:text-mocha-dark transition underline decoration-2 underline-offset-4">Все</a>
-        </div>
-        
-        <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-4">
-            <div className="flex-shrink-0 bg-mocha-dark text-white px-8 py-6 rounded-2xl font-bold text-lg shadow-lg cursor-pointer min-w-[160px] flex items-end h-40">
-                Чемоданы
-            </div>
-            <div className="flex-shrink-0 bg-white text-mocha-dark border border-mocha-medium/30 px-8 py-6 rounded-2xl font-bold text-lg shadow-sm cursor-pointer min-w-[160px] flex items-end h-40 hover:border-mocha-DEFAULT transition">
-                Сумки
-            </div>
-            <div className="flex-shrink-0 bg-white text-mocha-dark border border-mocha-medium/30 px-8 py-6 rounded-2xl font-bold text-lg shadow-sm cursor-pointer min-w-[160px] flex items-end h-40 hover:border-mocha-DEFAULT transition">
-                Очки
-            </div>
-             <div className="flex-shrink-0 bg-white text-mocha-dark border border-mocha-medium/30 px-8 py-6 rounded-2xl font-bold text-lg shadow-sm cursor-pointer min-w-[160px] flex items-end h-40 hover:border-mocha-DEFAULT transition">
-                Аксессуары
-            </div>
-        </div>
-      </section>
-
+      <Categories />
+      <ProductGrid products={displayProducts} />
+      <BottomNav />
     </main>
   );
 }
