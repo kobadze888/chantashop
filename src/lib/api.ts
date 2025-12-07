@@ -1,75 +1,37 @@
-// src/lib/api.ts
-const API_URL = process.env.NEXT_PUBLIC_WORDPRESS_API_URL;
+import { WORDPRESS_API_URL, REVALIDATE_TIME } from './constants';
+import { GET_PRODUCTS_QUERY, GET_CATEGORIES_QUERY } from './queries';
 
-async function fetchAPI(query: string, { variables }: { variables?: any } = {}) {
+async function fetchAPI(query: string, { variables }: { variables?: any } = {}, revalidateTime: number) {
   const headers = { 'Content-Type': 'application/json' };
-  
-  // ISR (Incremental Static Regeneration) - ყოველ 1 საათში განახლდება კეში
-  const res = await fetch(API_URL!, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({ query, variables }),
-    next: { revalidate: 3600 }, 
-  });
 
-  const json = await res.json();
-  if (json.errors) {
-    console.error('GraphQL Errors:', json.errors);
-    throw new Error('Failed to fetch API');
+  try {
+    const res = await fetch(WORDPRESS_API_URL, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ query, variables }),
+      next: { revalidate: revalidateTime },
+    });
+
+    const json = await res.json();
+
+    if (json.errors) {
+      console.error('WPGraphQL Error:', json.errors);
+      throw new Error('Failed to fetch API');
+    }
+
+    return json.data;
+  } catch (error) {
+    console.error('API Fetch Error:', error);
+    return null;
   }
-  return json.data;
 }
 
-// პროდუქტების წამოღება (Home Page-ისთვის)
-export async function getProducts(first = 20, lang = 'KA') {
-  // შენიშვნა: WooGraphQL-ს ენის მიხედვით ფილტრაცია სჭირდება თუ Polylang-ს იყენებ
-  const data = await fetchAPI(`
-    query GetProducts($first: Int!) {
-      products(first: $first, where: { orderby: { field: DATE, order: DESC } }) {
-        nodes {
-          id
-          databaseId
-          name
-          slug
-          image {
-            sourceUrl
-            altText
-          }
-          ... on SimpleProduct {
-            price(format: FORMATTED)
-            regularPrice(format: FORMATTED)
-            salePrice(format: FORMATTED)
-            onSale
-          }
-          ... on VariableProduct {
-            price(format: FORMATTED)
-            regularPrice(format: FORMATTED)
-            salePrice(format: FORMATTED)
-            onSale
-          }
-        }
-      }
-    }
-  `, { variables: { first } });
-
+export async function getProducts(limit = 20) {
+  const data = await fetchAPI(GET_PRODUCTS_QUERY, { variables: { first: limit } }, REVALIDATE_TIME.PRODUCTS);
   return data?.products?.nodes || [];
 }
 
-// კატეგორიების წამოღება
 export async function getCategories() {
-    const data = await fetchAPI(`
-      query GetCategories {
-        productCategories(first: 10, where: {parent: 0, hideEmpty: true}) {
-          nodes {
-            id
-            name
-            slug
-            image {
-              sourceUrl
-            }
-          }
-        }
-      }
-    `);
-    return data?.productCategories?.nodes || [];
+  const data = await fetchAPI(GET_CATEGORIES_QUERY, {}, REVALIDATE_TIME.CATEGORIES);
+  return data?.productCategories?.nodes || [];
 }
