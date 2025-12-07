@@ -9,23 +9,31 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        mocha: {
-          light: '#FDFBF7',   // Cream Background
-          medium: '#D6CCC2',  // Latte / Borders
-          DEFAULT: '#A68A64', // Leather / Primary Accent
-          dark: '#4A403A',    // Coffee / Text
-        },
-        glass: {
-          DEFAULT: 'rgba(255, 255, 255, 0.7)',
-          border: 'rgba(255, 255, 255, 0.2)',
-          dark: 'rgba(0, 0, 0, 0.3)',
+        brand: {
+          light: '#FFF0F5',   
+          medium: '#FBCFE8',  
+          DEFAULT: '#DB2777', // Hot Pink - თქვენი არჩეული ფერი
+          dark: '#000000',    // Black
+          gray: '#F9FAFB',
         }
       },
       fontFamily: {
-        sans: ['var(--font-inter)', 'sans-serif'],
+        sans: ['var(--font-bpg)', 'var(--font-inter)', 'sans-serif'],
+        serif: ['var(--font-playfair)', 'serif'],
       },
-      backdropBlur: {
-        'xs': '2px',
+      animation: {
+        'infinite-scroll': 'infinite-scroll 25s linear infinite',
+        'fade-in': 'fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+      },
+      keyframes: {
+        'infinite-scroll': {
+          from: { transform: 'translateX(0)' },
+          to: { transform: 'translateX(-100%)' },
+        },
+        fadeIn: {
+          from: { opacity: '0', transform: 'translateY(20px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        }
       }
     },
   },

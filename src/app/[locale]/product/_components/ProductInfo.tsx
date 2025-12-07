@@ -1,39 +1,33 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
-import { Heart } from 'lucide-react';
-import { Product, Variation } from '@/types';
+import { useState, useMemo } from 'react';
+import { Heart, Star, Truck, ShieldCheck, RefreshCcw, Minus, Plus } from 'lucide-react';
+import { Product } from '@/types';
 import AddToCartButton from './AddToCartButton';
 import ProductGallery from './ProductGallery';
-import ProductOptions from './ProductOptions';
 
 interface ProductInfoProps {
   product: Product;
 }
 
 export default function ProductInfo({ product }: ProductInfoProps) {
-  // 1. მდგომარეობა არჩეული ოფციებისთვის (მაგ: { pa_color: "Red", pa_size: "M" })
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
+  const [quantity, setQuantity] = useState(1);
   
-  // 2. ვპოულობთ შესაბამის ვარიაციას არჩეული ოფციების მიხედვით
+  // ვარიაციის ლოგიკა
   const selectedVariation = useMemo(() => {
     if (!product.variations) return null;
-
     return product.variations.nodes.find((variation) => {
       return variation.attributes?.nodes.every((attr) => {
-        // ვარიაციის ატრიბუტი უნდა ემთხვეოდეს მომხმარებლის არჩეულს
         return selectedOptions[attr.name] === attr.value;
       });
     });
   }, [product.variations, selectedOptions]);
 
-  // 3. თუ ვარიაცია არჩეულია, ვიყენებთ მის მონაცემებს, თუ არა - მთავარ პროდუქტს
-  const displayPrice = selectedVariation ? selectedVariation.price : product.price;
-  const displayRegularPrice = selectedVariation ? selectedVariation.regularPrice : product.regularPrice;
+  const displayPrice = selectedVariation?.price || product.price;
   const displayImage = selectedVariation?.image?.sourceUrl || product.image?.sourceUrl || '/placeholder.jpg';
-  const displayStock = selectedVariation ? selectedVariation.stockStatus : product.stockStatus;
+  const displayStock = selectedVariation?.stockStatus || product.stockStatus;
   
-  // 4. ვალიდაცია: ღილაკი აქტიურია, თუ ეს მარტივი პროდუქტია, ან თუ ყველა ოფცია არჩეულია და ვარიაცია მოიძებნა
   const isSimpleProduct = !product.variations;
   const allOptionsSelected = product.attributes 
     ? product.attributes.nodes.length === Object.keys(selectedOptions).length 
@@ -41,7 +35,6 @@ export default function ProductInfo({ product }: ProductInfoProps) {
   
   const isValidSelection = isSimpleProduct || (allOptionsSelected && !!selectedVariation);
 
-  // მონაცემები კალათისთვის
   const cartData = {
     id: selectedVariation ? selectedVariation.databaseId : product.databaseId,
     name: selectedVariation ? `${product.name} - ${selectedVariation.name}` : product.name,
@@ -51,83 +44,135 @@ export default function ProductInfo({ product }: ProductInfoProps) {
     selectedOptions: selectedOptions,
   };
 
-  const handleOptionChange = (attributeName: string, value: string) => {
-    setSelectedOptions((prev) => ({
-      ...prev,
-      [attributeName]: value,
-    }));
-  };
-
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-      {/* გალერეა: იცვლება ვარიაციის მიხედვით */}
-      <div className="lg:sticky lg:top-32 h-min">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-20">
+      
+      {/* მარცხენა მხარე: გალერეა */}
+      <div className="lg:sticky lg:top-32 h-min relative">
         <ProductGallery 
             mainImage={displayImage} 
             gallery={product.galleryImages?.nodes.map(img => img.sourceUrl) || []} 
             alt={product.name}
         />
+        {/* Wishlist Button (Floating styling from HTML) */}
+        <button className="absolute top-6 right-6 bg-white p-4 rounded-full shadow-lg hover:text-brand-DEFAULT transition hover:scale-110 z-10 hidden lg:block text-brand-dark">
+            <Heart className="w-6 h-6" />
+        </button>
       </div>
 
-      <div className="flex flex-col gap-6">
-        <h1 className="text-4xl md:text-5xl font-black text-mocha-dark leading-tight">{product.name}</h1>
+      {/* მარჯვენა მხარე: ინფორმაცია */}
+      <div className="flex flex-col justify-center py-4">
         
-        {/* ფასი */}
-        <div className="flex items-center gap-4">
-          {displayRegularPrice && displayRegularPrice !== displayPrice ? (
-            <>
-              <span className="text-red-600 line-through text-xl opacity-70">{displayRegularPrice}</span>
-              <span className="text-mocha-DEFAULT text-3xl font-black">{displayPrice}</span>
-            </>
-          ) : (
-            <p className="text-3xl font-black text-mocha-DEFAULT">{displayPrice}</p>
-          )}
+        {/* Title */}
+        <h1 className="text-4xl md:text-6xl font-serif font-black text-brand-dark mb-6 leading-tight">
+            {product.name}
+        </h1>
+        
+        {/* Price & Rating */}
+        <div className="flex items-center gap-6 mb-8">
+            <span className="text-4xl font-black text-brand-dark">{displayPrice}</span>
+            <div className="h-8 w-[1px] bg-gray-200"></div>
+            <div className="flex items-center gap-1 text-yellow-400">
+                <Star className="w-5 h-5 fill-current" />
+                <span className="text-brand-dark font-bold text-lg ml-1">4.9</span>
+                <span className="text-gray-400 text-sm font-normal">(128 შეფასება)</span>
+            </div>
         </div>
 
-        {/* მარაგი */}
-        <div className={`text-sm font-bold tracking-wider ${displayStock === 'IN_STOCK' ? 'text-green-600' : 'text-red-600'}`}>
-            {displayStock === 'IN_STOCK' ? 'მარაგშია 🟢' : 'მარაგში არ არის 🔴'}
-        </div>
-
-        <div className="my-4 pt-4 border-t border-mocha-medium/30">
-            <h3 className="text-lg font-bold mb-2 text-mocha-dark">მოკლე აღწერა</h3>
-            <div 
-                className="text-mocha-dark/80 text-base leading-relaxed" 
-                dangerouslySetInnerHTML={{ __html: product.shortDescription || '<p>აღწერა არ არის.</p>' }} 
-            />
-        </div>
-
-        {/* ოფციები (მხოლოდ ვარიაციული პროდუქტებისთვის) */}
+        {/* Description */}
+        <div 
+            className="text-gray-600 leading-relaxed mb-10 text-lg font-light" 
+            dangerouslySetInnerHTML={{ __html: product.shortDescription || '<p>აღწერა არ არის.</p>' }} 
+        />
+        
+        {/* Options (Attributes) */}
         {!isSimpleProduct && product.attributes && (
-            <ProductOptions 
-                attributes={product.attributes.nodes}
-                selectedOptions={selectedOptions}
-                onChange={handleOptionChange}
-            />
+            <div className="mb-10">
+                {product.attributes.nodes.map((attr) => (
+                    <div key={attr.name} className="mb-6">
+                        <span className="text-xs font-bold uppercase tracking-widest text-brand-dark mb-4 block">
+                            {attr.label || attr.name}
+                        </span>
+                        <div className="flex flex-wrap gap-4">
+                            {attr.options?.map((option) => {
+                                const isSelected = selectedOptions[attr.name] === option;
+                                // თუ ფერია, ვარენდერებთ ფერად ბურთულებს (პირობითი ლოგიკა)
+                                if (attr.name.toLowerCase().includes('color') || attr.name.toLowerCase().includes('ფერი')) {
+                                    // ფერის კოდის ლოგიკა (მარტივი მაგალითი)
+                                    const colorMap: Record<string, string> = { 'red': '#DC2626', 'black': '#000000', 'white': '#FFFFFF', 'blue': '#2563EB', 'brown': '#8B5E3C' };
+                                    const bg = colorMap[option.toLowerCase()] || '#E5E7EB';
+                                    return (
+                                        <button
+                                            key={option}
+                                            onClick={() => setSelectedOptions(prev => ({...prev, [attr.name]: option}))}
+                                            className={`w-14 h-14 rounded-full border-4 border-white shadow-lg transition transform ${isSelected ? 'ring-2 ring-brand-DEFAULT scale-110' : 'ring-1 ring-gray-200 hover:scale-105'}`}
+                                            style={{ backgroundColor: bg }}
+                                            title={option}
+                                        />
+                                    );
+                                }
+                                // ტექსტური ღილაკები ზომებისთვის
+                                return (
+                                    <button
+                                        key={option}
+                                        onClick={() => setSelectedOptions(prev => ({...prev, [attr.name]: option}))}
+                                        className={`px-6 py-3 rounded-xl font-bold border transition ${isSelected ? 'bg-brand-dark text-white border-brand-dark' : 'bg-white text-brand-dark border-gray-200 hover:border-brand-dark'}`}
+                                    >
+                                        {option}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                ))}
+            </div>
         )}
 
-        {/* ღილაკები */}
-        <div className="flex gap-4 items-center">
-            <AddToCartButton 
-                product={cartData} 
-                stockStatus={displayStock} 
-                disabled={!isValidSelection} // ღილაკი გათიშულია, სანამ ყველაფერს არ აირჩევენ
-            />
+        {/* Quantity & Add to Cart */}
+        <div className="flex gap-4 border-t border-gray-100 pt-10">
+            <div className="flex items-center bg-gray-50 rounded-full h-16 px-2 w-40 justify-between shadow-inner">
+                <button 
+                    onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                    className="w-10 h-10 flex items-center justify-center bg-white rounded-full shadow-sm hover:text-brand-DEFAULT transition"
+                >
+                    <Minus className="w-5 h-5" />
+                </button>
+                <span className="font-bold text-xl">{quantity}</span>
+                <button 
+                    onClick={() => setQuantity(q => q + 1)}
+                    className="w-10 h-10 flex items-center justify-center bg-white rounded-full shadow-sm hover:text-brand-DEFAULT transition"
+                >
+                    <Plus className="w-5 h-5" />
+                </button>
+            </div>
             
-            <button 
-              className="bg-white text-mocha-dark p-4 rounded-full border border-mocha-medium/50 hover:bg-mocha-medium/20 transition active:scale-95 shadow-md group"
-              aria-label="Add to Wishlist"
-            >
-              <Heart className="w-5 h-5 group-hover:text-red-500 transition-colors" />
-            </button>
+            <AddToCartButton 
+                product={{ ...cartData, quantity }}
+                stockStatus={displayStock} 
+                disabled={!isValidSelection} 
+            />
         </div>
 
-        <div className="mt-8 pt-6 border-t border-mocha-medium/30">
-            <h3 className="text-lg font-bold mb-3 text-mocha-dark">დეტალური აღწერა</h3>
-            <div 
-                className="prose max-w-none text-mocha-dark/80 prose-headings:text-mocha-dark prose-a:text-mocha-DEFAULT" 
-                dangerouslySetInnerHTML={{ __html: product.description || '<p>დეტალური აღწერა არ არის.</p>' }} 
-            />
+        {/* Trust Badges (Copied from design2.html) */}
+        <div className="grid grid-cols-3 gap-6 mt-12">
+            <div className="flex flex-col items-center text-center gap-3 p-6 bg-white rounded-3xl border border-gray-100 shadow-lg hover:-translate-y-1 transition">
+                <div className="w-12 h-12 bg-brand-light rounded-full flex items-center justify-center">
+                    <Truck className="w-6 h-6 text-brand-DEFAULT" />
+                </div>
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">უფასო მიწოდება</span>
+            </div>
+            <div className="flex flex-col items-center text-center gap-3 p-6 bg-white rounded-3xl border border-gray-100 shadow-lg hover:-translate-y-1 transition">
+                <div className="w-12 h-12 bg-brand-light rounded-full flex items-center justify-center">
+                    <ShieldCheck className="w-6 h-6 text-brand-DEFAULT" />
+                </div>
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">1 წლიანი გარანტია</span>
+            </div>
+            <div className="flex flex-col items-center text-center gap-3 p-6 bg-white rounded-3xl border border-gray-100 shadow-lg hover:-translate-y-1 transition">
+                <div className="w-12 h-12 bg-brand-light rounded-full flex items-center justify-center">
+                    <RefreshCcw className="w-6 h-6 text-brand-DEFAULT" />
+                </div>
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">მარტივი დაბრუნება</span>
+            </div>
         </div>
       </div>
     </div>

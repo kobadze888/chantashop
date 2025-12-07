@@ -1,3 +1,5 @@
+// src/lib/queries.ts
+
 const PRODUCT_FRAGMENT = `
   fragment ProductFragment on Product {
     id
@@ -9,6 +11,13 @@ const PRODUCT_FRAGMENT = `
     image {
       sourceUrl
       altText
+    }
+    productCategories {
+      nodes {
+        id
+        name
+        slug
+      }
     }
     ... on SimpleProduct {
       price(format: RAW)
@@ -52,6 +61,7 @@ const PRODUCT_FRAGMENT = `
   }
 `;
 
+// ენის ფილტრი ამოღებულია დროებით, რომ API-მ იმუშაოს
 export const GET_PRODUCTS_QUERY = `
   ${PRODUCT_FRAGMENT}
   query GetProducts($first: Int!) {

@@ -5,7 +5,7 @@ import { useCartStore } from '@/store/cartStore';
 import type { CartItem } from '@/types';
 
 interface AddToCartButtonProps {
-    product: Omit<CartItem, 'quantity'>;
+    product: Omit<CartItem, 'quantity'> & { quantity: number };
     stockStatus?: string;
     disabled?: boolean;
 }
@@ -17,9 +17,11 @@ export default function AddToCartButton({ product, stockStatus, disabled = false
 
     const handleAddToCart = () => {
         if (!isButtonDisabled) {
-            addItem(product);
-            // აქ შეგიძლიათ დაამატოთ Toast Notification
-            console.log(`Product ${product.name} added to cart`);
+            // ვამატებთ იმდენს, რამდენიც quantity-შია
+            for(let i = 0; i < product.quantity; i++) {
+                addItem(product); 
+            }
+            console.log(`Product added`);
         }
     };
 
@@ -27,10 +29,10 @@ export default function AddToCartButton({ product, stockStatus, disabled = false
         <button
             onClick={handleAddToCart}
             disabled={isButtonDisabled}
-            className={`w-full max-w-xs text-white px-8 py-4 rounded-full font-bold text-base transition-all transform active:scale-95 shadow-lg flex items-center justify-center gap-2 ${
+            className={`flex-1 rounded-full font-bold h-16 transition shadow-2xl flex items-center justify-center gap-4 active:scale-95 transform duration-200 uppercase tracking-widest text-sm ${
                 !isButtonDisabled
-                    ? 'bg-mocha-DEFAULT hover:bg-mocha-dark cursor-pointer' 
-                    : 'bg-gray-300 cursor-not-allowed opacity-70'
+                    ? 'bg-brand-dark text-white hover:bg-brand-DEFAULT shadow-brand-dark/20 cursor-pointer' 
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
         >
             <ShoppingBag className="w-5 h-5" />

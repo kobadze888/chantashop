@@ -19,7 +19,7 @@ async function fetchAPI(query: string, { variables }: { variables?: any } = {}, 
 
     if (json.errors) {
       console.error('WPGraphQL Error:', json.errors);
-      throw new Error('Failed to fetch API');
+      return null;
     }
 
     return json.data;
@@ -29,17 +29,30 @@ async function fetchAPI(query: string, { variables }: { variables?: any } = {}, 
   }
 }
 
+// ენის არგუმენტი ამოღებულია ფუნქციებიდან დროებით
 export async function getProducts(limit = 20): Promise<Product[]> {
-  const data = await fetchAPI(GET_PRODUCTS_QUERY, { variables: { first: limit } }, REVALIDATE_TIME.PRODUCTS);
+  const data = await fetchAPI(
+    GET_PRODUCTS_QUERY, 
+    { variables: { first: limit } }, 
+    REVALIDATE_TIME.PRODUCTS
+  );
   return data?.products?.nodes || [];
 }
 
 export async function getCategories(): Promise<Category[]> {
-  const data = await fetchAPI(GET_CATEGORIES_QUERY, {}, REVALIDATE_TIME.CATEGORIES);
+  const data = await fetchAPI(
+    GET_CATEGORIES_QUERY, 
+    {}, 
+    REVALIDATE_TIME.CATEGORIES
+  );
   return data?.productCategories?.nodes || [];
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
-  const data = await fetchAPI(GET_PRODUCT_BY_SLUG_QUERY, { variables: { id: slug } }, REVALIDATE_TIME.PRODUCTS);
+  const data = await fetchAPI(
+    GET_PRODUCT_BY_SLUG_QUERY, 
+    { variables: { id: slug } }, 
+    REVALIDATE_TIME.PRODUCTS
+  );
   return data?.product || null;
 }
