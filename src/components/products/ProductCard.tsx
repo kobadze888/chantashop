@@ -1,9 +1,7 @@
-// ფაილის გზა: src/components/products/ProductCard.tsx
-
 'use client';
 
 import Image from 'next/image';
-import { Link } from '@/navigation';
+import Link from 'next/link';
 import { ShoppingBag, Heart } from 'lucide-react';
 
 interface ProductProps {
@@ -13,16 +11,17 @@ interface ProductProps {
   price: string;
   image: string;
   category?: string;
+  locale: string;
 }
 
-export default function ProductCard({ title, price, image, category, slug }: ProductProps) {
+export default function ProductCard({ title, price, image, category, slug, locale }: ProductProps) {
   return (
-    <Link href={`/product/${slug}`} className="group relative block h-full">
+    <Link href={`/${locale}/product/${slug}`} className="group relative block h-full">
       <div className="relative bg-white rounded-2xl p-3 pb-4 shadow-sm hover:shadow-xl transition-all duration-300 border border-mocha-medium/20 h-full flex flex-col">
         
         <div className="relative aspect-[4/5] w-full rounded-xl overflow-hidden mb-3 bg-mocha-light">
           <Image 
-            src={image || 'https://placehold.co/400x500/D6CCC2/4A403A?text=Product'} 
+            src={image || '/placeholder.jpg'} 
             alt={title}
             fill
             className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
@@ -33,7 +32,7 @@ export default function ProductCard({ title, price, image, category, slug }: Pro
             <button 
               className="bg-white/80 backdrop-blur-md p-2 rounded-full text-mocha-dark hover:bg-mocha-DEFAULT hover:text-white transition-colors"
               aria-label="Add to Wishlist"
-              onClick={(e) => { e.preventDefault(); /* Add to wishlist logic */ }}
+              onClick={(e) => { e.preventDefault(); /* Add logic */ }}
             >
               <Heart className="w-4 h-4" />
             </button>
@@ -55,7 +54,7 @@ export default function ProductCard({ title, price, image, category, slug }: Pro
             <button 
               className="bg-mocha-dark text-white p-2 rounded-full hover:bg-mocha-DEFAULT transition-colors active:scale-95"
               aria-label="Add to Cart"
-              onClick={(e) => { e.preventDefault(); /* Add to cart logic */ }}
+              onClick={(e) => { e.preventDefault(); /* Add logic */ }}
             >
               <ShoppingBag className="w-4 h-4" />
             </button>
