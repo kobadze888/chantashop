@@ -1,8 +1,24 @@
-// src/types/index.ts
-
 export interface ProductImage {
   sourceUrl: string;
   altText?: string;
+}
+
+export interface Attribute {
+  name: string;
+  label?: string;
+  options?: string[]; // მშობელ პროდუქტზე (ხელმისაწვდომი ოფციები)
+  value?: string;     // ვარიაციაზე (კონკრეტული არჩეული მნიშვნელობა)
+}
+
+export interface Variation {
+  databaseId: number;
+  name: string;
+  price: string;
+  regularPrice?: string;
+  salePrice?: string;
+  stockStatus: string;
+  image?: ProductImage;
+  attributes?: { nodes: Attribute[] };
 }
 
 export interface Product {
@@ -22,6 +38,9 @@ export interface Product {
     title: string;
     metaDesc: string;
   };
+  // სპეციფიკური ველები ვარიაციული პროდუქტებისთვის
+  attributes?: { nodes: Attribute[] };
+  variations?: { nodes: Variation[] };
 }
 
 export interface Category {
@@ -33,10 +52,11 @@ export interface Category {
 }
 
 export interface CartItem {
-  id: number;
+  id: number; // ვარიაციის ID ან პროდუქტის ID
   name: string;
   price: string;
   image: string;
   quantity: number;
   slug: string;
+  selectedOptions?: Record<string, string>; // მაგ: { Color: "Red" }
 }
