@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
-import Header from "@/components/Header"; 
+// ვცვლით იმპორტის მისამართს ახალ ლოკაციაზე
+import Header from '../../components/layout/Header'; 
 import "../globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
