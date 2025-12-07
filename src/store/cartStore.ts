@@ -1,25 +1,23 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+// src/store/cartStore.ts
 
-interface CartItem {
-  id: number;
-  name: string;
-  price: string;
-  image: string;
-  quantity: number;
-}
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { CartItem } from '@/types';
 
 interface CartStore {
   items: CartItem[];
-  addItem: (item: CartItem) => void;
+  addItem: (item: Omit<CartItem, 'quantity'>) => void;
   removeItem: (id: number) => void;
+  updateQuantity: (id: number, action: 'inc' | 'dec') => void;
   clearCart: () => void;
+  totalPrice: () => number;
 }
 
 export const useCartStore = create<CartStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       items: [],
+      
       addItem: (item) => set((state) => {
         const existing = state.items.find((i) => i.id === item.id);
         if (existing) {
@@ -31,11 +29,37 @@ export const useCartStore = create<CartStore>()(
         }
         return { items: [...state.items, { ...item, quantity: 1 }] };
       }),
+
       removeItem: (id) => set((state) => ({
         items: state.items.filter((i) => i.id !== id),
       })),
+
+      updateQuantity: (id, action) => set((state) => ({
+        items: state.items.map((i) => {
+          if (i.id === id) {
+            return { 
+              ...i, 
+              quantity: action === 'inc' ? i.quantity + 1 : Math.max(1, i.quantity - 1) 
+            };
+          }
+          return i;
+        })
+      })),
+
       clearCart: () => set({ items: [] }),
+
+      // ფასის დათვლა: შლის სიმბოლოებს და ტოვებს რიცხვს
+      totalPrice: () => {
+        const items = get().items;
+        return items.reduce((total, item) => {
+           const numericPrice = parseFloat(item.price.replace(/[^0-9.]/g, '')); 
+           return total + (isNaN(numericPrice) ? 0 : numericPrice * item.quantity);
+        }, 0);
+      }
     }),
-    { name: 'shopping-cart' }
+    { 
+      name: 'chantashop-cart',
+      storage: createJSONStorage(() => localStorage)
+    }
   )
 );

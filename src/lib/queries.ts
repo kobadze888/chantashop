@@ -1,3 +1,5 @@
+// src/lib/queries.ts
+
 const PRODUCT_FRAGMENT = `
   fragment ProductFragment on Product {
     id
@@ -46,6 +48,26 @@ export const GET_CATEGORIES_QUERY = `
         image {
           sourceUrl
         }
+      }
+    }
+  }
+`;
+
+export const GET_PRODUCT_BY_SLUG_QUERY = `
+  ${PRODUCT_FRAGMENT} 
+  query GetProductBySlug($id: ID!) {
+    product(id: $id, idType: SLUG) {
+      ...ProductFragment
+      galleryImages {
+        nodes {
+          sourceUrl
+          altText
+        }
+      }
+      description
+      seo {
+        title
+        metaDesc
       }
     }
   }

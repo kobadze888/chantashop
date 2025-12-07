@@ -1,18 +1,26 @@
+// src/components/layout/Header.tsx
+
 'use client';
 
-import { Link } from '@/navigation'; // შევცვალეთ next/link -> @/navigation
+import { Link } from '@/navigation';
 import { Search, ShoppingBag, Menu, Heart } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useCartStore } from '@/store/cartStore';
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const items = useCartStore((state) => state.items);
 
-  // სქროლის ეფექტი: როცა ჩამოწევ, ჰედერი "შუშის" ხდება
+  // სქროლის ეფექტი და Hydration დაცვა
   useEffect(() => {
+    setMounted(true);
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const cartCount = mounted ? items.reduce((acc, item) => acc + item.quantity, 0) : 0;
 
   return (
     <>
@@ -43,10 +51,15 @@ export default function Header() {
           </div>
           <button className="hover:text-mocha-DEFAULT transition"><Search className="w-5 h-5" /></button>
           <button className="hover:text-mocha-DEFAULT transition"><Heart className="w-5 h-5" /></button>
-          <button className="hover:text-mocha-DEFAULT transition relative">
+          
+          <Link href="/cart" className="hover:text-mocha-DEFAULT transition relative">
             <ShoppingBag className="w-5 h-5" />
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] w-3.5 h-3.5 flex items-center justify-center rounded-full font-bold">0</span>
-          </button>
+            {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] w-3.5 h-3.5 flex items-center justify-center rounded-full font-bold">
+                    {cartCount}
+                </span>
+            )}
+          </Link>
         </div>
       </header>
 
@@ -60,10 +73,12 @@ export default function Header() {
             CHANTA.GE
          </Link>
          
-         <button className="glass-panel p-2.5 rounded-full relative text-mocha-dark active:scale-95 transition">
+         <Link href="/cart" className="glass-panel p-2.5 rounded-full relative text-mocha-dark active:scale-95 transition">
             <ShoppingBag className="w-5 h-5" />
-            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border border-white"></span>
-         </button>
+            {cartCount > 0 && (
+                <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border border-white"></span>
+            )}
+         </Link>
       </header>
     </>
   );

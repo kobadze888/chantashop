@@ -1,5 +1,8 @@
+// src/lib/api.ts
+
 import { WORDPRESS_API_URL, REVALIDATE_TIME } from './constants';
-import { GET_PRODUCTS_QUERY, GET_CATEGORIES_QUERY } from './queries';
+import { GET_PRODUCTS_QUERY, GET_CATEGORIES_QUERY, GET_PRODUCT_BY_SLUG_QUERY } from './queries';
+import { Product, Category } from '@/types';
 
 async function fetchAPI(query: string, { variables }: { variables?: any } = {}, revalidateTime: number) {
   const headers = { 'Content-Type': 'application/json' };
@@ -26,12 +29,17 @@ async function fetchAPI(query: string, { variables }: { variables?: any } = {}, 
   }
 }
 
-export async function getProducts(limit = 20) {
+export async function getProducts(limit = 20): Promise<Product[]> {
   const data = await fetchAPI(GET_PRODUCTS_QUERY, { variables: { first: limit } }, REVALIDATE_TIME.PRODUCTS);
   return data?.products?.nodes || [];
 }
 
-export async function getCategories() {
+export async function getCategories(): Promise<Category[]> {
   const data = await fetchAPI(GET_CATEGORIES_QUERY, {}, REVALIDATE_TIME.CATEGORIES);
   return data?.productCategories?.nodes || [];
+}
+
+export async function getProductBySlug(slug: string): Promise<Product | null> {
+  const data = await fetchAPI(GET_PRODUCT_BY_SLUG_QUERY, { variables: { id: slug } }, REVALIDATE_TIME.PRODUCTS);
+  return data?.product || null;
 }
