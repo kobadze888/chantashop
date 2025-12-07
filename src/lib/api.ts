@@ -1,33 +1,31 @@
-const API_URL = process.env.NEXT_PUBLIC_WORDPRESS_API_URL as string;
+// src/lib/api.ts
+const API_URL = process.env.NEXT_PUBLIC_WORDPRESS_API_URL;
 
 async function fetchAPI(query: string, { variables }: { variables?: any } = {}) {
   const headers = { 'Content-Type': 'application/json' };
   
-  try {
-    const res = await fetch(API_URL, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ query, variables }),
-      next: { revalidate: 3600 }, // Cache for 1 hour
-    });
+  // ISR (Incremental Static Regeneration) - ყოველ 1 საათში განახლდება კეში
+  const res = await fetch(API_URL!, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ query, variables }),
+    next: { revalidate: 3600 }, 
+  });
 
-    const json = await res.json();
-    
-    if (json.errors) {
-      console.error('GraphQL Errors:', json.errors);
-      throw new Error('Failed to fetch API');
-    }
-    return json.data;
-  } catch (error) {
-    console.error(error);
-    return null;
+  const json = await res.json();
+  if (json.errors) {
+    console.error('GraphQL Errors:', json.errors);
+    throw new Error('Failed to fetch API');
   }
+  return json.data;
 }
 
-export async function getProducts(first = 20) {
+// პროდუქტების წამოღება (Home Page-ისთვის)
+export async function getProducts(first = 20, lang = 'KA') {
+  // შენიშვნა: WooGraphQL-ს ენის მიხედვით ფილტრაცია სჭირდება თუ Polylang-ს იყენებ
   const data = await fetchAPI(`
     query GetProducts($first: Int!) {
-      products(first: $first) {
+      products(first: $first, where: { orderby: { field: DATE, order: DESC } }) {
         nodes {
           id
           databaseId
@@ -38,18 +36,16 @@ export async function getProducts(first = 20) {
             altText
           }
           ... on SimpleProduct {
-            price
-            regularPrice
+            price(format: FORMATTED)
+            regularPrice(format: FORMATTED)
+            salePrice(format: FORMATTED)
+            onSale
           }
           ... on VariableProduct {
-            price
-            regularPrice
-          }
-          productCategories {
-            nodes {
-              name
-              slug
-            }
+            price(format: FORMATTED)
+            regularPrice(format: FORMATTED)
+            salePrice(format: FORMATTED)
+            onSale
           }
         }
       }
@@ -57,4 +53,23 @@ export async function getProducts(first = 20) {
   `, { variables: { first } });
 
   return data?.products?.nodes || [];
+}
+
+// კატეგორიების წამოღება
+export async function getCategories() {
+    const data = await fetchAPI(`
+      query GetCategories {
+        productCategories(first: 10, where: {parent: 0, hideEmpty: true}) {
+          nodes {
+            id
+            name
+            slug
+            image {
+              sourceUrl
+            }
+          }
+        }
+      }
+    `);
+    return data?.productCategories?.nodes || [];
 }
