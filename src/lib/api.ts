@@ -1,12 +1,10 @@
 // src/lib/api.ts
-
 import { WORDPRESS_API_URL, REVALIDATE_TIME } from './constants';
 import { GET_PRODUCTS_QUERY, GET_CATEGORIES_QUERY, GET_PRODUCT_BY_SLUG_QUERY } from './queries';
 import { Product, Category } from '@/types';
 
 async function fetchAPI(query: string, { variables }: { variables?: any } = {}, revalidateTime: number) {
   const headers = { 'Content-Type': 'application/json' };
-
   try {
     const res = await fetch(WORDPRESS_API_URL, {
       method: 'POST',
@@ -14,14 +12,11 @@ async function fetchAPI(query: string, { variables }: { variables?: any } = {}, 
       body: JSON.stringify({ query, variables }),
       next: { revalidate: revalidateTime },
     });
-
     const json = await res.json();
-
     if (json.errors) {
       console.error('WPGraphQL Error:', json.errors);
       return null;
     }
-
     return json.data;
   } catch (error) {
     console.error('API Fetch Error:', error);
@@ -29,8 +24,7 @@ async function fetchAPI(query: string, { variables }: { variables?: any } = {}, 
   }
 }
 
-// ენის არგუმენტი ამოღებულია ფუნქციებიდან დროებით
-export async function getProducts(limit = 20): Promise<Product[]> {
+export async function getProducts(limit = 100): Promise<Product[]> {
   const data = await fetchAPI(
     GET_PRODUCTS_QUERY, 
     { variables: { first: limit } }, 

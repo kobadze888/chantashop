@@ -12,6 +12,9 @@ const PRODUCT_FRAGMENT = `
       sourceUrl
       altText
     }
+    language {
+      code
+    }
     productCategories {
       nodes {
         id
@@ -61,7 +64,7 @@ const PRODUCT_FRAGMENT = `
   }
 `;
 
-// ენის ფილტრი ამოღებულია დროებით, რომ API-მ იმუშაოს
+// ⚠️ ფილტრი ამოღებულია დროებით
 export const GET_PRODUCTS_QUERY = `
   ${PRODUCT_FRAGMENT}
   query GetProducts($first: Int!) {
@@ -73,6 +76,7 @@ export const GET_PRODUCTS_QUERY = `
   }
 `;
 
+// ⚠️ ფილტრი ამოღებულია
 export const GET_CATEGORIES_QUERY = `
   query GetCategories {
     productCategories(first: 20, where: { parent: 0, hideEmpty: true }) {
