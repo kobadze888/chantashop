@@ -48,18 +48,17 @@ export const useCartStore = create<CartStore>()(
 
       clearCart: () => set({ items: [] }),
 
-      // ✅ შესწორებული: ფასის უსაფრთხო დათვლა
-      totalPrice: () => {
-        const items = get().items;
-        return items.reduce((total, item) => {
-           // ვამოწმებთ, რომ ფასი არსებობს და არის სტრინგი
-           if (!item.price || typeof item.price !== 'string') return total;
-
-           // ვშლით ყველაფერს გარდა ციფრებისა და წერტილისა
-           const numericPrice = parseFloat(item.price.replace(/[^0-9.]/g, '')); 
-           return total + (isNaN(numericPrice) ? 0 : numericPrice * item.quantity);
-        }, 0);
-      }
+// src/store/cartStore.ts - განაახლეთ totalPrice ფუნქცია
+totalPrice: () => {
+  const items = get().items;
+  return items.reduce((total, item) => {
+      // უსაფრთხოების შემოწმება: თუ ფასი არ არსებობს, ჩათვალოს 0-ად
+      if (!item.price || typeof item.price !== 'string') return total;
+      
+      const numericPrice = parseFloat(item.price.replace(/[^0-9.]/g, '')); 
+      return total + (isNaN(numericPrice) ? 0 : numericPrice * item.quantity);
+  }, 0);
+}
     }),
     { 
       name: 'chantashop-cart',

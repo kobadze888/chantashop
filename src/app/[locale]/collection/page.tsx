@@ -1,41 +1,60 @@
 // src/app/[locale]/collection/page.tsx
-
 import { Metadata } from 'next';
 import { getProducts, getFilters } from '@/lib/api';
 import CatalogClient from '@/components/catalog/CatalogClient';
+import { Product } from '@/types';
 
 export const metadata: Metadata = {
   title: 'სრული კატალოგი | ChantaShop',
   description: 'Premium Bags Collection',
 };
 
-export default async function CollectionPage({ params }: { params: Promise<{ locale: string }> }) {
+export default async function CollectionPage({ 
+  params, 
+  searchParams 
+}: { 
+  params: Promise<{ locale: string }>,
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }> 
+}) {
   const { locale } = await params;
+  const resolvedSearchParams = await searchParams;
 
-  // 1. ვიღებთ ამ ენის პროდუქტებს (1000 ცალს) და ყველა ფილტრს
-  const [products, filters] = await Promise.all([
-    getProducts(1000, locale), 
+  // URL-დან პარამეტრების ამოღება
+  const category = typeof resolvedSearchParams.category === 'string' ? resolvedSearchParams.category : 'all';
+  const color = typeof resolvedSearchParams.color === 'string' ? resolvedSearchParams.color : 'all';
+  const material = typeof resolvedSearchParams.material === 'string' ? resolvedSearchParams.material : 'all';
+  const maxPrice = typeof resolvedSearchParams.maxPrice === 'string' ? parseInt(resolvedSearchParams.maxPrice) : 5000;
+
+  // API მოთხოვნა (Server-Side Filtering)
+  const [productsRaw, filters] = await Promise.all([
+    getProducts({ 
+      category: category !== 'all' ? category : undefined,
+      color: color !== 'all' ? color : undefined,
+      material: material !== 'all' ? material : undefined,
+      maxPrice: maxPrice < 5000 ? maxPrice : undefined,
+      limit: 100 
+    }, locale), 
     getFilters()
   ]);
 
   const targetLang = locale.toUpperCase();
 
-  // 2. ვფილტრავთ კატეგორიებს ენის მიხედვით (რომ ინგლისური არ გამოჩნდეს ქართულზე და პირიქით)
-  // ასევე ვტოვებთ "ნეიტრალურ" (ენის გარეშე) კატეგორიებს, როგორიცაა YSL, Gucci
+  // ენის ფილტრაცია (Safety Check)
+  const products = productsRaw.filter((p: Product) => {
+    const prodLang = p.language?.code;
+    return !prodLang || prodLang === targetLang;
+  });
+
   const filterByLang = (item: any) => 
     !item.safeLanguage || item.safeLanguage === "" || item.safeLanguage === targetLang;
-
-  const filteredCategories = filters.categories.filter(filterByLang);
-  const filteredColors = filters.colors.filter(filterByLang);
-  const filteredSizes = filters.sizes.filter(filterByLang);
 
   return (
     <main className="pt-28 md:pt-36 pb-24 min-h-screen bg-white">
       <CatalogClient 
         initialProducts={products} 
-        categories={filteredCategories}
-        colors={filteredColors}
-        sizes={filteredSizes}
+        categories={filters.categories.filter(filterByLang)}
+        colors={filters.colors.filter(filterByLang)}
+        sizes={filters.sizes.filter(filterByLang)}
         locale={locale} 
       />
     </main>
