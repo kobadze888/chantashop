@@ -11,6 +11,7 @@ const PRODUCT_FRAGMENT = `
     image { sourceUrl altText }
     language { code }
     productCategories { nodes { id name slug } }
+    galleryImages { nodes { sourceUrl altText } }
     ... on SimpleProduct {
       price(format: RAW)
       regularPrice(format: RAW)

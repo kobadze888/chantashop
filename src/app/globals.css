@@ -38,3 +38,30 @@ input[type="checkbox"] { accent-color: var(--color-brand-DEFAULT); width: 1.25re
 .modal-enter-active { opacity: 1; transform: scale(1); transition: all 0.3s ease-out; }
 .modal-exit-active { opacity: 0; transform: scale(0.95); transition: all 0.2s ease-in; }
 
+/* --- Product Card Hover Styles for Image Swap --- */
+/* ეს სტილები უზრუნველყოფს სურათების შეცვლას ProductCard.tsx-ში */
+.product-card-image-wrapper .hover-image {
+  opacity: 0; /* მეორე სურათი თავიდან დამალულია */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 1.5rem;
+  z-index: 20; /* დარწმუნდით, რომ main-image-ს ზემოთაა */
+  transition: opacity 300ms ease-in-out;
+}
+
+.product-card-image-wrapper .main-image {
+  transition: opacity 300ms ease-in-out;
+}
+
+/* როდესაც მშობელ group-ზეა ჰოვერი: */
+.group:hover .product-card-image-wrapper .hover-image {
+  opacity: 1 !important; /* აჩვენებს hover სურათს */
+}
+
+.group:hover .product-card-image-wrapper .main-image {
+  opacity: 0 !important; /* მალავს მთავარ სურათს */
+}
