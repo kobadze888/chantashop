@@ -22,9 +22,6 @@ const PRODUCT_FRAGMENT = `
         slug
       }
     }
-    # ❌ აქედან ამოღებულია attributes (რამაც ერორი გამოიწვია)
-
-    # ✅ 1. ატრიბუტები მარტივი პროდუქტისთვის
     ... on SimpleProduct {
       price(format: RAW)
       regularPrice(format: RAW)
@@ -38,8 +35,6 @@ const PRODUCT_FRAGMENT = `
         }
       }
     }
-
-    # ✅ 2. ატრიბუტები ვარიაციული პროდუქტისთვის
     ... on VariableProduct {
       price(format: RAW)
       regularPrice(format: RAW)
@@ -80,6 +75,7 @@ const PRODUCT_FRAGMENT = `
   }
 `;
 
+// ✅ პროდუქტებს ისევ ვფილტრავთ ენით (სწორი მეთოდი)
 export const GET_PRODUCTS_QUERY = `
   ${PRODUCT_FRAGMENT}
   query GetProducts($first: Int!, $language: LanguageCodeFilterEnum!) {
@@ -91,9 +87,10 @@ export const GET_PRODUCTS_QUERY = `
   }
 `;
 
+// ✅ კატეგორიებს ვიღებთ სრულად (hideEmpty: false), რომ YSL (1) არ დაიმალოს
 export const GET_FILTERS_QUERY = `
   query GetFilters {
-    productCategories(first: 100, where: { parent: 0, hideEmpty: true }) {
+    productCategories(first: 1000, where: { hideEmpty: false }) {
       nodes {
         id
         name
@@ -105,7 +102,7 @@ export const GET_FILTERS_QUERY = `
         }
       }
     }
-    allPaColor(first: 100, where: { hideEmpty: true }) {
+    allPaColor(first: 1000, where: { hideEmpty: true }) {
       nodes {
         id
         name
@@ -114,7 +111,7 @@ export const GET_FILTERS_QUERY = `
         safeLanguage
       }
     }
-    allPaMasala(first: 100, where: { hideEmpty: true }) {
+    allPaMasala(first: 1000, where: { hideEmpty: true }) {
       nodes {
         id
         name
