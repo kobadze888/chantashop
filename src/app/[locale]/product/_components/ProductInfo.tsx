@@ -107,7 +107,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
                                         <button
                                             key={option}
                                             onClick={() => setSelectedOptions(prev => ({...prev, [attr.name]: option}))}
-                                            className={`w-14 h-14 rounded-full border-4 border-white shadow-lg transition transform ${isSelected ? 'ring-2 ring-brand-DEFAULT scale-110' : 'ring-1 ring-gray-200 hover:scale-105'}`}
+                                            className={`w-14 h-14 rounded-full border-4 border-white shadow-lg transition transform cursor-pointer ${isSelected ? 'ring-2 ring-brand-DEFAULT scale-110' : 'ring-1 ring-gray-200 hover:scale-105'}`}
                                             style={{ backgroundColor: bg }}
                                             title={option}
                                         />
@@ -118,7 +118,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
                                     <button
                                         key={option}
                                         onClick={() => setSelectedOptions(prev => ({...prev, [attr.name]: option}))}
-                                        className={`px-6 py-3 rounded-xl font-bold border transition ${isSelected ? 'bg-brand-dark text-white border-brand-dark' : 'bg-white text-brand-dark border-gray-200 hover:border-brand-dark'}`}
+                                        className={`px-6 py-3 rounded-xl font-bold border transition cursor-pointer ${isSelected ? 'bg-brand-dark text-white border-brand-dark' : 'bg-white text-brand-dark border-gray-200 hover:border-brand-dark'}`}
                                     >
                                         {option}
                                     </button>

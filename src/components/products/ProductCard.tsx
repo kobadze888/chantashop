@@ -54,7 +54,7 @@ export default function ProductCard({ id, name, price, salePrice, regularPrice, 
   const hoverImageSource = isValidImageUrl(secondImage) ? secondImage : null;
 
   return (
-    <div className={`group relative flex flex-col bg-white rounded-[2rem] p-4 transition-all hover:shadow-2xl hover:-translate-y-2 border border-gray-100 h-full ${className || ''}`}>
+    <div className={`group relative flex flex-col bg-white rounded-[2rem] p-4 transition-all hover:shadow-2xl hover:-translate-y-2 border border-gray-100 h-full cursor-pointer ${className || ''}`}>
       
       <Link 
         href={`/product/${slug}`} 

@@ -275,9 +275,9 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
                     <div>
                         <h4 className="font-bold mb-4 uppercase text-xs tracking-widest text-brand-dark">{locale === 'ka' ? 'ფერი' : 'Color'}</h4>
                         <div className="flex flex-wrap gap-4">
-                            <button onClick={() => handleColorChange('all')} className={`px-3 py-1 text-xs border rounded-full transition ${activeColor === 'all' ? 'bg-brand-dark text-white' : 'bg-white hover:border-brand-dark'}`}>{locale === 'ka' ? 'ყველა' : 'All'}</button>
+                            <button onClick={() => handleColorChange('all')} className={`px-3 py-1 text-xs border rounded-full transition cursor-pointer ${activeColor === 'all' ? 'bg-brand-dark text-white' : 'bg-white hover:border-brand-dark'}`}>{locale === 'ka' ? 'ყველა' : 'All'}</button>
                             {availableColors.map((color) => (
-                                <button key={color.id} onClick={() => handleColorChange(color.slug)} className={`w-8 h-8 rounded-full border-2 border-gray-200 transition duration-150 transform hover:scale-110 ${activeColor === color.slug ? 'color-swatch-selected' : ''}`} style={{ backgroundColor: colorMap[color.slug] || '#e5e7eb' }} title={color.name} />
+                                <button key={color.id} onClick={() => handleColorChange(color.slug)} className={`w-8 h-8 rounded-full border-2 border-gray-200 transition duration-150 transform hover:scale-110 cursor-pointer ${activeColor === color.slug ? 'color-swatch-selected' : ''}`} style={{ backgroundColor: colorMap[color.slug] || '#e5e7eb' }} title={color.name} />
                             ))}
                         </div>
                     </div>
@@ -376,9 +376,9 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
                 <div>
                     <h4 className="font-bold mb-6 uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2">{locale === 'ka' ? 'ფერი' : 'Color'}</h4>
                     <div className="flex flex-wrap gap-4">
-                        <button onClick={() => handleColorChange('all')} className={`px-3 py-1 text-xs border rounded-full transition ${activeColor === 'all' ? 'bg-brand-dark text-white' : 'bg-white hover:border-brand-dark'}`}>All</button>
+                        <button onClick={() => handleColorChange('all')} className={`px-3 py-1 text-xs border rounded-full transition cursor-pointer ${activeColor === 'all' ? 'bg-brand-dark text-white' : 'bg-white hover:border-brand-dark'}`}>All</button>
                         {availableColors.map((color) => (
-                            <button key={color.id} onClick={() => handleColorChange(color.slug)} className={`w-8 h-8 rounded-full border-2 border-gray-200 transition duration-150 transform hover:scale-110 ${activeColor === color.slug ? 'color-swatch-selected' : ''}`} style={{ backgroundColor: colorMap[color.slug] || '#e5e7eb' }} title={color.name} />
+                            <button key={color.id} onClick={() => handleColorChange(color.slug)} className={`w-8 h-8 rounded-full border-2 border-gray-200 transition duration-150 transform hover:scale-110 cursor-pointer ${activeColor === color.slug ? 'color-swatch-selected' : ''}`} style={{ backgroundColor: colorMap[color.slug] || '#e5e7eb' }} title={color.name} />
                         ))}
                     </div>
                 </div>

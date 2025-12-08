@@ -1,3 +1,4 @@
+// src/navigation.ts
 import {createNavigation} from 'next-intl/navigation';
 import {defineRouting} from 'next-intl/routing';
 
@@ -10,7 +11,16 @@ export const routing = defineRouting({
   
   // კრიტიკული პარამეტრი: 'as-needed' მალავს /ka/ პრეფიქსს URL-დან,
   // მაგრამ ტოვებს /en/ და /ru/ პრეფიქსებს.
-  localePrefix: 'as-needed'
+  localePrefix: 'as-needed',
+
+  // ✅ ახალი pathnames კონფიგურაცია
+  pathnames: {
+    '/collection': {
+      ka: '/shop', // შიდა /collection გვერდი ქართულად იქნება /shop
+      en: '/shop', // ინგლისურად იქნება /en/shop
+      ru: '/shop', // რუსულად იქნება /ru/shop
+    },
+  },
 });
 
 export const {Link, redirect, usePathname, useRouter} = createNavigation(routing);
