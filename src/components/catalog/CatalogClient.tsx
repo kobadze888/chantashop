@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { SlidersHorizontal, X, ChevronDown } from 'lucide-react';
+import { SlidersHorizontal } from 'lucide-react';
 import ProductCard from '@/components/products/ProductCard';
 import type { Product, Category, FilterTerm } from '@/types';
 
@@ -11,30 +11,22 @@ interface CatalogClientProps {
   initialProducts: Product[];
   categories: Category[];
   colors: FilterTerm[];
-  sizes: FilterTerm[]; // ეს რეალურად მასალებია
+  sizes: FilterTerm[]; // რეალურად მასალები (pa_masala)
   locale: string;
 }
 
-// 🛠️ ფასის გასუფთავების გაუმჯობესებული ფუნქცია
-// იღებს: "45.00&nbsp;₾", "20.00, 40.00", "1,200.00"
-// აბრუნებს: 45, 20, 1200
-const parsePrice = (priceString: string | undefined): number => {
+// ✅ ფასის გასუფთავება (მუშაობს "20.00, 20.00"-ზეც)
+const parsePrice = (priceString: string | undefined | null): number => {
   if (!priceString) return 0;
-  // 1. ვშლით სტრინგს მძიმეზე, თუ ვარიაციულია (მაგ: "20.00, 40.00")
-  // მაგრამ ჯერ უნდა გავარკვიოთ, მძიმე ათწილადია თუ გამყოფი.
-  // ჩვეულებრივ WooGraphQL აბრუნებს "20.00, 40.00" (space-ით).
-  
-  // უსაფრთხო მიდგომა: ვიყენებთ Regex-ს, რომ ამოვიღოთ მხოლოდ რიცხვები და წერტილი
+  // ამოვიღოთ ყველა რიცხვი
   const matches = priceString.match(/(\d+\.?\d*)/g);
-  
   if (!matches || matches.length === 0) return 0;
-
-  // ვიღებთ ყველა ნაპოვნი რიცხვის მინიმუმს
+  // დავაბრუნოთ მინიმალური ფასი
   const prices = matches.map(p => parseFloat(p));
-  return Math.min(...prices) || 0;
+  return Math.min(...prices);
 };
 
-// 🎨 ფერების რუკა (სლაგების მიხედვით - საიტმაპიდან)
+// ფერების ვიზუალიზაცია
 const colorMap: Record<string, string> = {
   'shavi': '#000000',
   'tetri': '#FFFFFF',
@@ -57,52 +49,48 @@ const colorMap: Record<string, string> = {
 export default function CatalogClient({ initialProducts, categories, colors, sizes, locale }: CatalogClientProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedColor, setSelectedColor] = useState<string>('all');
-  const [selectedSize, setSelectedSize] = useState<string>('all');
+  const [selectedSize, setSelectedSize] = useState<string>('all'); // pa_masala
   const [maxPrice, setMaxPrice] = useState<number>(2000);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const filteredProducts = useMemo(() => {
     return initialProducts.filter((product) => {
       
-      // 1. კატეგორია
+      // 1. 📂 კატეგორიის ფილტრი
       const categoryMatch = selectedCategory === 'all' 
         ? true 
         : product.productCategories?.nodes.some(c => c.slug === selectedCategory);
 
-      // 2. ფერი (შედარება სლაგით ან სახელით)
+      // 2. 🎨 ფერის ფილტრი (pa_color)
       const colorMatch = selectedColor === 'all'
         ? true
         : product.attributes?.nodes.some(attr => {
-            // ვპოულობთ არჩეული ფერის ობიექტს (რომ გავიგოთ მისი სახელი, მაგ: "შავი")
-            const selectedColorObj = colors.find(c => c.slug === selectedColor);
-            if (!selectedColorObj) return false;
-
-            // ვამოწმებთ, არის თუ არა ეს სახელი პროდუქტის ატრიბუტებში
-            // ვიყენებთ toLowerCase()-ს და trim()-ს სიზუსტისთვის
-            return attr.options?.some(opt => 
-              opt.toLowerCase().trim() === selectedColorObj.name.toLowerCase().trim()
-            );
+            // ვამოწმებთ არის თუ არა ეს ატრიბუტი ფერი
+            if (attr.name !== 'pa_color') return false;
+            
+            // ვამოწმებთ, შეიცავს თუ არა options არჩეულ სლაგს (მაგ: "shavi")
+            // თქვენს JSON-ში options მოდის როგორც ["shavi"], ["lurji"]
+            return attr.options?.some(opt => opt.toLowerCase() === selectedColor.toLowerCase());
           });
 
-      // 3. მასალა/ზომა
+      // 3. 🧵 მასალის ფილტრი (pa_masala - კოდში sizes)
       const sizeMatch = selectedSize === 'all'
         ? true
         : product.attributes?.nodes.some(attr => {
-            const selectedSizeObj = sizes.find(s => s.slug === selectedSize);
-            if (!selectedSizeObj) return false;
-            return attr.options?.some(opt => 
-              opt.toLowerCase().trim() === selectedSizeObj.name.toLowerCase().trim()
-            );
+            if (attr.name !== 'pa_masala') return false;
+            
+            // JSON-ში მასალაც სლაგად მოდის (მაგ: "eko_tyavi")
+            return attr.options?.some(opt => opt.toLowerCase() === selectedSize.toLowerCase());
           });
 
-      // 4. ფასი
+      // 4. 💰 ფასის ფილტრი
       const productPrice = parsePrice(product.price);
-      // თუ პროდუქტს ფასი არ აქვს (0), ვთვლით რომ ეტევა (ან შეგიძლიათ დამალოთ: productPrice > 0 && ...)
+      // თუ ფასი 0-ია (ვერ ამოიკითხა), მაინც ვაჩვენოთ, ან შეგვიძლია დავმალოთ (productPrice > 0 && ...)
       const priceMatch = productPrice <= maxPrice;
 
       return categoryMatch && colorMatch && sizeMatch && priceMatch;
     });
-  }, [initialProducts, selectedCategory, selectedColor, selectedSize, maxPrice, colors, sizes]);
+  }, [initialProducts, selectedCategory, selectedColor, selectedSize, maxPrice]);
 
   return (
     <>
@@ -119,7 +107,7 @@ export default function CatalogClient({ initialProducts, categories, colors, siz
               </div>
               <div className="flex gap-4 w-full md:w-auto">
                   <button 
-                    onClick={() => setMobileFiltersOpen(true)}
+                    onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
                     className="md:hidden flex-1 bg-gray-100 text-brand-dark py-3 px-6 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm active:scale-95 transition"
                   >
                       <SlidersHorizontal className="w-5 h-5" /> {locale === 'ka' ? 'ფილტრაცია' : 'Filter'}
@@ -130,12 +118,16 @@ export default function CatalogClient({ initialProducts, categories, colors, siz
 
       <div className="container mx-auto px-4 flex gap-12 relative">
         
-        {/* MOBILE FILTER OVERLAY - (იგივე ლოგიკა რაც დესკტოპზე) */}
-        {/* ... (გამარტივებისთვის კოდს არ ვიმეორებ, გამოიყენეთ იგივე რაც Sidebar-ში) ... */}
-
-        {/* SIDEBAR (DESKTOP) */}
-        <aside className="hidden md:block w-1/4 space-y-10 sticky top-32 h-fit">
+        {/* SIDEBAR (DESKTOP) & MOBILE OVERLAY logic here... keeping structure simple */}
+        <aside className={`${mobileFiltersOpen ? 'fixed inset-0 z-50 bg-white p-6 overflow-y-auto' : 'hidden'} md:block md:w-1/4 md:static md:p-0 space-y-10 md:sticky md:top-32 md:h-fit`}>
             
+            {mobileFiltersOpen && (
+                <div className="flex justify-between items-center mb-6 md:hidden">
+                    <h3 className="font-bold text-xl">ფილტრაცია</h3>
+                    <button onClick={() => setMobileFiltersOpen(false)} className="p-2 bg-gray-100 rounded-full">✕</button>
+                </div>
+            )}
+
             {/* Categories */}
             <div>
                 <h4 className="font-bold mb-6 uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2">
@@ -145,7 +137,7 @@ export default function CatalogClient({ initialProducts, categories, colors, siz
                     <label className="flex items-center gap-3 cursor-pointer group">
                         <input 
                             type="radio" 
-                            name="cat_desktop"
+                            name="cat_filter"
                             checked={selectedCategory === 'all'}
                             onChange={() => setSelectedCategory('all')}
                             className="accent-brand-DEFAULT w-5 h-5"
@@ -156,7 +148,7 @@ export default function CatalogClient({ initialProducts, categories, colors, siz
                         <label key={cat.id} className="flex items-center gap-3 cursor-pointer group">
                             <input 
                                 type="radio"
-                                name="cat_desktop"
+                                name="cat_filter"
                                 checked={selectedCategory === cat.slug}
                                 onChange={() => setSelectedCategory(cat.slug)}
                                 className="accent-brand-DEFAULT w-5 h-5"
@@ -177,7 +169,7 @@ export default function CatalogClient({ initialProducts, categories, colors, siz
                     <div className="flex flex-wrap gap-3">
                         <button
                              onClick={() => setSelectedColor('all')}
-                             className={`px-3 py-1 text-xs border rounded-full ${selectedColor === 'all' ? 'bg-brand-dark text-white' : 'bg-white'}`}
+                             className={`px-3 py-1 text-xs border rounded-full transition ${selectedColor === 'all' ? 'bg-brand-dark text-white' : 'bg-white hover:border-brand-dark'}`}
                         >All</button>
                         {colors.map((color) => (
                             <button
@@ -196,7 +188,7 @@ export default function CatalogClient({ initialProducts, categories, colors, siz
                 </div>
             )}
 
-            {/* Sizes / Materials */}
+            {/* Materials (Mapped to Sizes prop) */}
             {sizes.length > 0 && (
                 <div>
                     <h4 className="font-bold mb-6 uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2">
@@ -205,7 +197,7 @@ export default function CatalogClient({ initialProducts, categories, colors, siz
                     <div className="flex flex-wrap gap-2">
                         <button
                              onClick={() => setSelectedSize('all')}
-                             className={`px-3 py-1 text-xs border rounded-lg ${selectedSize === 'all' ? 'bg-brand-dark text-white' : 'bg-white'}`}
+                             className={`px-3 py-1 text-xs border rounded-lg ${selectedSize === 'all' ? 'bg-brand-dark text-white' : 'bg-white hover:border-brand-dark'}`}
                         >All</button>
                         {sizes.map((size) => (
                             <button
@@ -234,7 +226,7 @@ export default function CatalogClient({ initialProducts, categories, colors, siz
                         type="range" 
                         className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand-DEFAULT" 
                         min="0" 
-                        max="2000" 
+                        max="500" 
                         step="10" 
                         value={maxPrice}
                         onChange={(e) => setMaxPrice(Number(e.target.value))}
@@ -252,7 +244,7 @@ export default function CatalogClient({ initialProducts, categories, colors, siz
             <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8 md:gap-8">
                 {filteredProducts.map((product) => (
                     <ProductCard 
-                        key={product.databaseId}
+                        key={product.databaseId || product.id} // Fallback ID
                         id={product.databaseId}
                         name={product.name}
                         price={product.price ? `${parsePrice(product.price)} ₾` : ''}
@@ -267,8 +259,19 @@ export default function CatalogClient({ initialProducts, categories, colors, siz
             </div>
             
             {filteredProducts.length === 0 && (
-                <div className="text-center py-20 text-gray-400">
-                    {locale === 'ka' ? 'პროდუქტები არ მოიძებნა.' : 'No products found.'}
+                <div className="text-center py-20 text-gray-400 flex flex-col items-center">
+                    <p>{locale === 'ka' ? 'პროდუქტები არ მოიძებნა.' : 'No products found.'}</p>
+                    <button 
+                        onClick={() => {
+                            setSelectedCategory('all');
+                            setSelectedColor('all');
+                            setSelectedSize('all');
+                            setMaxPrice(2000);
+                        }}
+                        className="mt-4 text-brand-DEFAULT underline text-sm"
+                    >
+                        {locale === 'ka' ? 'ფილტრის გასუფთავება' : 'Clear filters'}
+                    </button>
                 </div>
             )}
         </div>
