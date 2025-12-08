@@ -48,13 +48,14 @@ export const useCartStore = create<CartStore>()(
 
       clearCart: () => set({ items: [] }),
 
-      // ✅ შესწორებული ფასის დათვლა
+      // ✅ შესწორებული: ფასის უსაფრთხო დათვლა
       totalPrice: () => {
         const items = get().items;
         return items.reduce((total, item) => {
            // ვამოწმებთ, რომ ფასი არსებობს და არის სტრინგი
            if (!item.price || typeof item.price !== 'string') return total;
 
+           // ვშლით ყველაფერს გარდა ციფრებისა და წერტილისა
            const numericPrice = parseFloat(item.price.replace(/[^0-9.]/g, '')); 
            return total + (isNaN(numericPrice) ? 0 : numericPrice * item.quantity);
         }, 0);
