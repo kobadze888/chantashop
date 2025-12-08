@@ -22,17 +22,33 @@ const PRODUCT_FRAGMENT = `
         slug
       }
     }
+    # ❌ აქედან ამოღებულია attributes (რამაც ერორი გამოიწვია)
+
+    # ✅ 1. ატრიბუტები მარტივი პროდუქტისთვის
     ... on SimpleProduct {
       price(format: RAW)
       regularPrice(format: RAW)
       salePrice(format: RAW)
       stockStatus
+      attributes {
+        nodes {
+          name
+          label
+          options
+        }
+      }
     }
+
+    # ✅ 2. ატრიბუტები ვარიაციული პროდუქტისთვის
     ... on VariableProduct {
       price(format: RAW)
       regularPrice(format: RAW)
       salePrice(format: RAW)
       stockStatus
+      image {
+        sourceUrl
+        altText
+      }
       attributes {
         nodes {
           name
@@ -64,11 +80,10 @@ const PRODUCT_FRAGMENT = `
   }
 `;
 
-// ⚠️ ფილტრი ამოღებულია დროებით
 export const GET_PRODUCTS_QUERY = `
   ${PRODUCT_FRAGMENT}
-  query GetProducts($first: Int!) {
-    products(first: $first, where: { orderby: { field: DATE, order: DESC } }) {
+  query GetProducts($first: Int!, $language: LanguageCodeFilterEnum!) {
+    products(first: $first, where: { language: $language, orderby: { field: DATE, order: DESC } }) {
       nodes {
         ...ProductFragment
       }
@@ -76,19 +91,36 @@ export const GET_PRODUCTS_QUERY = `
   }
 `;
 
-// ⚠️ ფილტრი ამოღებულია
-export const GET_CATEGORIES_QUERY = `
-  query GetCategories {
-    productCategories(first: 20, where: { parent: 0, hideEmpty: true }) {
+export const GET_FILTERS_QUERY = `
+  query GetFilters {
+    productCategories(first: 100, where: { parent: 0, hideEmpty: true }) {
       nodes {
         id
-        databaseId
         name
         slug
         count
+        safeLanguage
         image {
           sourceUrl
         }
+      }
+    }
+    allPaColor(first: 100, where: { hideEmpty: true }) {
+      nodes {
+        id
+        name
+        slug
+        count
+        safeLanguage
+      }
+    }
+    allPaMasala(first: 100, where: { hideEmpty: true }) {
+      nodes {
+        id
+        name
+        slug
+        count
+        safeLanguage
       }
     }
   }

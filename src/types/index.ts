@@ -1,3 +1,5 @@
+// src/types/index.ts
+
 export interface ProductImage {
   sourceUrl: string;
   altText?: string;
@@ -6,8 +8,17 @@ export interface ProductImage {
 export interface Attribute {
   name: string;
   label?: string;
-  options?: string[]; // მშობელ პროდუქტზე (ხელმისაწვდომი ოფციები)
-  value?: string;     // ვარიაციაზე (კონკრეტული არჩეული მნიშვნელობა)
+  options?: string[];
+  value?: string;
+}
+
+// ✅ ახალი ტიპი ფილტრებისთვის (ფერი, ზომა, კატეგორია)
+export interface FilterTerm {
+  id: string;
+  name: string;
+  slug: string;
+  count?: number;
+  safeLanguage?: string;
 }
 
 export interface Variation {
@@ -38,25 +49,22 @@ export interface Product {
     title: string;
     metaDesc: string;
   };
-  // სპეციფიკური ველები ვარიაციული პროდუქტებისთვის
+  language?: { code: string }; // ესეც დავამატოთ
   attributes?: { nodes: Attribute[] };
   variations?: { nodes: Variation[] };
+  productCategories?: { nodes: FilterTerm[] }; // განახლდა
 }
 
-export interface Category {
-  id: string;
-  name: string;
-  slug: string;
-  count?: number;
+export interface Category extends FilterTerm {
   image?: ProductImage;
 }
 
 export interface CartItem {
-  id: number; // ვარიაციის ID ან პროდუქტის ID
+  id: number;
   name: string;
   price: string;
   image: string;
   quantity: number;
   slug: string;
-  selectedOptions?: Record<string, string>; // მაგ: { Color: "Red" }
+  selectedOptions?: Record<string, string>;
 }
