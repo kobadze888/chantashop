@@ -1,3 +1,4 @@
+// src/components/products/ProductCard.tsx
 'use client';
 
 import Image from 'next/image';
@@ -20,12 +21,20 @@ interface ProductCardProps {
   salePrice?: string;
   regularPrice?: string;
   image: string;
-  secondImage?: string;
+  secondImage?: string; 
   slug: string;
   locale: string;
   attributes?: any; 
   className?: string;
-  onQuickView?: (e: React.MouseEvent) => void; // ✅ ახალი პროპი მოდალისთვის
+  onQuickView?: (e: React.MouseEvent) => void;
+}
+
+// ✅ URL ვალიდატორი: ამოწმებს, არის თუ არა სტრიქონი სავარაუდო სურათის URL
+function isValidImageUrl(url: string | undefined): boolean {
+  if (!url) return false;
+  // Regex ამოწმებს, რომ URL-ი არ იყოს ძალიან მოკლე და მთავრდებოდეს სურათის გაფართოებით
+  const validUrlRegex = /\.(jpe?g|png|gif|webp|svg)$/i;
+  return url.length > 5 && validUrlRegex.test(url);
 }
 
 export default function ProductCard({ id, name, price, salePrice, regularPrice, image, secondImage, slug, attributes, className, onQuickView }: ProductCardProps) {
@@ -41,40 +50,51 @@ export default function ProductCard({ id, name, price, salePrice, regularPrice, 
   const colorAttribute = attributes?.nodes?.find((attr: any) => attr.name === 'pa_color');
   const colorOptions = colorAttribute?.options || [];
 
+  // ✅ ვიყენებთ ვალიდატორს: თუ URL არ არის ვალიდური, secondImageSource იქნება null
+  const hoverImageSource = isValidImageUrl(secondImage) ? secondImage : null;
+
   return (
     <div className={`group relative flex flex-col bg-white rounded-[2rem] p-4 transition-all hover:shadow-2xl hover:-translate-y-2 border border-gray-100 h-full ${className || ''}`}>
       
-      <Link href={`/product/${slug}`} className="block relative aspect-[4/5] bg-gray-50 rounded-[1.5rem] overflow-hidden mb-5">
-          {/* მთავარი სურათი (ქრება ჰოვერზე, თუ მეორე სურათი არსებობს) */}
+      <Link 
+        href={`/product/${slug}`} 
+        // ✅ Custom Wrapper კლასი
+        className="block relative aspect-[4/5] bg-gray-50 rounded-[1.5rem] overflow-hidden mb-5 product-card-image-wrapper"
+      >
+          
+          {/* ✅ მეორე სურათი (IMG ტეგით) - ჩნდება მხოლოდ თუ ვალიდური URL არსებობს */}
+          {hoverImageSource && (
+            <img 
+              src={hoverImageSource} 
+              alt={`${name} hover`} 
+              className="hover-image" // Custom class, opacity: 0 -> 100 on hover
+              loading="lazy"
+            />
+          )}
+
+          {/* ✅ მთავარი სურათი (Image კომპონენტი) */}
           <Image 
             src={image || '/placeholder.jpg'} 
             alt={name} 
             fill 
-            className={`object-cover transition-opacity duration-500 ease-in-out ${secondImage ? 'group-hover:opacity-0' : ''}`}
+            // თუ hoverImageSource არსებობს, ვამატებთ main-image კლასს, რომელიც CSS-ში ქრება hover-ზე.
+            // თუ არ არსებობს, არაფერი არ ქრება.
+            className={`object-cover z-10 ${hoverImageSource ? 'main-image' : ''}`}
+            priority={true} 
           />
           
-          {/* მეორე სურათი (ჩნდება ჰოვერზე) */}
-          {secondImage && (
-            <Image 
-              src={secondImage} 
-              alt={`${name} hover`} 
-              fill 
-              className="object-cover absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-in-out"
-            />
-          )}
-          
           {salePrice && (
-             <span className="absolute top-4 left-4 bg-brand-DEFAULT text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider z-10">
+             <span className="absolute top-4 left-4 bg-brand-DEFAULT text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider z-20">
                SALE
              </span>
           )}
 
           {/* Quick View ღილაკი */}
-          <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 hidden md:flex z-20 pointer-events-none">
+          <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 hidden md:flex z-30 pointer-events-none">
               <button 
                 onClick={(e) => {
                     e.preventDefault(); 
-                    e.stopPropagation(); // არ გადავიდეს პროდუქტის გვერდზე
+                    e.stopPropagation();
                     onQuickView?.(e);
                 }}
                 className="bg-white text-brand-dark w-12 h-12 rounded-full flex items-center justify-center hover:bg-brand-DEFAULT hover:text-white transition shadow-lg transform translate-y-4 group-hover:translate-y-0 duration-300 pointer-events-auto"

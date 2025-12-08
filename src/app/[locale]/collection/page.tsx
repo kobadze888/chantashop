@@ -24,6 +24,8 @@ export default async function CollectionPage({
   const color = typeof resolvedSearchParams.color === 'string' ? resolvedSearchParams.color : 'all';
   const material = typeof resolvedSearchParams.material === 'string' ? resolvedSearchParams.material : 'all';
   const maxPrice = typeof resolvedSearchParams.maxPrice === 'string' ? parseInt(resolvedSearchParams.maxPrice) : 5000;
+  // ✅ დაემატა sort პარამეტრის ამოღება
+  const sort = typeof resolvedSearchParams.sort === 'string' ? resolvedSearchParams.sort : 'DATE_DESC';
 
   // API მოთხოვნა (Server-Side Filtering)
   const [productsRaw, filters] = await Promise.all([
@@ -32,7 +34,8 @@ export default async function CollectionPage({
       color: color !== 'all' ? color : undefined,
       material: material !== 'all' ? material : undefined,
       maxPrice: maxPrice < 5000 ? maxPrice : undefined,
-      limit: 100 
+      limit: 100,
+      sort: sort as any // ✅ sort-ის გადაცემა
     }, locale), 
     getFilters()
   ]);

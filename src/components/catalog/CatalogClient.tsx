@@ -51,9 +51,10 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
   // 1. URL-თან სინქრონიზებული მდგომარეობა
   const [maxPrice, setMaxPrice] = useState(Number(searchParams.get('maxPrice')) || 5000);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const [isPending, startTransition] = useTransition(); // ✅ Performance
+  const [isPending, startTransition] = useTransition(); 
 
-  // URL-დან ვიღებთ აქტიურ ფილტრებს (მთავარი ობიექტები)
+  const activeSort = searchParams.get('sort') || 'DATE_DESC'; // ✅ აქტიური სორტირება
+  
   const activeCategory = searchParams.get('category') || 'all';
   const activeColor = searchParams.get('color') || 'all';
   const activeSize = searchParams.get('material') || 'all';
@@ -75,7 +76,9 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
   // URL განახლების ფუნქცია (Performance)
   const updateFilter = (key: string, value: string | number) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (value === 'all' || value === 0) {
+    
+    // Default sort-ის URL-დან წაშლა
+    if (value === 'all' || value === 0 || (key === 'sort' && value === 'DATE_DESC')) { 
       params.delete(key);
     } else {
       params.set(key, String(value));
@@ -96,8 +99,8 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
   const handleCategoryChange = (slug: string) => updateFilter('category', activeCategory === slug ? 'all' : slug);
   const handleColorChange = (slug: string) => updateFilter('color', activeColor === slug ? 'all' : slug);
   const handleSizeChange = (slug: string) => updateFilter('material', activeSize === slug ? 'all' : slug);
-  
   const handlePriceChangeFinal = (value: number) => updateFilter('maxPrice', value);
+  const handleSortChange = (sortValue: string) => updateFilter('sort', sortValue); // ✅ სორტირების ჰენდლერი
 
   // Modal Functions
   const openQuickView = (product: Product) => { setSelectedProduct(product); setTimeout(() => setModalVisible(true), 10); };
@@ -116,8 +119,7 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
       } 
   };
 
-
-  // --- დინამიური ატრიბუტების ლოგიკა (UI-ის რაოდენობებისათვის) ---
+  // --- დინამიური ატრიბუტების ლოგიკა (UI-ის რაოდენობებისათვის) --- 
   const getAttrCounts = (products: Product[], attrName: 'pa_color' | 'pa_masala' | 'category') => {
     const counts: Record<string, number> = {};
     products.forEach(p => {
@@ -180,12 +182,21 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
       .filter(s => s.count > 0 || s.slug === activeSize);
   }, [sizes, sizeCounts, activeSize]);
   
+  
+  // ✅ სორტირების ოფციები
+  const sortOptions = [
+    { value: 'DATE_DESC', label: locale === 'ka' ? 'ახალი დამატებული' : 'Newest' },
+    { value: 'POPULARITY_DESC', label: locale === 'ka' ? 'პოპულარობით' : 'Popularity' },
+    { value: 'PRICE_ASC', label: locale === 'ka' ? 'ფასი: ზრდადობით' : 'Price: Low to High' },
+    { value: 'PRICE_DESC', label: locale === 'ka' ? 'ფასი: კლებადობით' : 'Price: High to Low' },
+  ];
+
 
   return (
     <>
-      {/* QUICK VIEW MODAL (JSX უცვლელია) */}
+      {/* QUICK VIEW MODAL (ლოგიკა უცვლელია) */}
       {selectedProduct && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 transition-opacity duration-300 ${modalVisible ? 'visible' : 'invisible'}`}>
             <div className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity" onClick={closeQuickView}></div>
             <div className={`relative bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col md:flex-row max-h-[90vh] md:max-h-[600px] transition-all duration-300 ${modalVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
                 <button onClick={closeQuickView} className="absolute top-4 right-4 z-10 p-2 bg-white/80 backdrop-blur rounded-full hover:bg-brand-light transition shadow-sm"><X className="w-6 h-6 h-dark" /></button>
@@ -216,8 +227,85 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
         </div>
       )}
 
-      {/* MOBILE FILTERS */}
-      {/* ... (Mobile Filters JSX) ... */}
+      {/* MOBILE FILTERS (✅ განახლებული: კატეგორიები ერთ სვეტში) */}
+      <div id="filter-overlay" className={`fixed inset-0 bg-black/60 z-[80] transition-opacity duration-300 md:hidden ${mobileFiltersOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
+        <div 
+          className={`absolute right-0 top-0 bottom-0 w-[80%] bg-white p-6 overflow-y-auto transform transition-transform duration-300 ${mobileFiltersOpen ? 'translate-x-0' : 'translate-x-full'}`} 
+          id="filter-content"
+        >
+            <div className="flex justify-between items-center mb-8">
+                <h3 className="font-serif font-bold text-2xl">{locale === 'ka' ? 'ფილტრაცია' : 'Filters'}</h3>
+                <button onClick={() => setMobileFiltersOpen(false)} className="p-2 hover:bg-gray-100 rounded-full"><X className="w-6 h-6" /></button>
+            </div>
+            
+            <div className="space-y-8">
+                <div>
+                    <h4 className="font-bold mb-4 uppercase text-xs tracking-widest text-brand-dark">{locale === 'ka' ? 'კატეგორიები' : 'Categories'}</h4>
+                    <div className="space-y-3"> {/* ✅ Single column for mobile categories */}
+                        <label className="flex items-center gap-3 cursor-pointer group">
+                            <input type="checkbox" checked={activeCategory === 'all'} onChange={() => handleCategoryChange('all')} className="w-5 h-5 rounded border-gray-300 text-brand-DEFAULT focus:ring-brand-DEFAULT" />
+                            <span className="text-gray-600 group-hover:text-brand-dark transition">{locale === 'ka' ? 'ყველა' : 'All'}</span>
+                        </label>
+                        {availableCategories.map((cat) => (
+                            <label key={cat.id} className="flex items-center gap-3 cursor-pointer group">
+                                <input type="checkbox" checked={activeCategory === cat.slug} onChange={() => handleCategoryChange(cat.slug)} className="w-5 h-5 rounded border-gray-300 text-brand-DEFAULT focus:ring-brand-DEFAULT" />
+                                <div className="flex items-center justify-between w-full overflow-hidden">
+                                    <span className="text-gray-600 group-hover:text-brand-dark transition font-medium text-sm truncate mr-1" title={cat.name}>{cat.name}</span>
+                                    <span className="ml-auto text-xs text-gray-400 font-bold">{cat.count}</span>
+                                </div>
+                            </label>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Mobile Price */}
+                <div>
+                  <h4 className="font-bold mb-4 uppercase text-xs tracking-widest text-brand-dark">{locale === 'ka' ? 'ფასი' : 'Price'}</h4>
+                  <div className="px-2">
+                      <input type="range" className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand-DEFAULT" min="0" max="5000" step="50" value={maxPrice} onMouseUp={(e) => handlePriceChangeFinal(Number((e.target as HTMLInputElement).value))} onChange={(e) => setMaxPrice(Number(e.target.value))} />
+                      <div className="flex justify-between mt-3 text-sm font-bold text-gray-500">
+                          <span>0 ₾</span>
+                          <span>{maxPrice} ₾</span>
+                      </div>
+                  </div>
+                </div>
+
+                {/* Mobile Colors */}
+                {availableColors.length > 0 && (
+                    <div>
+                        <h4 className="font-bold mb-4 uppercase text-xs tracking-widest text-brand-dark">{locale === 'ka' ? 'ფერი' : 'Color'}</h4>
+                        <div className="flex flex-wrap gap-4">
+                            <button onClick={() => handleColorChange('all')} className={`px-3 py-1 text-xs border rounded-full transition ${activeColor === 'all' ? 'bg-brand-dark text-white' : 'bg-white hover:border-brand-dark'}`}>{locale === 'ka' ? 'ყველა' : 'All'}</button>
+                            {availableColors.map((color) => (
+                                <button key={color.id} onClick={() => handleColorChange(color.slug)} className={`w-8 h-8 rounded-full border-2 border-gray-200 transition duration-150 transform hover:scale-110 ${activeColor === color.slug ? 'color-swatch-selected' : ''}`} style={{ backgroundColor: colorMap[color.slug] || '#e5e7eb' }} title={color.name} />
+                            ))}
+                        </div>
+                    </div>
+                )}
+                
+                {/* Mobile Materials */}
+                {availableSizes.length > 0 && (
+                  <div>
+                      <h4 className="font-bold mb-4 uppercase text-xs tracking-widest text-brand-dark">{locale === 'ka' ? 'მასალა' : 'Material'}</h4>
+                      <div className="space-y-3">
+                          {availableSizes.map((size) => (
+                              <label key={size.id} className="flex items-center gap-3 cursor-pointer group">
+                                  <input type="checkbox" checked={activeSize === size.slug} onChange={() => handleSizeChange(size.slug)} className="w-5 h-5 rounded border-gray-300 text-brand-DEFAULT focus:ring-brand-DEFAULT shadow-sm flex-shrink-0" />
+                                  <div className="flex items-center justify-between w-full overflow-hidden">
+                                      <span className="text-gray-600 group-hover:text-brand-dark transition font-medium text-sm truncate mr-1" title={size.name}>{size.name}</span>
+                                      <span className="ml-auto text-xs text-gray-400 font-bold">{size.count}</span>
+                                  </div>
+                              </label>
+                          ))}
+                      </div>
+                  </div>
+                )}
+
+
+                <button onClick={() => setMobileFiltersOpen(false)} className="w-full bg-brand-dark text-white py-4 rounded-xl font-bold mt-8">{locale === 'ka' ? 'შედეგების ჩვენება' : 'Show Results'}</button>
+            </div>
+        </div>
+      </div>
 
       {/* DESKTOP LAYOUT */}
       <div className="container mx-auto px-4 mb-8">
@@ -233,7 +321,21 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
               </div>
               <div className="flex gap-4 w-full md:w-auto">
                   <button onClick={() => setMobileFiltersOpen(true)} className="md:hidden flex-1 bg-gray-100 text-brand-dark py-3 px-6 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm active:scale-95 transition"><SlidersHorizontal className="w-5 h-5" /> {locale === 'ka' ? 'ფილტრაცია' : 'Filter'}</button>
-                  {/* ... (Sort Dropdown JSX) ... */}
+                  {/* ✅ Sort Dropdown */}
+                  <div className="relative flex-1 md:flex-none">
+                      <select 
+                          value={activeSort}
+                          onChange={(e) => handleSortChange(e.target.value)}
+                          className="w-full md:w-auto appearance-none bg-white border border-gray-200 text-brand-dark py-3 px-6 pr-10 rounded-xl font-bold outline-none focus:border-brand-DEFAULT cursor-pointer shadow-sm"
+                      >
+                          {sortOptions.map(option => (
+                              <option key={option.value} value={option.value}>
+                                  {option.label}
+                              </option>
+                          ))}
+                      </select>
+                      <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  </div>
               </div>
           </div>
       </div>

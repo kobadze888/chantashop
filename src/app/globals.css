@@ -37,3 +37,4 @@ input[type="checkbox"] { accent-color: var(--color-brand-DEFAULT); width: 1.25re
 .modal-enter { opacity: 0; transform: scale(0.95); }
 .modal-enter-active { opacity: 1; transform: scale(1); transition: all 0.3s ease-out; }
 .modal-exit-active { opacity: 0; transform: scale(0.95); transition: all 0.2s ease-in; }
+

@@ -33,10 +33,12 @@ interface ProductFilters {
   minPrice?: number;
   maxPrice?: number;
   limit?: number;
+  // ✅ დაემატა sort პარამეტრი
+  sort?: 'DATE_DESC' | 'PRICE_ASC' | 'PRICE_DESC' | 'POPULARITY_DESC'; 
 }
 
 export async function getProducts(filters: ProductFilters = {}, locale: string = 'ka'): Promise<Product[]> {
-  const { category, color, material, minPrice, maxPrice, limit = 50 } = filters;
+  const { category, color, material, minPrice, maxPrice, limit = 50, sort = 'DATE_DESC' } = filters;
 
   const taxonomyFilter: any = { filters: [] };
 
@@ -50,9 +52,22 @@ export async function getProducts(filters: ProductFilters = {}, locale: string =
     taxonomyFilter.filters.push({ taxonomy: 'PA_MASALA', terms: [material] });
   }
 
-  const whereArgs: any = {
-    orderby: [{ field: 'DATE', order: 'DESC' }],
-  };
+  const whereArgs: any = {};
+
+  // ✅ სორტირების ლოგიკა
+  if (sort) {
+      if (sort === 'POPULARITY_DESC') {
+          whereArgs.orderby = [{ field: 'POPULARITY', order: 'DESC' }]; 
+      } else if (sort === 'PRICE_ASC') {
+          whereArgs.orderby = [{ field: 'PRICE', order: 'ASC' }];
+      } else if (sort === 'PRICE_DESC') {
+          whereArgs.orderby = [{ field: 'PRICE', order: 'DESC' }];
+      } else {
+          // ნაგულისხმევი: ახალი დამატებული
+          whereArgs.orderby = [{ field: 'DATE', order: 'DESC' }];
+      }
+  }
+
 
   if (locale && locale !== 'all') {
      whereArgs.language = locale.toUpperCase();
@@ -66,6 +81,12 @@ export async function getProducts(filters: ProductFilters = {}, locale: string =
     whereArgs.minPrice = minPrice;
     whereArgs.maxPrice = maxPrice;
   }
+  
+  // თუ არ არის კონკრეტული სორტირება მითითებული, default-ად DATE_DESC
+  if (!whereArgs.orderby) {
+      whereArgs.orderby = [{ field: 'DATE', order: 'DESC' }];
+  }
+
 
   const data = await fetchAPI(
     GET_PRODUCTS_QUERY, 
