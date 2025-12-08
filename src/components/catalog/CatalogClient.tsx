@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { SlidersHorizontal, X, ChevronDown, ShoppingBag } from 'lucide-react';
 import ProductCard from '@/components/products/ProductCard';
 import type { Product, Category, FilterTerm } from '@/types';
@@ -12,7 +12,7 @@ interface CatalogClientProps {
   initialProducts: Product[];
   categories: Category[];
   colors: FilterTerm[];
-  sizes: FilterTerm[];
+  sizes: FilterTerm[]; // რეალურად მასალები
   locale: string;
 }
 
@@ -38,28 +38,25 @@ export default function CatalogClient({ initialProducts, categories, colors, siz
   const [maxPrice, setMaxPrice] = useState<number>(2000);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   
-  // ✅ Modal State
+  // Modal State
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [modalVisible, setModalVisible] = useState(false); // ანიმაციისთვის
+  const [modalVisible, setModalVisible] = useState(false);
   const addItem = useCartStore((state) => state.addItem);
 
-  // მოდალის გახსნა
   const openQuickView = (product: Product) => {
     setSelectedProduct(product);
     setTimeout(() => setModalVisible(true), 10);
     document.body.style.overflow = 'hidden';
   };
 
-  // მოდალის დახურვა
   const closeQuickView = () => {
     setModalVisible(false);
     setTimeout(() => {
         setSelectedProduct(null);
         document.body.style.overflow = 'auto';
-    }, 200); // დაველოდოთ ანიმაციას
+    }, 200);
   };
 
-  // კალათაში დამატება მოდალიდან
   const handleAddToCartFromModal = () => {
     if (selectedProduct) {
         addItem({
@@ -73,36 +70,109 @@ export default function CatalogClient({ initialProducts, categories, colors, siz
     }
   };
 
-  const filteredProducts = useMemo(() => {
-    return initialProducts.filter((product) => {
-      const categoryMatch = selectedCategory === 'all' 
-        ? true 
-        : product.productCategories?.nodes.some(c => c.slug === selectedCategory);
+  // --- დამხმარე ფუნქციები ---
+  const checkCategory = (p: Product, catSlug: string) => 
+    catSlug === 'all' || p.productCategories?.nodes.some(c => c.slug === catSlug);
 
-      const colorMatch = selectedColor === 'all'
-        ? true
-        : product.attributes?.nodes.some(attr => {
-            if (attr.name !== 'pa_color') return false;
-            return attr.options?.some(opt => opt.toLowerCase() === selectedColor.toLowerCase());
-          });
+  const checkColor = (p: Product, colSlug: string) => 
+    colSlug === 'all' || p.attributes?.nodes.some(attr => attr.name === 'pa_color' && attr.options?.some(opt => opt.toLowerCase() === colSlug.toLowerCase()));
 
-      const sizeMatch = selectedSize === 'all'
-        ? true
-        : product.attributes?.nodes.some(attr => {
-            if (attr.name !== 'pa_masala') return false;
-            return attr.options?.some(opt => opt.toLowerCase() === selectedSize.toLowerCase());
-          });
+  const checkSize = (p: Product, sizeSlug: string) => 
+    sizeSlug === 'all' || p.attributes?.nodes.some(attr => attr.name === 'pa_masala' && attr.options?.some(opt => opt.toLowerCase() === sizeSlug.toLowerCase()));
 
-      const productPrice = parsePrice(product.price);
-      const priceMatch = productPrice <= maxPrice;
+  const checkPrice = (p: Product, max: number) => parsePrice(p.price) <= max;
 
-      return categoryMatch && colorMatch && sizeMatch && priceMatch;
+
+  // ფუნქცია, რომელიც ითვლის პროდუქტებს კლიენტის მხარეს
+  const getProductCounts = (products: Product[], type: 'category' | 'color' | 'size') => {
+    const counts: Record<string, number> = {};
+    products.forEach(p => {
+        let terms: { slug: string }[] = [];
+        
+        if (type === 'category') {
+            terms = p.productCategories?.nodes || [];
+        } else if (type === 'color') {
+            const colorAttr = p.attributes?.nodes.find(a => a.name === 'pa_color');
+            terms = colorAttr?.options?.map(opt => ({ slug: opt.toLowerCase() })) || [];
+        } else if (type === 'size') {
+            const sizeAttr = p.attributes?.nodes.find(a => a.name === 'pa_masala');
+            terms = sizeAttr?.options?.map(opt => ({ slug: opt.toLowerCase() })) || [];
+        }
+
+        terms.forEach(term => {
+            const slug = term.slug;
+            counts[slug] = (counts[slug] || 0) + 1;
+        });
     });
+    return counts;
+  };
+
+  
+  // 1. ✅ მთავარი ფილტრაცია (პროდუქტების სია)
+  const filteredProducts = useMemo(() => {
+    return initialProducts.filter(p => 
+        checkCategory(p, selectedCategory) &&
+        checkColor(p, selectedColor) &&
+        checkSize(p, selectedSize) &&
+        checkPrice(p, maxPrice)
+    );
   }, [initialProducts, selectedCategory, selectedColor, selectedSize, maxPrice]);
+
+
+  // --- დინამიური ფილტრები: სიის გენერაცია და დათვლა კლიენტის მხარეს ---
+  
+  // პროდუქტები, რომლებიც მხოლოდ ფასსა და კატეგორიას აკმაყოფილებენ (ფილტრების სიის გენერაციის ბაზა)
+  const productsForFilterCounting = useMemo(() => {
+    return initialProducts.filter(p => 
+        checkCategory(p, selectedCategory) &&
+        checkPrice(p, maxPrice)
+    );
+  }, [initialProducts, selectedCategory, maxPrice]);
+
+
+  // 2. ✅ კატეგორიების რაოდენობის დათვლა (სტაბილური ლოგიკა)
+  const allCategoryCounts = useMemo(() => getProductCounts(initialProducts, 'category'), [initialProducts]);
+  const availableCategories = useMemo(() => {
+    return categories
+      // ვფილტრავთ მხოლოდ იმ კატეგორიებს, რომლებსაც ჩატვირთულ პროდუქტებში ჰყავთ 1+ პროდუქტი.
+      .filter(c => (allCategoryCounts[c.slug.toLowerCase()] || 0) > 0)
+      .map(c => ({ 
+          ...c, 
+          // ⚠️ რაოდენობის ველში ვიყენებთ კლიენტის მხარეს დათვლილ რიცხვს
+          count: allCategoryCounts[c.slug.toLowerCase()] 
+      }));
+  }, [categories, allCategoryCounts]);
+
+  
+  // 3. ✅ ფერების სრული სია და დათვლა
+  const availableColorCounts = useMemo(() => getProductCounts(productsForFilterCounting, 'color'), [productsForFilterCounting]);
+  const availableColors = useMemo(() => {
+    // ფილტრის სიაში ვტოვებთ მხოლოდ იმ ფერებს, რომლებიც ხელმისაწვდომია მიმდინარე კატეგორიასა და ფასში
+    return colors
+      .filter(c => (availableColorCounts[c.slug.toLowerCase()] || 0) > 0 || selectedColor === c.slug)
+      .map(c => ({
+          ...c,
+          count: availableColorCounts[c.slug.toLowerCase()]
+      }));
+  }, [colors, availableColorCounts, selectedColor]);
+
+  
+  // 4. ✅ მასალების სრული სია და დათვლა
+  const availableSizeCounts = useMemo(() => getProductCounts(productsForFilterCounting, 'size'), [productsForFilterCounting]);
+  const availableSizes = useMemo(() => {
+    // ფილტრის სიაში ვტოვებთ მხოლოდ იმ მასალებს, რომლებიც ხელმისაწვდომია მიმდინარე კატეგორიასა და ფასში
+    return sizes
+      .filter(s => (availableSizeCounts[s.slug.toLowerCase()] || 0) > 0 || selectedSize === s.slug)
+      .map(s => ({
+          ...s,
+          count: availableSizeCounts[s.slug.toLowerCase()]
+      }));
+  }, [sizes, availableSizeCounts, selectedSize]);
+
 
   return (
     <>
-      {/* --- QUICK VIEW MODAL (ზუსტად HTML-დან) --- */}
+      {/* --- QUICK VIEW MODAL (ლოგიკა უცვლელია) --- */}
       {selectedProduct && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity" onClick={closeQuickView}></div>
@@ -115,7 +185,6 @@ export default function CatalogClient({ initialProducts, categories, colors, siz
                     <X className="w-6 h-6 text-brand-dark" />
                 </button>
                 
-                {/* მარცხენა მხარე: სურათი */}
                 <div className="w-full md:w-1/2 bg-gray-50 relative min-h-[300px]">
                     <Image 
                         src={selectedProduct.image?.sourceUrl || '/placeholder.jpg'} 
@@ -125,7 +194,6 @@ export default function CatalogClient({ initialProducts, categories, colors, siz
                     />
                 </div>
 
-                {/* მარჯვენა მხარე: ინფორმაცია */}
                 <div className="w-full md:w-1/2 p-8 flex flex-col overflow-y-auto">
                     <div className="mb-auto">
                         <span className="text-xs font-bold text-brand-DEFAULT uppercase tracking-wider mb-2 block">
@@ -141,7 +209,6 @@ export default function CatalogClient({ initialProducts, categories, colors, siz
                             dangerouslySetInnerHTML={{ __html: selectedProduct.shortDescription || selectedProduct.description || 'აღწერა არ არის.' }}
                         />
 
-                        {/* ფერების არჩევა მოდალში */}
                         <div className="mb-6">
                             <span className="text-xs font-bold text-brand-dark uppercase mb-2 block">ფერი</span>
                             <div className="flex gap-3">
@@ -188,11 +255,11 @@ export default function CatalogClient({ initialProducts, categories, colors, siz
             </div>
             
             <div className="space-y-8">
-                {/* Categories */}
+                {/* Categories Mobile */}
                 <div>
                     <h4 className="font-bold mb-4 uppercase text-xs tracking-widest text-brand-dark">კატეგორიები</h4>
-                    <div className="space-y-3">
-                        <label className="flex items-center gap-3 cursor-pointer group">
+                    <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+                        <label className="flex items-center gap-3 cursor-pointer group col-span-2">
                             <input 
                                 type="checkbox" 
                                 checked={selectedCategory === 'all'} 
@@ -201,7 +268,7 @@ export default function CatalogClient({ initialProducts, categories, colors, siz
                             />
                             <span className="text-gray-600 group-hover:text-brand-dark transition">ყველა</span>
                         </label>
-                        {categories.map((cat) => (
+                        {availableCategories.map((cat) => (
                             <label key={cat.id} className="flex items-center gap-3 cursor-pointer group">
                                 <input 
                                     type="checkbox" 
@@ -209,7 +276,7 @@ export default function CatalogClient({ initialProducts, categories, colors, siz
                                     onChange={() => setSelectedCategory(selectedCategory === cat.slug ? 'all' : cat.slug)}
                                     className="w-5 h-5 rounded border-gray-300 text-brand-DEFAULT focus:ring-brand-DEFAULT"
                                 />
-                                <span className="text-gray-600 group-hover:text-brand-dark transition">{cat.name}</span>
+                                <span className="text-gray-600 group-hover:text-brand-dark transition">{cat.name} ({cat.count})</span>
                             </label>
                         ))}
                     </div>
@@ -233,20 +300,27 @@ export default function CatalogClient({ initialProducts, categories, colors, siz
                 </div>
 
                 {/* Colors */}
-                <div>
-                    <h4 className="font-bold mb-4 uppercase text-xs tracking-widest text-brand-dark">ფერი</h4>
-                    <div className="flex flex-wrap gap-4">
-                        <button onClick={() => setSelectedColor('all')} className={`px-3 py-1 text-xs border rounded-full transition ${selectedColor === 'all' ? 'bg-brand-dark text-white' : 'bg-white'}`}>All</button>
-                        {colors.map((color) => (
+                {availableColors.length > 0 && (
+                    <div>
+                        <h4 className="font-bold mb-4 uppercase text-xs tracking-widest text-brand-dark">ფერი</h4>
+                        <div className="flex flex-wrap gap-4">
                             <button
-                                key={color.id}
-                                onClick={() => setSelectedColor(selectedColor === color.slug ? 'all' : color.slug)}
-                                className={`w-8 h-8 rounded-full border-2 border-gray-200 transition duration-150 transform hover:scale-110 ${selectedColor === color.slug ? 'color-swatch-selected' : ''}`}
-                                style={{ backgroundColor: colorMap[color.slug] || '#e5e7eb' }}
-                            />
-                        ))}
+                                onClick={() => setSelectedColor('all')}
+                                className={`px-3 py-1 text-xs border rounded-full transition ${selectedColor === 'all' ? 'bg-brand-dark text-white' : 'bg-white'}`}
+                            >All</button>
+                            {availableColors.map((color) => (
+                                <button
+                                    key={color.id}
+                                    onClick={() => setSelectedColor(selectedColor === color.slug ? 'all' : color.slug)}
+                                    className={`w-8 h-8 rounded-full border-2 border-gray-200 transition duration-150 transform hover:scale-110 ${
+                                        selectedColor === color.slug ? 'color-swatch-selected' : ''
+                                    }`}
+                                    style={{ backgroundColor: colorMap[color.slug] || '#e5e7eb' }}
+                                />
+                            ))}
+                        </div>
                     </div>
-                </div>
+                )}
 
                 <button onClick={() => setMobileFiltersOpen(false)} className="w-full bg-brand-dark text-white py-4 rounded-xl font-bold mt-8">
                     შედეგების ჩვენება
@@ -282,55 +356,117 @@ export default function CatalogClient({ initialProducts, categories, colors, siz
       </div>
 
       <div className="container mx-auto px-4 flex gap-12 relative">
-        <aside className="hidden md:block w-1/4 space-y-10 sticky top-32 h-fit">
+        
+        {/* SIDEBAR (DESKTOP) */}
+        <aside className="hidden md:block w-1/4 space-y-10 sticky top-32 max-h-[calc(100vh-10rem)] overflow-y-auto pr-4 hide-scrollbar">
+            
+            {/* Categories */}
             <div>
-                <h4 className="font-bold mb-6 uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2">{locale === 'ka' ? 'კატეგორიები' : 'Categories'}</h4>
-                <div className="space-y-3">
-                    <label className="flex items-center gap-3 cursor-pointer group">
-                        <input type="checkbox" checked={selectedCategory === 'all'} onChange={() => setSelectedCategory('all')} className="w-5 h-5 rounded border-gray-300 text-brand-DEFAULT focus:ring-brand-DEFAULT shadow-sm" />
+                <h4 className="font-bold mb-6 uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2">
+                    {locale === 'ka' ? 'კატეგორიები' : 'Categories'}
+                </h4>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+                    <label className="flex items-center gap-3 cursor-pointer group col-span-2">
+                        <input 
+                            type="checkbox" 
+                            checked={selectedCategory === 'all'}
+                            onChange={() => setSelectedCategory('all')}
+                            className="w-5 h-5 rounded border-gray-300 text-brand-DEFAULT focus:ring-brand-DEFAULT shadow-sm flex-shrink-0"
+                        />
                         <span className="text-gray-600 group-hover:text-brand-dark transition font-medium">{locale === 'ka' ? 'ყველა' : 'All'}</span>
                     </label>
-                    {categories.map((cat) => (
-                        <label key={cat.id} className="flex items-center gap-3 cursor-pointer group">
-                            <input type="checkbox" checked={selectedCategory === cat.slug} onChange={() => setSelectedCategory(selectedCategory === cat.slug ? 'all' : cat.slug)} className="w-5 h-5 rounded border-gray-300 text-brand-DEFAULT focus:ring-brand-DEFAULT shadow-sm" />
-                            <span className="text-gray-600 group-hover:text-brand-dark transition font-medium">{cat.name}</span>
-                            <span className="ml-auto text-xs text-gray-400 font-bold bg-gray-50 px-2 py-1 rounded">{cat.count || 0}</span>
+                    {availableCategories.map((cat) => (
+                        <label key={cat.id} className="flex items-center gap-2 cursor-pointer group">
+                            <input 
+                                type="checkbox"
+                                checked={selectedCategory === cat.slug}
+                                onChange={() => setSelectedCategory(selectedCategory === cat.slug ? 'all' : cat.slug)}
+                                className="w-5 h-5 rounded border-gray-300 text-brand-DEFAULT focus:ring-brand-DEFAULT shadow-sm flex-shrink-0"
+                            />
+                            <div className="flex items-center justify-between w-full overflow-hidden">
+                                <span className="text-gray-600 group-hover:text-brand-dark transition font-medium text-sm truncate mr-1" title={cat.name}>{cat.name}</span>
+                                <span className="text-[10px] text-gray-400 font-bold bg-gray-50 px-1.5 py-0.5 rounded flex-shrink-0">{cat.count || 0}</span>
+                            </div>
                         </label>
                     ))}
                 </div>
             </div>
 
+            {/* Price Range */}
             <div>
-                <h4 className="font-bold mb-6 uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2">{locale === 'ka' ? 'ფასი' : 'Price'}</h4>
+                <h4 className="font-bold mb-6 uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2">
+                    {locale === 'ka' ? 'ფასი' : 'Price'}
+                </h4>
                 <div className="px-2">
-                    <input type="range" className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand-DEFAULT" min="0" max="5000" step="50" value={maxPrice} onChange={(e) => setMaxPrice(Number(e.target.value))} />
-                    <div className="flex justify-between mt-3 text-sm font-bold text-gray-500"><span>0 ₾</span><span>{maxPrice} ₾</span></div>
+                    <input 
+                        type="range" 
+                        className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand-DEFAULT" 
+                        min="0" 
+                        max="5000" 
+                        step="50" 
+                        value={maxPrice}
+                        onChange={(e) => setMaxPrice(Number(e.target.value))}
+                    />
+                    <div className="flex justify-between mt-3 text-sm font-bold text-gray-500">
+                        <span>0 ₾</span>
+                        <span>{maxPrice} ₾</span>
+                    </div>
                 </div>
             </div>
 
-            <div>
-                <h4 className="font-bold mb-6 uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2">{locale === 'ka' ? 'ფერი' : 'Color'}</h4>
-                <div className="flex flex-wrap gap-4">
-                    <button onClick={() => setSelectedColor('all')} className={`px-3 py-1 text-xs border rounded-full transition ${selectedColor === 'all' ? 'bg-brand-dark text-white' : 'bg-white hover:border-brand-dark'}`}>All</button>
-                    {colors.map((color) => (
-                        <button key={color.id} onClick={() => setSelectedColor(selectedColor === color.slug ? 'all' : color.slug)} className={`w-8 h-8 rounded-full border-2 border-gray-200 transition duration-150 transform hover:scale-110 ${selectedColor === color.slug ? 'color-swatch-selected' : ''}`} style={{ backgroundColor: colorMap[color.slug] || '#e5e7eb' }} title={color.name} />
-                    ))}
+            {/* Colors */}
+            {availableColors.length > 0 && (
+                <div>
+                    <h4 className="font-bold mb-6 uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2">
+                        {locale === 'ka' ? 'ფერი' : 'Color'}
+                    </h4>
+                    <div className="flex flex-wrap gap-4">
+                        <button
+                             onClick={() => setSelectedColor('all')}
+                             className={`px-3 py-1 text-xs border rounded-full transition ${selectedColor === 'all' ? 'bg-brand-dark text-white' : 'bg-white hover:border-brand-dark'}`}
+                        >All</button>
+                        {availableColors.map((color) => (
+                            <button
+                                key={color.id}
+                                onClick={() => setSelectedColor(selectedColor === color.slug ? 'all' : color.slug)}
+                                className={`w-8 h-8 rounded-full border-2 border-gray-200 transition duration-150 transform hover:scale-110 ${
+                                    selectedColor === color.slug ? 'color-swatch-selected' : ''
+                                }`}
+                                style={{ backgroundColor: colorMap[color.slug] || '#e5e7eb' }}
+                                title={color.name}
+                            />
+                        ))}
+                    </div>
                 </div>
-            </div>
+            )}
 
-            <div>
-                <h4 className="font-bold mb-6 uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2">{locale === 'ka' ? 'მასალა' : 'Material'}</h4>
-                <div className="space-y-3">
-                    {sizes.map((size) => (
-                        <label key={size.id} className="flex items-center gap-3 cursor-pointer group">
-                            <input type="checkbox" checked={selectedSize === size.slug} onChange={() => setSelectedSize(selectedSize === size.slug ? 'all' : size.slug)} className="w-5 h-5 rounded border-gray-300 text-brand-DEFAULT focus:ring-brand-DEFAULT shadow-sm" />
-                            <span className="text-gray-600 group-hover:text-brand-dark transition font-medium">{size.name}</span>
-                        </label>
-                    ))}
+            {/* Materials - 2 სვეტად */}
+            {availableSizes.length > 0 && (
+                <div className="pb-10">
+                    <h4 className="font-bold mb-6 uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2">
+                        {locale === 'ka' ? 'მასალა' : 'Material'}
+                    </h4>
+                    <div className="grid grid-cols-2 gap-3">
+                        {availableSizes.map((size) => (
+                            <label key={size.id} className="flex items-center gap-3 cursor-pointer group">
+                                <input 
+                                    type="checkbox"
+                                    checked={selectedSize === size.slug}
+                                    onChange={() => setSelectedSize(selectedSize === size.slug ? 'all' : size.slug)}
+                                    className="w-5 h-5 rounded border-gray-300 text-brand-DEFAULT focus:ring-brand-DEFAULT shadow-sm flex-shrink-0"
+                                />
+                                <div className="flex items-center justify-between w-full overflow-hidden">
+                                     <span className="text-gray-600 group-hover:text-brand-dark transition font-medium truncate" title={size.name}>{size.name}</span>
+                                     <span className="text-[10px] text-gray-400 font-bold bg-gray-50 px-1.5 py-0.5 rounded flex-shrink-0">{size.count}</span>
+                                </div>
+                            </label>
+                        ))}
+                    </div>
                 </div>
-            </div>
+            )}
         </aside>
 
+        {/* PRODUCT GRID */}
         <div className="flex-1">
             <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8 md:gap-8">
                 {filteredProducts.map((product) => (
@@ -346,7 +482,7 @@ export default function CatalogClient({ initialProducts, categories, colors, siz
                         slug={product.slug}
                         attributes={product.attributes}
                         locale={locale}
-                        onQuickView={() => openQuickView(product)} // ✅ მოდალის გახსნის ფუნქცია
+                        onQuickView={() => openQuickView(product)}
                     />
                 ))}
             </div>
