@@ -10,7 +10,9 @@ async function fetchAPI(query: string, { variables }: { variables?: any } = {}, 
       method: 'POST',
       headers,
       body: JSON.stringify({ query, variables }),
-      next: { revalidate: revalidateTime },
+      // ✅ Cache Optimization: ყოველ 60 წამში მოხდეს ქეშის განახლება
+      next: { revalidate: revalidateTime > 0 ? revalidateTime : 60 },
+      cache: 'force-cache', // უზრუნველყოფს, რომ ყოველთვის ქეშიდან მოვა
     });
     const json = await res.json();
     if (json.errors) {
@@ -38,7 +40,6 @@ export async function getProducts(filters: ProductFilters = {}, locale: string =
 
   const taxonomyFilter: any = { filters: [] };
 
-  // ტაქსონომიების აწყობა
   if (category && category !== 'all') {
     taxonomyFilter.filters.push({ taxonomy: 'PRODUCT_CAT', terms: [category] });
   }
@@ -53,7 +54,6 @@ export async function getProducts(filters: ProductFilters = {}, locale: string =
     orderby: [{ field: 'DATE', order: 'DESC' }],
   };
 
-  // ენის ფილტრი
   if (locale && locale !== 'all') {
      whereArgs.language = locale.toUpperCase();
   }
@@ -70,14 +70,14 @@ export async function getProducts(filters: ProductFilters = {}, locale: string =
   const data = await fetchAPI(
     GET_PRODUCTS_QUERY, 
     { variables: { first: limit, where: whereArgs } }, 
-    0
+    60 // 60 წამიანი ქეშირება პროდუქტებზე
   );
 
   return data?.products?.nodes || [];
 }
 
 export async function getFilters() {
-  const data = await fetchAPI(GET_FILTERS_QUERY, {}, REVALIDATE_TIME.CATEGORIES);
+  const data = await fetchAPI(GET_FILTERS_QUERY, {}, 86400); // 24 საათიანი ქეშირება ფილტრებზე
   return {
     categories: data?.productCategories?.nodes || [],
     colors: data?.allPaColor?.nodes || [],
@@ -86,6 +86,6 @@ export async function getFilters() {
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
-  const data = await fetchAPI(GET_PRODUCT_BY_SLUG_QUERY, { variables: { id: slug } }, REVALIDATE_TIME.PRODUCTS);
+  const data = await fetchAPI(GET_PRODUCT_BY_SLUG_QUERY, { variables: { id: slug } }, 3600); // 1 საათიანი ქეშირება
   return data?.product || null;
 }
