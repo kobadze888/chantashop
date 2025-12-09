@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useEffect, Suspense, useMemo, useTransition, useRef } from 'react'; // ✅ useRef დამატებულია
+import { useState, useEffect, Suspense, useMemo, useTransition, useRef } from 'react'; 
 import { SlidersHorizontal, X, ChevronDown, ShoppingBag, RefreshCcw } from 'lucide-react';
 import ProductCard from '@/components/products/ProductCard';
 import type { Product, Category, FilterTerm } from '@/types';
@@ -34,7 +34,7 @@ const parsePrice = (priceString: string | undefined | null): number => {
   return Math.min(...prices);
 };
 
-// Wrapper for Suspense (Next.js-ის მოთხოვნა)
+// Wrapper for Suspense 
 export default function CatalogClient(props: CatalogClientProps) {
   return (
     <Suspense fallback={<div>Loading...</div>}>
@@ -48,7 +48,6 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
   const pathname = usePathname();
   const searchParams = useSearchParams();
   
-  // ✅ NEW: Sort Dropdown Ref
   const sortDropdownRef = useRef<HTMLDivElement>(null); 
 
   // 1. URL-თან სინქრონიზებული მდგომარეობა
@@ -66,13 +65,13 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
   const [modalVisible, setModalVisible] = useState(false);
   const addItem = useCartStore((state) => state.addItem);
   
-  // ✅ NEW STATES: Desktop Filter Accordion
-  const [isCategoriesOpen, setIsCategoriesOpen] = useState(true);
-  const [isPriceOpen, setIsPriceOpen] = useState(true);
-  const [isColorsOpen, setIsColorsOpen] = useState(true);
-  const [isMaterialsOpen, setIsMaterialsOpen] = useState(true);
+  // კატეგორიები გაშლილია (true), დანარჩენი ჩაკეცილია (false)
+  const [isCategoriesOpen, setIsCategoriesOpen] = useState(true); 
+  const [isPriceOpen, setIsPriceOpen] = useState(false);
+  const [isColorsOpen, setIsColorsOpen] = useState(false); 
+  const [isMaterialsOpen, setIsMaterialsOpen] = useState(false);
 
-  // ✅ NEW STATE: Custom Sort Dropdown
+  // Custom Sort Dropdown
   const [isSortOpen, setIsSortOpen] = useState(false);
 
 
@@ -86,7 +85,7 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
     return () => { document.body.style.overflow = 'auto'; };
   }, [modalVisible, mobileFiltersOpen]);
   
-  // ✅ NEW: Close Sort Dropdown on outside click
+  // Close Sort Dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target as Node)) {
@@ -99,10 +98,10 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isSortOpen]); // დამოკიდებულია isSortOpen-ზე
+  }, [isSortOpen]); 
 
 
-  // URL განახლების ფუნქცია (Performance)
+  // URL განახლების ფუნქცია 
   const updateFilter = (key: string, value: string | number) => {
     const params = new URLSearchParams(searchParams.toString());
     
@@ -124,7 +123,7 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
     });
   };
   
-  // ✅ NEW HANDLER: ფილტრების გასუფთავება
+  // ფილტრების გასუფთავება
   const handleClearFilters = () => {
     const params = new URLSearchParams();
     // ვინარჩუნებთ მხოლოდ სორტირებას (თუ არ არის default)
@@ -133,8 +132,8 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
     }
     startTransition(() => {
         router.push(`${pathname}?${params.toString()}`, { scroll: false });
-        setMobileFiltersOpen(false); // ვხურავთ მობილურ მენიუს
-        setMaxPrice(5000); // ვაბრუნებთ ფასს მაქსიმუმზე
+        setMobileFiltersOpen(false); 
+        setMaxPrice(5000); 
     });
   };
 
@@ -231,7 +230,7 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
   }, [sizes, sizeCounts, activeSize]);
   
   
-  // ✅ სორტირების ოფციები 
+  // სორტირების ოფციები 
   const sortOptions = [
     { value: 'DATE_DESC', label: locale === 'ka' ? 'ახალი დამატებული' : 'Newest' },
     { value: 'POPULARITY_DESC', label: locale === 'ka' ? 'პოპულარობით' : 'Popularity' },
@@ -279,12 +278,12 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
       <div 
         id="filter-overlay" 
         className={`fixed inset-0 bg-black/60 z-[80] transition-opacity duration-300 md:hidden ${mobileFiltersOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
-        onClick={() => setMobileFiltersOpen(false)} // ✅ გარე ფონზე კლიკი ხურავს მენიუს
+        onClick={() => setMobileFiltersOpen(false)} 
       >
         <div 
           className={`absolute right-0 top-0 bottom-0 w-[80%] bg-white p-6 overflow-y-auto transform transition-transform duration-300 ${mobileFiltersOpen ? 'translate-x-0' : 'translate-x-full'}`} 
           id="filter-content"
-          onClick={(e) => e.stopPropagation()} // ✅ აჩერებს დახურვის ივენთს მენიუს შიგნით
+          onClick={(e) => e.stopPropagation()} 
         >
             <div className="flex justify-between items-center mb-8">
                 <h3 className="font-serif font-bold text-2xl">{locale === 'ka' ? 'ფილტრაცია' : 'Filters'}</h3>
@@ -294,7 +293,7 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
             <div className="space-y-8">
                 <div>
                     <h4 className="font-bold mb-4 uppercase text-xs tracking-widest text-brand-dark">{locale === 'ka' ? 'კატეგორიები' : 'Categories'}</h4>
-                    <div className="space-y-3"> {/* ✅ Single column for mobile categories */}
+                    <div className="space-y-3"> 
                         <label className="flex items-center gap-3 cursor-pointer group">
                             <input type="checkbox" checked={activeCategory === 'all'} onChange={() => handleCategoryChange('all')} className="w-5 h-5 rounded border-gray-300 text-brand-DEFAULT focus:ring-brand-DEFAULT" />
                             <span className="text-gray-600 group-hover:text-brand-dark transition">{locale === 'ka' ? 'ყველა' : 'All'}</span>
@@ -354,7 +353,7 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
                   </div>
                 )}
                 
-                {/* ✅ Mobile Filter Clear Button */}
+                {/* Mobile Filter Clear Button */}
                 <button onClick={handleClearFilters} disabled={!filtersActive} className={`w-full py-3 rounded-xl font-bold mt-8 transition flex items-center justify-center gap-2 ${filtersActive ? 'bg-brand-DEFAULT text-white hover:bg-brand-dark' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}>
                     <RefreshCcw className="w-4 h-4" /> {locale === 'ka' ? 'ფილტრების გასუფთავება' : 'Clear Filters'}
                 </button>
@@ -364,7 +363,7 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
         </div>
       </div>
 
-      {/* DESKTOP LAYOUT */}
+      {/* 2. MAIN DESKTOP LAYOUT */}
       <div className="container mx-auto px-4 mb-8">
           <div className="flex flex-col md:flex-row justify-between items-end gap-6 border-b border-gray-100 pb-8">
               <div>
@@ -372,15 +371,14 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
                   <h1 className="text-4xl md:text-6xl font-serif font-black text-brand-dark">{locale === 'ka' ? 'სრული კატალოგი' : 'Catalog'}</h1>
                   <p className="text-gray-400 mt-2 text-sm">
                     {initialProducts.length} {locale === 'ka' ? 'პროდუქტი' : 'products'}
-                    {/* ✅ Loading Indicator */}
                     {isPending && <span className="text-brand-DEFAULT ml-2 animate-pulse">იტვირთება...</span>}
                   </p>
               </div>
               <div className="flex gap-4 w-full md:w-auto">
                   <button onClick={() => setMobileFiltersOpen(true)} className="md:hidden flex-1 bg-gray-100 text-brand-dark py-3 px-6 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm active:scale-95 transition"><SlidersHorizontal className="w-5 h-5" /> {locale === 'ka' ? 'ფილტრაცია' : 'Filter'}</button>
                   
-                  {/* ✅ Custom Sort Dropdown (განახლებული) */}
-                  <div className="relative flex-1 md:flex-none" ref={sortDropdownRef}> {/* ✅ ref დამატებულია გარე კლიკისთვის */}
+                  {/* Custom Sort Dropdown */}
+                  <div className="relative flex-1 md:flex-none" ref={sortDropdownRef}> 
                       <button
                           onClick={() => setIsSortOpen(prev => !prev)}
                           className="w-full md:w-auto appearance-none bg-white border border-gray-200 text-brand-dark py-3 px-6 pr-10 rounded-xl font-bold outline-none focus:border-brand-DEFAULT cursor-pointer shadow-sm flex items-center justify-between"
@@ -411,106 +409,114 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
       </div>
 
       <div className="container mx-auto px-4 flex gap-12 relative">
-        <aside className="hidden md:block w-1/4 space-y-10 sticky top-32 max-h-[calc(100vh-10rem)] overflow-y-auto pr-4 hide-scrollbar">
+        {/* ✅ Desktop Sidebar (ახალი სტრუქტურა Sticky ღილაკისთვის) */}
+        <div className="hidden md:block w-1/4 sticky top-28 h-[calc(100vh-8rem)] relative"> {/* Sticky container for the entire sidebar block */}
             
-            {/* 1. Categories Filter (Collapsible) */}
-            <div>
-                <button 
-                  className="flex justify-between items-center w-full font-bold uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2 mb-6 cursor-pointer"
-                  onClick={() => setIsCategoriesOpen(!isCategoriesOpen)}
-                >
-                    {locale === 'ka' ? 'კატეგორიები' : 'Categories'}
-                    <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isCategoriesOpen ? 'rotate-180' : ''}`} />
+             {/* ✅ 1. Sticky Clear Filters Button at the Top */}
+            <div className="sticky top-0 z-10 bg-white pt-4 pb-4 border-b border-gray-100 -mx-4 px-4">
+                <button onClick={handleClearFilters} disabled={!filtersActive} className={`w-full py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 ${filtersActive ? 'bg-brand-DEFAULT text-white hover:bg-brand-dark' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}>
+                    <RefreshCcw className="w-4 h-4" /> {locale === 'ka' ? 'ფილტრების გასუფთავება' : 'Clear Filters'}
                 </button>
-                {isCategoriesOpen && (
-                    <div className="grid grid-cols-2 gap-x-6 gap-y-3 animate-fade-in">
-                        <label className="flex items-center gap-3 cursor-pointer group col-span-2">
-                            <input type="checkbox" checked={activeCategory === 'all'} onChange={() => handleCategoryChange('all')} className="w-5 h-5 rounded border-gray-300 text-brand-DEFAULT focus:ring-brand-DEFAULT shadow-sm flex-shrink-0" />
-                            <span className="text-gray-600 group-hover:text-brand-dark transition font-medium">{locale === 'ka' ? 'ყველა' : 'All'}</span>
-                        </label>
-                        {availableCategories.map((cat) => (
-                            <label key={cat.id} className="flex items-center gap-2 cursor-pointer group">
-                                <input type="checkbox" checked={activeCategory === cat.slug} onChange={() => handleCategoryChange(cat.slug)} className="w-5 h-5 rounded border-gray-300 text-brand-DEFAULT focus:ring-brand-DEFAULT shadow-sm flex-shrink-0" />
-                                <div className="flex items-center justify-between w-full overflow-hidden">
-                                    <span className="text-gray-600 group-hover:text-brand-dark transition font-medium text-sm truncate mr-1" title={cat.name}>{cat.name}</span>
-                                    <span className="text-[10px] text-gray-400 font-bold bg-gray-50 px-1.5 py-0.5 rounded flex-shrink-0">{cat.count}</span>
-                                </div>
-                            </label>
-                        ))}
-                    </div>
-                )}
             </div>
 
-            {/* 2. Price Filter (Collapsible) */}
-            <div>
-                <button 
-                  className="flex justify-between items-center w-full font-bold uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2 mb-6 cursor-pointer"
-                  onClick={() => setIsPriceOpen(!isPriceOpen)}
-                >
-                    {locale === 'ka' ? 'ფასი' : 'Price'}
-                    <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isPriceOpen ? 'rotate-180' : ''}`} />
-                </button>
-                {isPriceOpen && (
-                    <div className="px-2 animate-fade-in">
-                        <input type="range" className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand-DEFAULT" min="0" max="5000" step="50" value={maxPrice} onMouseUp={(e) => handlePriceChangeFinal(Number((e.target as HTMLInputElement).value))} onChange={(e) => setMaxPrice(Number(e.target.value))} />
-                        <div className="flex justify-between mt-3 text-sm font-bold text-gray-500"><span>0 ₾</span><span>{maxPrice} ₾</span></div>
-                    </div>
-                )}
-            </div>
-
-            {/* 3. Colors Filter (Collapsible) */}
-            {availableColors.length > 0 && (
+            {/* 2. Filters List (Scrollable Below the Sticky Button) */}
+            <aside className="space-y-10 overflow-y-auto pr-4 pt-6 pb-24 h-full"> {/* h-full უზრუნველყოფს სქროლვას */}
+                
+                {/* 1. Categories Filter (Collapsible) - გაშლილია */}
                 <div>
                     <button 
-                        className="flex justify-between items-center w-full font-bold uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2 mb-6 cursor-pointer"
-                        onClick={() => setIsColorsOpen(!isColorsOpen)}
+                      className="flex justify-between items-center w-full font-bold uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2 mb-6 cursor-pointer"
+                      onClick={() => setIsCategoriesOpen(!isCategoriesOpen)}
                     >
-                        {locale === 'ka' ? 'ფერი' : 'Color'}
-                        <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isColorsOpen ? 'rotate-180' : ''}`} />
+                        {locale === 'ka' ? 'კატეგორიები' : 'Categories'}
+                        <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isCategoriesOpen ? 'rotate-180' : ''}`} />
                     </button>
-                    {isColorsOpen && (
-                        <div className="flex flex-wrap gap-4 animate-fade-in">
-                            <button onClick={() => handleColorChange('all')} className={`px-3 py-1 text-xs border rounded-full transition cursor-pointer ${activeColor === 'all' ? 'bg-brand-dark text-white' : 'bg-white hover:border-brand-dark'}`}>All</button>
-                            {availableColors.map((color) => (
-                                <button key={color.id} onClick={() => handleColorChange(color.slug)} className={`w-8 h-8 rounded-full border-2 border-gray-200 transition duration-150 transform hover:scale-110 cursor-pointer ${activeColor === color.slug ? 'color-swatch-selected' : ''}`} style={{ backgroundColor: colorMap[color.slug] || '#e5e7eb' }} title={color.name} />
-                            ))}
-                        </div>
-                    )}
-                </div>
-            )}
-
-            {/* 4. Materials Filter (Collapsible) */}
-            {availableSizes.length > 0 && (
-                <div className="pb-10">
-                    <button 
-                        className="flex justify-between items-center w-full font-bold uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2 mb-6 cursor-pointer"
-                        onClick={() => setIsMaterialsOpen(!isMaterialsOpen)}
-                    >
-                        {locale === 'ka' ? 'მასალა' : 'Material'}
-                        <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isMaterialsOpen ? 'rotate-180' : ''}`} />
-                    </button>
-                    {isMaterialsOpen && (
-                        <div className="grid grid-cols-2 gap-3 animate-fade-in">
-                            {availableSizes.map((size) => (
-                                <label key={size.id} className="flex items-center gap-3 cursor-pointer group">
-                                    <input type="checkbox" checked={activeSize === size.slug} onChange={() => handleSizeChange(size.slug)} className="w-5 h-5 rounded border-gray-300 text-brand-DEFAULT focus:ring-brand-DEFAULT shadow-sm flex-shrink-0" />
+                    {isCategoriesOpen && (
+                        <div className="grid grid-cols-2 gap-x-6 gap-y-3 animate-fade-in">
+                            <label className="flex items-center gap-3 cursor-pointer group col-span-2">
+                                <input type="checkbox" checked={activeCategory === 'all'} onChange={() => handleCategoryChange('all')} className="w-5 h-5 rounded border-gray-300 text-brand-DEFAULT focus:ring-brand-DEFAULT shadow-sm flex-shrink-0" />
+                                <span className="text-gray-600 group-hover:text-brand-dark transition font-medium">{locale === 'ka' ? 'ყველა' : 'All'}</span>
+                            </label>
+                            {availableCategories.map((cat) => (
+                                <label key={cat.id} className="flex items-center gap-2 cursor-pointer group">
+                                    <input type="checkbox" checked={activeCategory === cat.slug} onChange={() => handleCategoryChange(cat.slug)} className="w-5 h-5 rounded border-gray-300 text-brand-DEFAULT focus:ring-brand-DEFAULT shadow-sm flex-shrink-0" />
                                     <div className="flex items-center justify-between w-full overflow-hidden">
-                                        <span className="text-gray-600 group-hover:text-brand-dark transition font-medium text-sm truncate mr-1" title={size.name}>{size.name}</span>
-                                        <span className="text-[10px] text-gray-400 font-bold bg-gray-50 px-1.5 py-0.5 rounded flex-shrink-0">{size.count}</span>
+                                        <span className="text-gray-600 group-hover:text-brand-dark transition font-medium text-sm truncate mr-1" title={cat.name}>{cat.name}</span>
+                                        <span className="text-[10px] text-gray-400 font-bold bg-gray-50 px-1.5 py-0.5 rounded flex-shrink-0">{cat.count}</span>
                                     </div>
                                 </label>
                             ))}
                         </div>
                     )}
                 </div>
-            )}
+
+                {/* 2. Price Filter (Collapsible) - ჩაკეცილია */}
+                <div>
+                    <button 
+                      className="flex justify-between items-center w-full font-bold uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2 mb-6 cursor-pointer"
+                      onClick={() => setIsPriceOpen(!isPriceOpen)}
+                    >
+                        {locale === 'ka' ? 'ფასი' : 'Price'}
+                        <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isPriceOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    {isPriceOpen && (
+                        <div className="px-2 animate-fade-in">
+                            <input type="range" className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand-DEFAULT" min="0" max="5000" step="50" value={maxPrice} onMouseUp={(e) => handlePriceChangeFinal(Number((e.target as HTMLInputElement).value))} onChange={(e) => setMaxPrice(Number(e.target.value))} />
+                            <div className="flex justify-between mt-3 text-sm font-bold text-gray-500"><span>0 ₾</span><span>{maxPrice} ₾</span></div>
+                        </div>
+                    )}
+                </div>
+
+                {/* 3. Colors Filter (Collapsible) - ჩაკეცილია */}
+                {availableColors.length > 0 && (
+                    <div>
+                        <button 
+                            className="flex justify-between items-center w-full font-bold uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2 mb-6 cursor-pointer"
+                            onClick={() => setIsColorsOpen(!isColorsOpen)}
+                        >
+                            {locale === 'ka' ? 'ფერი' : 'Color'}
+                            <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isColorsOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                        {isColorsOpen && (
+                            <div className="flex flex-wrap gap-4 animate-fade-in">
+                                <button onClick={() => handleColorChange('all')} className={`px-3 py-1 text-xs border rounded-full transition cursor-pointer ${activeColor === 'all' ? 'bg-brand-dark text-white' : 'bg-white hover:border-brand-dark'}`}>All</button>
+                                {availableColors.map((color) => (
+                                    <button key={color.id} onClick={() => handleColorChange(color.slug)} className={`w-8 h-8 rounded-full border-2 border-gray-200 transition duration-150 transform hover:scale-110 cursor-pointer ${activeColor === color.slug ? 'color-swatch-selected' : ''}`} style={{ backgroundColor: colorMap[color.slug] || '#e5e7eb' }} title={color.name} />
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* 4. Materials Filter (Collapsible) - ჩაკეცილია */}
+                {availableSizes.length > 0 && (
+                    <div className="pb-4"> 
+                        <button 
+                            className="flex justify-between items-center w-full font-bold uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2 mb-6 cursor-pointer"
+                            onClick={() => setIsMaterialsOpen(!isMaterialsOpen)}
+                        >
+                            {locale === 'ka' ? 'მასალა' : 'Material'}
+                            <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isMaterialsOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                        {isMaterialsOpen && (
+                            <div className="grid grid-cols-2 gap-3 animate-fade-in">
+                                {availableSizes.map((size) => (
+                                    <label key={size.id} className="flex items-center gap-3 cursor-pointer group">
+                                        <input type="checkbox" checked={activeSize === size.slug} onChange={() => handleSizeChange(size.slug)} className="w-5 h-5 rounded border-gray-300 text-brand-DEFAULT focus:ring-brand-DEFAULT shadow-sm flex-shrink-0" />
+                                        <div className="flex items-center justify-between w-full overflow-hidden">
+                                            <span className="text-gray-600 group-hover:text-brand-dark transition font-medium text-sm truncate mr-1" title={size.name}>{size.name}</span>
+                                            <span className="text-[10px] text-gray-400 font-bold bg-gray-50 px-1.5 py-0.5 rounded flex-shrink-0">{size.count}</span>
+                                        </div>
+                                    </label>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+                
+            </aside>
             
-            {/* ✅ Desktop Filter Clear Button */}
-            <button onClick={handleClearFilters} disabled={!filtersActive} className={`w-full py-3 rounded-xl font-bold mb-10 transition flex items-center justify-center gap-2 ${filtersActive ? 'bg-brand-DEFAULT text-white hover:bg-brand-dark' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}>
-                <RefreshCcw className="w-4 h-4" /> {locale === 'ka' ? 'ფილტრების გასუფთავება' : 'Clear Filters'}
-            </button>
-            
-        </aside>
+        </div>
 
         <div className="flex-1">
             <div className={`grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8 md:gap-8 transition-opacity duration-300 ${isPending ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
