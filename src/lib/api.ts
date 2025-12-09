@@ -1,19 +1,26 @@
 // src/lib/api.ts
-import { WORDPRESS_API_URL, REVALIDATE_TIME } from './constants';
+import { WORDPRESS_API_URL } from './constants';
 import { GET_PRODUCTS_QUERY, GET_FILTERS_QUERY, GET_PRODUCT_BY_SLUG_QUERY } from './queries';
 import { Product } from '@/types';
 
 async function fetchAPI(query: string, { variables }: { variables?: any } = {}, revalidateTime: number) {
   const headers = { 'Content-Type': 'application/json' };
+  
+  // ✅ შესწორება: Cache-ის კონფლიქტის თავიდან აცილება
+  const fetchOptions: RequestInit = {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ query, variables }),
+  };
+
+  if (revalidateTime === 0) {
+    fetchOptions.cache = 'no-store';
+  } else {
+    fetchOptions.next = { revalidate: revalidateTime };
+  }
+
   try {
-    const res = await fetch(WORDPRESS_API_URL, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ query, variables }),
-      // ✅ Cache Optimization: ყოველ 60 წამში მოხდეს ქეშის განახლება
-      next: { revalidate: revalidateTime > 0 ? revalidateTime : 60 },
-      cache: 'force-cache', // უზრუნველყოფს, რომ ყოველთვის ქეშიდან მოვა
-    });
+    const res = await fetch(WORDPRESS_API_URL, fetchOptions);
     const json = await res.json();
     if (json.errors) {
       console.error('WPGraphQL Error:', JSON.stringify(json.errors, null, 2));
@@ -33,7 +40,6 @@ interface ProductFilters {
   minPrice?: number;
   maxPrice?: number;
   limit?: number;
-  // ✅ დაემატა sort პარამეტრი
   sort?: 'DATE_DESC' | 'PRICE_ASC' | 'PRICE_DESC' | 'POPULARITY_DESC'; 
 }
 
@@ -54,51 +60,27 @@ export async function getProducts(filters: ProductFilters = {}, locale: string =
 
   const whereArgs: any = {};
 
-  // ✅ სორტირების ლოგიკა
   if (sort) {
-      if (sort === 'POPULARITY_DESC') {
-          whereArgs.orderby = [{ field: 'POPULARITY', order: 'DESC' }]; 
-      } else if (sort === 'PRICE_ASC') {
-          whereArgs.orderby = [{ field: 'PRICE', order: 'ASC' }];
-      } else if (sort === 'PRICE_DESC') {
-          whereArgs.orderby = [{ field: 'PRICE', order: 'DESC' }];
-      } else {
-          // ნაგულისხმევი: ახალი დამატებული
-          whereArgs.orderby = [{ field: 'DATE', order: 'DESC' }];
-      }
+      if (sort === 'POPULARITY_DESC') whereArgs.orderby = [{ field: 'POPULARITY', order: 'DESC' }]; 
+      else if (sort === 'PRICE_ASC') whereArgs.orderby = [{ field: 'PRICE', order: 'ASC' }];
+      else if (sort === 'PRICE_DESC') whereArgs.orderby = [{ field: 'PRICE', order: 'DESC' }];
+      else whereArgs.orderby = [{ field: 'DATE', order: 'DESC' }];
   }
 
-
-  if (locale && locale !== 'all') {
-     whereArgs.language = locale.toUpperCase();
-  }
-
-  if (taxonomyFilter.filters.length > 0) {
-    whereArgs.taxonomyFilter = taxonomyFilter;
-  }
-  
+  if (locale && locale !== 'all') whereArgs.language = locale.toUpperCase();
+  if (taxonomyFilter.filters.length > 0) whereArgs.taxonomyFilter = taxonomyFilter;
   if (minPrice !== undefined || maxPrice !== undefined) {
     whereArgs.minPrice = minPrice;
     whereArgs.maxPrice = maxPrice;
   }
-  
-  // თუ არ არის კონკრეტული სორტირება მითითებული, default-ად DATE_DESC
-  if (!whereArgs.orderby) {
-      whereArgs.orderby = [{ field: 'DATE', order: 'DESC' }];
-  }
+  if (!whereArgs.orderby) whereArgs.orderby = [{ field: 'DATE', order: 'DESC' }];
 
-
-  const data = await fetchAPI(
-    GET_PRODUCTS_QUERY, 
-    { variables: { first: limit, where: whereArgs } }, 
-    60 // 60 წამიანი ქეშირება პროდუქტებზე
-  );
-
+  const data = await fetchAPI(GET_PRODUCTS_QUERY, { variables: { first: limit, where: whereArgs } }, 60);
   return data?.products?.nodes || [];
 }
 
 export async function getFilters() {
-  const data = await fetchAPI(GET_FILTERS_QUERY, {}, 86400); // 24 საათიანი ქეშირება ფილტრებზე
+  const data = await fetchAPI(GET_FILTERS_QUERY, {}, 86400);
   return {
     categories: data?.productCategories?.nodes || [],
     colors: data?.allPaColor?.nodes || [],
@@ -107,6 +89,6 @@ export async function getFilters() {
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
-  const data = await fetchAPI(GET_PRODUCT_BY_SLUG_QUERY, { variables: { id: slug } }, 3600); // 1 საათიანი ქეშირება
+  const data = await fetchAPI(GET_PRODUCT_BY_SLUG_QUERY, { variables: { id: slug } }, 3600);
   return data?.product || null;
 }

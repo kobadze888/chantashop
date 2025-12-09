@@ -42,7 +42,6 @@ const PRODUCT_FRAGMENT = `
   }
 `;
 
-// ✅ პროფესიონალური Query: იღებს "where" ობიექტს (RootQueryToProductUnionConnectionWhereArgs)
 export const GET_PRODUCTS_QUERY = `
   ${PRODUCT_FRAGMENT}
   query GetProducts($first: Int!, $where: RootQueryToProductUnionConnectionWhereArgs) {
@@ -79,6 +78,35 @@ export const GET_PRODUCT_BY_SLUG_QUERY = `
       ...ProductFragment
       galleryImages { nodes { sourceUrl altText } }
       seo { title metaDesc }
+    }
+  }
+`;
+
+// ✅ Checkout (LineItems-ის გარეშე)
+export const CHECKOUT_MUTATION = `
+  mutation Checkout($input: CheckoutInput!) {
+    checkout(input: $input) {
+      order {
+        databaseId
+        orderNumber
+        status
+        total(format: RAW)
+      }
+      result
+      redirect
+    }
+  }
+`;
+
+// ✅ კალათაში დამატების მუტაცია
+export const ADD_TO_CART_MUTATION = `
+  mutation AddToCart($input: AddToCartInput!) {
+    addToCart(input: $input) {
+      cart {
+        contents {
+          itemCount
+        }
+      }
     }
   }
 `;
