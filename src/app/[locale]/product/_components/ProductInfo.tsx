@@ -1,5 +1,3 @@
-// src/app/[locale]/product/_components/ProductInfo.tsx
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -7,6 +5,7 @@ import { Heart, Star, Truck, ShieldCheck, RefreshCcw, Minus, Plus } from 'lucide
 import { Product } from '@/types';
 import AddToCartButton from './AddToCartButton';
 import ProductGallery from './ProductGallery';
+import { useTranslations } from 'next-intl';
 
 interface ProductInfoProps {
   product: Product;
@@ -15,13 +14,12 @@ interface ProductInfoProps {
 export default function ProductInfo({ product }: ProductInfoProps) {
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
+  const t = useTranslations('Product');
   
-  // ✅ განახლებული ლოგიკა
   const selectedVariation = useMemo(() => {
     if (!product.variations) return null;
     return product.variations.nodes.find((variation) => {
       return variation.attributes?.nodes.every((attr) => {
-        // ვადარებთ პირდაპირ value-ს (რადგან query-ში შევცვალეთ)
         return selectedOptions[attr.name] === attr.value;
       });
     });
@@ -50,7 +48,6 @@ export default function ProductInfo({ product }: ProductInfoProps) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-20">
       
-      {/* მარცხენა მხარე: გალერეა */}
       <div className="lg:sticky lg:top-32 h-min relative">
         <ProductGallery 
             mainImage={displayImage} 
@@ -62,7 +59,6 @@ export default function ProductInfo({ product }: ProductInfoProps) {
         </button>
       </div>
 
-      {/* მარჯვენა მხარე: ინფორმაცია */}
       <div className="flex flex-col justify-center py-4">
         
         <h1 className="text-4xl md:text-6xl font-serif font-black text-brand-dark mb-6 leading-tight">
@@ -71,23 +67,21 @@ export default function ProductInfo({ product }: ProductInfoProps) {
         
         <div className="flex items-center gap-6 mb-8">
             <span className="text-4xl font-black text-brand-dark">
-                {/* ფასის სიმბოლოს დამატება თუ აკლია */}
                 {displayPrice?.includes('₾') ? displayPrice : `${displayPrice} ₾`}
             </span>
             <div className="h-8 w-[1px] bg-gray-200"></div>
             <div className="flex items-center gap-1 text-yellow-400">
                 <Star className="w-5 h-5 fill-current" />
                 <span className="text-brand-dark font-bold text-lg ml-1">4.9</span>
-                <span className="text-gray-400 text-sm font-normal">(128 შეფასება)</span>
+                <span className="text-gray-400 text-sm font-normal">({t('reviews', {count: 128})})</span>
             </div>
         </div>
 
         <div 
             className="text-gray-600 leading-relaxed mb-10 text-lg font-light" 
-            dangerouslySetInnerHTML={{ __html: product.shortDescription || '<p>აღწერა არ არის.</p>' }} 
+            dangerouslySetInnerHTML={{ __html: product.shortDescription || '<p>No description.</p>' }} 
         />
         
-        {/* ატრიბუტების არჩევა */}
         {!isSimpleProduct && product.attributes && (
             <div className="mb-10">
                 {product.attributes.nodes.map((attr) => (
@@ -99,7 +93,6 @@ export default function ProductInfo({ product }: ProductInfoProps) {
                             {attr.options?.map((option) => {
                                 const isSelected = selectedOptions[attr.name] === option;
                                 
-                                // ფერის ვიზუალი
                                 if (attr.name.toLowerCase().includes('color') || attr.name.toLowerCase().includes('ფერი')) {
                                     const colorMap: Record<string, string> = { 'red': '#DC2626', 'black': '#000000', 'white': '#FFFFFF', 'blue': '#2563EB', 'brown': '#8B5E3C' };
                                     const bg = colorMap[option.toLowerCase()] || '#E5E7EB';
@@ -154,25 +147,24 @@ export default function ProductInfo({ product }: ProductInfoProps) {
             />
         </div>
 
-        {/* Trust Badges */}
         <div className="grid grid-cols-3 gap-6 mt-12">
             <div className="flex flex-col items-center text-center gap-3 p-6 bg-white rounded-3xl border border-gray-100 shadow-lg hover:-translate-y-1 transition">
                 <div className="w-12 h-12 bg-brand-light rounded-full flex items-center justify-center">
                     <Truck className="w-6 h-6 text-brand-DEFAULT" />
                 </div>
-                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">უფასო მიწოდება</span>
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{t('Trust.shipping')}</span>
             </div>
             <div className="flex flex-col items-center text-center gap-3 p-6 bg-white rounded-3xl border border-gray-100 shadow-lg hover:-translate-y-1 transition">
                 <div className="w-12 h-12 bg-brand-light rounded-full flex items-center justify-center">
                     <ShieldCheck className="w-6 h-6 text-brand-DEFAULT" />
                 </div>
-                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">1 წლიანი გარანტია</span>
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{t('Trust.warranty')}</span>
             </div>
             <div className="flex flex-col items-center text-center gap-3 p-6 bg-white rounded-3xl border border-gray-100 shadow-lg hover:-translate-y-1 transition">
                 <div className="w-12 h-12 bg-brand-light rounded-full flex items-center justify-center">
                     <RefreshCcw className="w-6 h-6 text-brand-DEFAULT" />
                 </div>
-                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">მარტივი დაბრუნება</span>
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{t('Trust.return')}</span>
             </div>
         </div>
       </div>

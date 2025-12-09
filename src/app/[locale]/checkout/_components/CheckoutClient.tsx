@@ -1,21 +1,17 @@
+// src/app/[locale]/checkout/_components/CheckoutClient.tsx
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useCartStore } from '@/store/cartStore';
 import Image from 'next/image';
 import { Link, useRouter } from '@/navigation'; 
 import { CreditCard, Banknote, ArrowLeft, Loader2, Tag, MapPin, ChevronDown, XCircle } from 'lucide-react';
 import { placeOrder, calculateCartTotals } from '@/lib/actions'; 
 import { useTranslations } from 'next-intl';
-
-const GE_CITIES = [
-  "თბილისი", "ბათუმი", "ქუთაისი", "რუსთავი", "გორი", "ზუგდიდი", "ფოთი", "ქობულეთი", 
-  "ხაშური", "სამტრედია", "სენაკი", "ზესტაფონი", "მარნეული", "თელავი", "ახალციხე", 
-  "ოზურგეთი", "კასპი", "ჭიათურა", "წყალტუბო", "საგარეჯო", "გარდაბანი", "ბორჯომი", 
-  "ტყიბული", "ხონი", "ბოლნისი", "ახალქალაქი", "გურჯაანი", "მცხეთა", "ყვარელი", "საჩხერე", "დუშეთი"
-];
+import { getCitiesList, getDefaultCity, isTbilisi } from '@/lib/ge-cities'; 
 
 const formatPrice = (price: string | number) => {
+  if (price === null || price === undefined) return '0 ₾';
   const num = typeof price === 'string' ? parseFloat(price.replace(/[^0-9.]/g, '')) : price;
   if (isNaN(num)) return '0 ₾';
   return new Intl.NumberFormat('ka-GE', {
@@ -31,9 +27,7 @@ export default function CheckoutClient({ locale }: { locale: string }) {
   const { items, totalPrice, clearCart } = useCartStore();
   const [mounted, setMounted] = useState(false);
   
-  // ✅ ახალი: ერორის სტატუსი
   const [globalError, setGlobalError] = useState<string | null>(null);
-
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'bacs'>('cod');
   const [isLoading, setIsLoading] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
@@ -44,19 +38,30 @@ export default function CheckoutClient({ locale }: { locale: string }) {
   const [serverTotals, setServerTotals] = useState<any>(null);
   const [sessionToken, setSessionToken] = useState<string | undefined>(undefined);
 
-  const [citySearch, setCitySearch] = useState('თბილისი');
+  // --- City & Zone Logic ---
+  const citiesList = useMemo(() => getCitiesList(locale), [locale]);
+  const defaultCity = useMemo(() => getDefaultCity(locale), [locale]);
+  
+  const lastCalculatedZone = useRef<'tbilisi' | 'region' | null>(null); 
+
+  const [citySearch, setCitySearch] = useState(defaultCity);
   const [isCityDropdownOpen, setIsCityDropdownOpen] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+
   const cityInputRef = useRef<HTMLInputElement>(null);
   const cityDropdownRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState({
     firstName: '', lastName: '', phone: '', email: '',
-    city: 'თბილისი', address: '', apt: ''
+    city: defaultCity, address: '', apt: ''
   });
+  
+  const formDataRef = useRef(formData);
+  formDataRef.current = formData;
 
   useEffect(() => {
     setMounted(true);
-    if (items.length > 0) handleCalculateTotals('თბილისი', '');
+    if (items.length > 0) handleCalculateTotals(defaultCity, '', true);
     
     function handleClickOutside(event: MouseEvent) {
       if (cityDropdownRef.current && !cityDropdownRef.current.contains(event.target as Node) &&
@@ -66,41 +71,82 @@ export default function CheckoutClient({ locale }: { locale: string }) {
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [items.length, defaultCity]);
 
-  const handleCalculateTotals = async (city: string, coupon: string) => {
+  const filteredCities = useMemo(() => {
+    if (!isSearching) return citiesList;
+    return citiesList.filter(c => c.toLowerCase().includes(citySearch.toLowerCase()));
+  }, [citiesList, citySearch, isSearching]);
+
+  const handleCalculateTotals = async (city: string, coupon: string, force = false) => {
+    const currentZone = isTbilisi(city) ? 'tbilisi' : 'region';
+    
+    const normalizedLastCoupon = appliedCoupon ? appliedCoupon.toLowerCase().trim() : '';
+    const normalizedCurrentCoupon = coupon ? coupon.toLowerCase().trim() : '';
+
+    if (!force && currentZone === lastCalculatedZone.current && normalizedCurrentCoupon === normalizedLastCoupon) {
+        return; 
+    }
+
+    lastCalculatedZone.current = currentZone;
     setIsCalculating(true);
+    
     try {
         const cartItemsData = items.map(item => ({ productId: item.id, quantity: item.quantity }));
-        const res = await calculateCartTotals(cartItemsData, coupon, city);
+        const res = await calculateCartTotals(cartItemsData, coupon, city); 
+        
         if (res.totals) {
             setServerTotals(res.totals);
             if (res.sessionToken) setSessionToken(res.sessionToken);
         }
-    } catch (error) { console.error(error); } 
+    } catch (error) { 
+        console.error("Calculate Totals Error:", error);
+        setServerTotals(prev => ({ ...prev, shippingTotal: "0", total: prev?.subtotal || totalPrice() }));
+    } 
     finally { setIsCalculating(false); }
   };
 
   const handleCitySelect = (city: string) => {
-    setFormData({ ...formData, city: city });
+    setFormData(prev => ({ ...prev, city: city }));
     setCitySearch(city);
     setIsCityDropdownOpen(false);
+    setIsSearching(false);
     handleCalculateTotals(city, appliedCoupon || '');
+  };
+  
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    const newFormData = { ...formData, [name]: value };
+    setFormData(newFormData);
+    
+    if (name === 'city') {
+        setCitySearch(value);
+        setIsCityDropdownOpen(true); 
+        setIsSearching(true);
+        handleCalculateTotals(value, appliedCoupon || '');
+    }
+  };
+
+  const handleCityBlur = () => {
+    setTimeout(() => {
+        setIsCityDropdownOpen(false);
+        handleCalculateTotals(formDataRef.current.city, appliedCoupon || ''); 
+    }, 200);
   };
 
   const handleApplyCoupon = () => {
       if (!couponCode) return;
-      setAppliedCoupon(couponCode);
-      handleCalculateTotals(formData.city, couponCode);
+      setAppliedCoupon(couponCode); 
+      handleCalculateTotals(formData.city, couponCode, true);
   };
 
   const handleOrder = async (e: React.FormEvent) => {
       e.preventDefault();
-      setGlobalError(null); // გასუფთავება ძველი ერორის
+      setGlobalError(null);
 
       if (!formData.city) { 
           setGlobalError(t('errorCity')); 
-          window.scrollTo({ top: 0, behavior: 'smooth' }); // ავიდეთ ზემოთ რომ ერორი ნახოს
+          window.scrollTo({ top: 0, behavior: 'smooth' }); 
           return; 
       }
       
@@ -118,19 +164,16 @@ export default function CheckoutClient({ locale }: { locale: string }) {
 
         const response = await placeOrder(orderInput, cartItemsData, appliedCoupon || '', sessionToken);
 
-        // 1. შეცდომა (Inline)
         if (response?.errors) {
             const msg = response.errors[0]?.message || t('errorGeneric');
-            setGlobalError(msg); // ერორის ჩაწერა
-            setIsLoading(false); // ლოადინგის გათიშვა რომ თავიდან სცადოს
+            setGlobalError(msg);
+            setIsLoading(false);
             window.scrollTo({ top: 0, behavior: 'smooth' });
             return;
         }
 
-        // 2. წარმატება
         if (response?.order) {
             clearCart();
-            // წარმატებისას isLoading რჩება ჩართული
             router.push(`/checkout/success?orderId=${response.order.orderNumber}&email=${formData.email}`); 
         } else {
             setGlobalError(t('errorGeneric'));
@@ -162,12 +205,10 @@ export default function CheckoutClient({ locale }: { locale: string }) {
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 animate-fade-in">
       <div className="lg:col-span-7 space-y-8">
         
-        {/* Header & Back Link */}
         <Link href="/cart" className="inline-flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-brand-dark transition">
             <ArrowLeft className="w-4 h-4" /> {t('backToCart')}
         </Link>
 
-        {/* ✅ Global Error Alert Box */}
         {globalError && (
             <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3 animate-fade-in">
                 <XCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
@@ -179,17 +220,16 @@ export default function CheckoutClient({ locale }: { locale: string }) {
         )}
 
         <form id="checkout-form" onSubmit={handleOrder} className="space-y-10">
-            {/* ... იგივე ფორმის ველები ... */}
             <section>
                 <h3 className="text-xl font-serif font-bold text-brand-dark mb-6 flex items-center gap-3">
                     <span className="w-8 h-8 rounded-full bg-brand-dark text-white flex items-center justify-center text-sm font-sans">1</span>
                     {t('contactInfo')}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <InputGroup name="firstName" value={formData.firstName} onChange={(e: any) => setFormData({...formData, [e.target.name]: e.target.value})} label={t('firstName')} placeholder="" />
-                    <InputGroup name="lastName" value={formData.lastName} onChange={(e: any) => setFormData({...formData, [e.target.name]: e.target.value})} label={t('lastName')} placeholder="" />
-                    <InputGroup name="phone" value={formData.phone} onChange={(e: any) => setFormData({...formData, [e.target.name]: e.target.value})} label={t('phone')} placeholder="+995..." className="md:col-span-2" />
-                    <InputGroup name="email" value={formData.email} onChange={(e: any) => setFormData({...formData, [e.target.name]: e.target.value})} label={t('email')} placeholder="example@mail.com" className="md:col-span-2" />
+                    <InputGroup name="firstName" value={formData.firstName} onChange={handleFormChange} label={t('firstName')} placeholder="" />
+                    <InputGroup name="lastName" value={formData.lastName} onChange={handleFormChange} label={t('lastName')} placeholder="" />
+                    <InputGroup name="phone" value={formData.phone} onChange={handleFormChange} label={t('phone')} placeholder="+995..." className="md:col-span-2" />
+                    <InputGroup name="email" value={formData.email} onChange={handleFormChange} label={t('email')} placeholder="example@mail.com" className="md:col-span-2" />
                 </div>
             </section>
 
@@ -201,22 +241,67 @@ export default function CheckoutClient({ locale }: { locale: string }) {
                     {t('addressTitle')}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    
                     <div className="md:col-span-2 relative">
                         <label className="block text-xs font-bold uppercase text-gray-500 mb-2 tracking-wide ml-1">{t('city')}</label>
                         <div className="relative">
-                            <input ref={cityInputRef} type="text" value={citySearch} onChange={(e) => { setCitySearch(e.target.value); setFormData({...formData, city: e.target.value}); setIsCityDropdownOpen(true); }} onFocus={() => setIsCityDropdownOpen(true)} className="w-full border border-gray-200 bg-gray-50/50 p-4 rounded-xl focus:outline-none focus:border-brand-DEFAULT transition-all font-medium pr-10" placeholder={t('cityPlaceholder')} required />
-                            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <input 
+                                ref={cityInputRef} 
+                                type="text" 
+                                name="city"
+                                value={citySearch} 
+                                onChange={handleFormChange} 
+                                onClick={() => {
+                                    setIsCityDropdownOpen(true);
+                                    setIsSearching(false); 
+                                }}
+                                onFocus={() => {
+                                    setIsCityDropdownOpen(true);
+                                    setIsSearching(false);
+                                }}
+                                onBlur={handleCityBlur} 
+                                className="w-full border border-gray-200 bg-gray-50/50 p-4 rounded-xl focus:outline-none focus:border-brand-DEFAULT transition-all font-medium pr-10" 
+                                placeholder={t('cityPlaceholder')} 
+                                required 
+                            />
+                            <ChevronDown 
+                                className={`absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 transition-transform duration-300 ${isCityDropdownOpen ? 'rotate-180' : ''}`} 
+                                onClick={() => {
+                                    const nextState = !isCityDropdownOpen;
+                                    setIsCityDropdownOpen(nextState);
+                                    if(nextState) {
+                                        cityInputRef.current?.focus();
+                                        setIsSearching(false);
+                                    }
+                                }}
+                            />
                         </div>
                         {isCityDropdownOpen && (
-                            <div ref={cityDropdownRef} className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-xl max-h-48 overflow-y-auto animate-fade-in custom-scrollbar">
-                                {GE_CITIES.filter(c => c.toLowerCase().includes(citySearch.toLowerCase())).map((city) => (
-                                    <button key={city} type="button" onClick={() => handleCitySelect(city)} className="w-full text-left px-4 py-3 text-sm hover:bg-brand-light hover:text-brand-DEFAULT transition-colors flex items-center gap-2"><MapPin className="w-3 h-3 opacity-50" />{city}</button>
-                                ))}
+                            <div ref={cityDropdownRef} className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-xl max-h-60 overflow-y-auto animate-fade-in custom-scrollbar">
+                                {filteredCities.length > 0 ? (
+                                    filteredCities.map((city) => (
+                                        <button 
+                                            key={city} 
+                                            type="button" 
+                                            onMouseDown={(e) => e.preventDefault()} 
+                                            onClick={() => handleCitySelect(city)} 
+                                            className="w-full text-left px-4 py-3 text-sm hover:bg-brand-light hover:text-brand-DEFAULT transition-colors flex items-center gap-2"
+                                        >
+                                            <MapPin className="w-3 h-3 opacity-50" />
+                                            {city}
+                                        </button>
+                                    ))
+                                ) : (
+                                    <div className="px-4 py-3 text-sm text-gray-400 italic">
+                                        {t('cityNotFound')}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
-                    <InputGroup name="address" value={formData.address} onChange={(e: any) => setFormData({...formData, [e.target.name]: e.target.value})} label={t('address')} placeholder="" className="md:col-span-2" />
-                    <InputGroup name="apt" value={formData.apt} onChange={(e: any) => setFormData({...formData, [e.target.name]: e.target.value})} label={t('apt')} placeholder="" className="md:col-span-2" required={false} />
+                    
+                    <InputGroup name="address" value={formData.address} onChange={handleFormChange} label={t('address')} placeholder="" className="md:col-span-2" />
+                    <InputGroup name="apt" value={formData.apt} onChange={handleFormChange} label={t('apt')} placeholder="" className="md:col-span-2" required={false} />
                 </div>
             </section>
 
@@ -255,8 +340,8 @@ export default function CheckoutClient({ locale }: { locale: string }) {
             ))}
           </div>
           <div className="border-t border-gray-200 pt-6 space-y-3">
-            <div className="flex justify-between text-sm text-gray-600"><span>{t('yourOrder')}</span><span className="font-bold">{serverTotals ? formatPrice(serverTotals.subtotal) : '...'}</span></div>
-            <div className="flex justify-between text-sm text-gray-600"><span>{t('addressTitle')}</span><span className="font-bold">{serverTotals ? formatPrice(serverTotals.shippingTotal) : '...'}</span></div>
+            <div className="flex justify-between text-sm text-gray-600"><span>{cartT('subtotal')}</span><span className="font-bold">{serverTotals ? formatPrice(serverTotals.subtotal) : '...'}</span></div>
+            <div className="flex justify-between text-sm text-gray-600"><span>{cartT('shipping')}</span><span className="font-bold">{serverTotals ? formatPrice(serverTotals.shippingTotal) : '...'}</span></div>
             {serverTotals && parseFloat(serverTotals.discountTotal) > 0 && <div className="flex justify-between text-sm text-brand-DEFAULT"><span>{t('discount')}</span><span className="font-bold">-{formatPrice(serverTotals.discountTotal)}</span></div>}
           </div>
           <div className="mt-6 flex gap-2">
@@ -264,7 +349,7 @@ export default function CheckoutClient({ locale }: { locale: string }) {
                 <button type="button" onClick={handleApplyCoupon} disabled={!couponCode || isCalculating} className="bg-gray-900 text-white px-4 rounded-xl text-xs font-bold hover:bg-brand-DEFAULT transition disabled:opacity-50">{t('apply')}</button>
           </div>
           <div className="border-t-2 border-dashed border-gray-200 pt-6 mt-6 mb-8">
-            <div className="flex justify-between items-end"><span className="font-black text-brand-dark text-lg">{t('placeOrder')}</span><span className="font-black text-3xl text-brand-DEFAULT font-serif">{formatPrice(grandTotal)}</span></div>
+            <div className="flex justify-between items-end"><span className="font-black text-brand-dark text-lg">{t('total')}</span><span className="font-black text-3xl text-brand-DEFAULT font-serif">{formatPrice(grandTotal)}</span></div>
           </div>
           <button 
             type="submit" 

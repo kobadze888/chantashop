@@ -1,12 +1,11 @@
-// src/components/products/ProductCard.tsx
 'use client';
 
 import Image from 'next/image';
 import { Link } from '@/navigation';
 import { Eye } from 'lucide-react';
 import { useCartStore } from '@/store/cartStore';
+import { useTranslations } from 'next-intl';
 
-// ფერების რუკა
 const colorMap: Record<string, string> = {
   'shavi': '#000000', 'tetri': '#FFFFFF', 'lurji': '#2563EB', 'muqi_lurji': '#1E3A8A',
   'cisferi': '#60A5FA', 'beji': '#F5F5DC', 'yavisferi': '#8B4513', 'vardisferi': '#DB2777',
@@ -29,16 +28,15 @@ interface ProductCardProps {
   onQuickView?: (e: React.MouseEvent) => void;
 }
 
-// ✅ URL ვალიდატორი: ამოწმებს, არის თუ არა სტრიქონი სავარაუდო სურათის URL
 function isValidImageUrl(url: string | undefined): boolean {
   if (!url) return false;
-  // Regex ამოწმებს, რომ URL-ი არ იყოს ძალიან მოკლე და მთავრდებოდეს სურათის გაფართოებით
   const validUrlRegex = /\.(jpe?g|png|gif|webp|svg)$/i;
   return url.length > 5 && validUrlRegex.test(url);
 }
 
 export default function ProductCard({ id, name, price, salePrice, regularPrice, image, secondImage, slug, attributes, className, onQuickView }: ProductCardProps) {
   const addItem = useCartStore((state) => state.addItem);
+  const t = useTranslations('Product');
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -50,7 +48,6 @@ export default function ProductCard({ id, name, price, salePrice, regularPrice, 
   const colorAttribute = attributes?.nodes?.find((attr: any) => attr.name === 'pa_color');
   const colorOptions = colorAttribute?.options || [];
 
-  // ✅ ვიყენებთ ვალიდატორს: თუ URL არ არის ვალიდური, secondImageSource იქნება null
   const hoverImageSource = isValidImageUrl(secondImage) ? secondImage : null;
 
   return (
@@ -58,27 +55,21 @@ export default function ProductCard({ id, name, price, salePrice, regularPrice, 
       
       <Link 
         href={`/product/${slug}`} 
-        // ✅ Custom Wrapper კლასი
         className="block relative aspect-[4/5] bg-gray-50 rounded-[1.5rem] overflow-hidden mb-5 product-card-image-wrapper"
       >
-          
-          {/* ✅ მეორე სურათი (IMG ტეგით) - ჩნდება მხოლოდ თუ ვალიდური URL არსებობს */}
           {hoverImageSource && (
             <img 
               src={hoverImageSource} 
               alt={`${name} hover`} 
-              className="hover-image" // Custom class, opacity: 0 -> 100 on hover
+              className="hover-image" 
               loading="lazy"
             />
           )}
 
-          {/* ✅ მთავარი სურათი (Image კომპონენტი) */}
           <Image 
             src={image || '/placeholder.jpg'} 
             alt={name} 
             fill 
-            // თუ hoverImageSource არსებობს, ვამატებთ main-image კლასს, რომელიც CSS-ში ქრება hover-ზე.
-            // თუ არ არსებობს, არაფერი არ ქრება.
             className={`object-cover z-10 ${hoverImageSource ? 'main-image' : ''}`}
             priority={true} 
           />
@@ -89,7 +80,6 @@ export default function ProductCard({ id, name, price, salePrice, regularPrice, 
              </span>
           )}
 
-          {/* Quick View ღილაკი */}
           <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 hidden md:flex z-30 pointer-events-none">
               <button 
                 onClick={(e) => {
@@ -111,10 +101,9 @@ export default function ProductCard({ id, name, price, salePrice, regularPrice, 
             </h3>
           </Link>
           
-          {/* ფერების ბურთულები */}
           {colorOptions.length > 0 && (
             <div className="flex gap-1.5 mb-4 items-center">
-                <span className="text-xs font-medium text-gray-500 mr-2">ფერები:</span>
+                <span className="text-xs font-medium text-gray-500 mr-2">{t('colors')}:</span>
                 {colorOptions.slice(0, 4).map((colorSlug: string, index: number) => (
                   <span 
                     key={index}
@@ -141,7 +130,7 @@ export default function ProductCard({ id, name, price, salePrice, regularPrice, 
                 onClick={handleAddToCart}
                 className="bg-brand-dark text-white w-full md:w-auto px-5 py-2.5 rounded-full text-xs font-bold hover:bg-brand-DEFAULT transition shadow-lg active:scale-95"
               >
-                ყიდვა
+                {t('buy')}
               </button>
           </div>
       </div>

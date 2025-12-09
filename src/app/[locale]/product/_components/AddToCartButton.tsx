@@ -3,6 +3,7 @@
 import { ShoppingBag } from 'lucide-react';
 import { useCartStore } from '@/store/cartStore';
 import type { CartItem } from '@/types';
+import { useTranslations } from 'next-intl';
 
 interface AddToCartButtonProps {
     product: Omit<CartItem, 'quantity'> & { quantity: number };
@@ -12,16 +13,15 @@ interface AddToCartButtonProps {
 
 export default function AddToCartButton({ product, stockStatus, disabled = false }: AddToCartButtonProps) {
     const addItem = useCartStore((state) => state.addItem);
+    const t = useTranslations('Product');
     const inStock = stockStatus === 'IN_STOCK';
     const isButtonDisabled = disabled || !inStock;
 
     const handleAddToCart = () => {
         if (!isButtonDisabled) {
-            // ვამატებთ იმდენს, რამდენიც quantity-შია
             for(let i = 0; i < product.quantity; i++) {
                 addItem(product); 
             }
-            console.log(`Product added`);
         }
     };
 
@@ -36,7 +36,7 @@ export default function AddToCartButton({ product, stockStatus, disabled = false
             }`}
         >
             <ShoppingBag className="w-5 h-5" />
-            {inStock ? 'კალათაში დამატება' : 'მარაგში არ არის'}
+            {inStock ? t('addToCart') : t('outOfStock')}
         </button>
     );
 }

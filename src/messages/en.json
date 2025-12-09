@@ -1,5 +1,87 @@
 {
-  "HomePage": { "title": "Home Page" },
+  "Common": {
+    "home": "Home",
+    "collection": "Collection",
+    "sale": "SALE",
+    "brands": "Brands",
+    "search": "Search",
+    "cart": "Cart",
+    "profile": "Profile",
+    "loading": "Loading...",
+    "showResults": "Show Results",
+    "clearFilters": "Clear Filters",
+    "viewAll": "View All",
+    "currency": "GEL"
+  },
+  "Header": {
+    "promo": "Free shipping on orders over 200₾",
+    "selectLanguage": "Select Language"
+  },
+  "Footer": {
+    "desc": "Premium quality bags and accessories. Created for those who appreciate details.",
+    "navigation": "Navigation",
+    "help": "Help",
+    "shippingTerms": "Shipping Terms",
+    "returnPolicy": "Return Policy",
+    "followUs": "Follow Us",
+    "rights": "All rights reserved."
+  },
+  "Home": {
+    "Hero": {
+      "badge": "New Arrival",
+      "title": "Iconic Luxury.",
+      "cta": "Discover Collection"
+    },
+    "Brands": {
+      "label": "Premium Quality",
+      "title": "Exclusive Brands"
+    },
+    "Categories": {
+      "title": "Categories",
+      "mini": "Mini",
+      "tote": "Tote",
+      "leather": "Leather",
+      "travel": "Travel",
+      "sale": "Sale"
+    },
+    "Featured": {
+      "subtitle": "New Collection",
+      "title": "Featured Products"
+    }
+  },
+  "Catalog": {
+    "title": "Catalog",
+    "productsCount": "{count} products",
+    "notFound": "No products found.",
+    "filters": {
+      "title": "Filters",
+      "categories": "Categories",
+      "price": "Price",
+      "color": "Color",
+      "material": "Material",
+      "all": "All"
+    },
+    "Sort": {
+      "newest": "Newest",
+      "popularity": "Popularity",
+      "priceLowHigh": "Price: Low to High",
+      "priceHighLow": "Price: High to Low"
+    }
+  },
+  "Product": {
+    "colors": "Colors",
+    "buy": "Buy",
+    "addToCart": "Add to Cart",
+    "outOfStock": "Out of Stock",
+    "description": "Description",
+    "reviews": "{count} reviews",
+    "viewFull": "View Full Page",
+    "Trust": {
+      "shipping": "Free Shipping",
+      "warranty": "1 Year Warranty",
+      "return": "Easy Return"
+    }
+  },
   "Cart": {
     "title": "Shopping Cart",
     "empty": "Your cart is empty",
@@ -39,10 +121,9 @@
     "apply": "Apply",
     "promoHint": "* Code will be applied at checkout",
     "cityPlaceholder": "Select or type...",
-    "cityNotFound": "City not in list (will use typed value)",
     "errorCity": "Please select a city",
     "errorGeneric": "Failed",
-    "processing": "Processing..."
+    "total": "Total"
   },
   "Success": {
     "title": "Thank you for your order!",
@@ -54,6 +135,25 @@
     "timeline_3": "Shipped",
     "timeline_4": "Delivered",
     "estDate": "Estimated Delivery",
-    "backHome": "Back to Home"
+    "backHome": "Back to Home",
+    "items": "Items",
+    "quantity": "Qty",
+    "totalPaid": "Total Paid",
+    "shippingAddress": "Shipping Address",
+    "paymentDone": "Payment Completed",
+    "status_1": "Order received and will be processed soon.",
+    "status_2": "Order is being processed in warehouse.",
+    "status_3": "Order is on the way.",
+    "status_4": "Order delivered. Thank you!"
+  },
+  "Tracking": {
+    "title": "Track Order",
+    "desc": "Enter order number to check status",
+    "placeholder": "Order # (e.g. 10145)",
+    "btn": "Search",
+    "orderFound": "Order #",
+    "notFound": "Order not found",
+    "notFoundDesc": "Please check your order number and email.",
+    "back": "Go Back"
   }
 }

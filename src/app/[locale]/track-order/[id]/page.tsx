@@ -1,4 +1,3 @@
-// src/app/[locale]/track-order/[id]/page.tsx
 import { getOrder } from '@/lib/actions';
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/navigation';
@@ -28,14 +27,13 @@ export default async function OrderDetailsPage({
     params: Promise<{ id: string, locale: string }>,
     searchParams: Promise<{ email: string }> 
 }) {
-  const { id } = await params;
+  const { id, locale } = await params;
   const resolvedSearchParams = await searchParams;
-  const email = resolvedSearchParams.email; // ✅ Email-ის ამოღება
+  const email = resolvedSearchParams.email; 
   
   const t = await getTranslations('Success');
   const tTrack = await getTranslations('Tracking');
   
-  // ✅ უსაფრთხო გამოძახება: ვაწვდით ID-ს და Email-ს
   const order = await getOrder(id, email);
 
   if (!order) {
@@ -43,7 +41,7 @@ export default async function OrderDetailsPage({
         <div className="min-h-screen bg-white flex flex-col items-center justify-center text-center p-4 pt-32">
             <h1 className="text-2xl font-bold text-brand-dark mb-4">{tTrack('notFound')}</h1>
             <p className="text-gray-500 mb-6 max-w-md">
-                შეკვეთა ამ ნომრით და ელ-ფოსტით ვერ მოიძებნა. გთხოვთ შეამოწმოთ მონაცემები.
+                {tTrack('notFoundDesc')}
             </p>
             <Link href="/track-order" className="px-6 py-3 bg-brand-dark text-white rounded-xl font-bold hover:bg-brand-DEFAULT transition">
                 {tTrack('back')}
@@ -53,7 +51,7 @@ export default async function OrderDetailsPage({
   }
 
   const currentStep = calculateStatusStep(order.date);
-  const formattedDate = new Date(order.date).toLocaleDateString('ka-GE', { 
+  const formattedDate = new Date(order.date).toLocaleDateString(locale, { 
       year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' 
   });
 
@@ -95,17 +93,17 @@ export default async function OrderDetailsPage({
 
              <div className="bg-brand-light/40 rounded-xl p-4 text-center">
                  <p className="text-brand-dark font-bold text-sm">
-                     {currentStep === 1 && "თქვენი შეკვეთა მიღებულია და მალე დამუშავდება."}
-                     {currentStep === 2 && "თქვენი შეკვეთა მუშავდება საწყობში."}
-                     {currentStep === 3 && "ამანათი გზაშია და მალე მოგეწოდებათ."}
-                     {currentStep === 4 && "ამანათი ჩაბარებულია. გმადლობთ!"}
+                     {currentStep === 1 && t('status_1')}
+                     {currentStep === 2 && t('status_2')}
+                     {currentStep === 3 && t('status_3')}
+                     {currentStep === 4 && t('status_4')}
                  </p>
              </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
-                <h3 className="font-bold text-lg mb-4 text-brand-dark">ნივთები</h3>
+                <h3 className="font-bold text-lg mb-4 text-brand-dark">{t('items')}</h3>
                 <div className="space-y-4">
                     {order.lineItems.nodes.map((item: any, i: number) => (
                         <div key={i} className="flex gap-4 items-center">
@@ -119,20 +117,20 @@ export default async function OrderDetailsPage({
                             </div>
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm font-bold text-brand-dark truncate">{item.product?.node?.name}</p>
-                                <p className="text-xs text-gray-500">რაოდენობა: {item.quantity}</p>
+                                <p className="text-xs text-gray-500">{t('quantity')}: {item.quantity}</p>
                             </div>
                             <span className="font-bold text-sm">{formatPrice(item.total)}</span>
                         </div>
                     ))}
                 </div>
                 <div className="border-t border-gray-100 mt-4 pt-4 flex justify-between items-center">
-                    <span className="font-bold text-gray-500">სულ გადახდილი:</span>
+                    <span className="font-bold text-gray-500">{t('totalPaid')}:</span>
                     <span className="text-xl font-black text-brand-DEFAULT">{formatPrice(order.total)}</span>
                 </div>
             </div>
 
             <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
-                <h3 className="font-bold text-lg mb-4 text-brand-dark">მიწოდების მისამართი</h3>
+                <h3 className="font-bold text-lg mb-4 text-brand-dark">{t('shippingAddress')}</h3>
                 <div className="space-y-1 text-gray-600 text-sm">
                     <p className="font-bold text-brand-dark text-base">{order.billing?.firstName} {order.billing?.lastName}</p>
                     <p>{order.billing?.city}</p>
@@ -143,7 +141,7 @@ export default async function OrderDetailsPage({
                 <div className="mt-6 pt-6 border-t border-gray-100">
                     <div className="flex items-center gap-2 text-green-600 bg-green-50 p-3 rounded-xl">
                         <CheckCircle className="w-5 h-5" />
-                        <span className="text-xs font-bold uppercase tracking-wide">გადახდა შესრულებულია</span>
+                        <span className="text-xs font-bold uppercase tracking-wide">{t('paymentDone')}</span>
                     </div>
                 </div>
             </div>

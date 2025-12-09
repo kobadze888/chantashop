@@ -12,7 +12,7 @@ import {
 } from './queries';
 
 const generateMutationId = () => Math.random().toString(36).substring(7);
-const WORDPRESS_ADMIN_TOKEN = process.env.WORDPRESS_ADMIN_TOKEN; // ადმინ ტოკენი
+const WORDPRESS_ADMIN_TOKEN = process.env.WORDPRESS_ADMIN_TOKEN; 
 
 async function fetchWithSession(query: string, variables: any, sessionToken?: string) {
   const headers: any = { 'Content-Type': 'application/json' };
@@ -47,7 +47,8 @@ async function fetchWithSession(query: string, variables: any, sessionToken?: st
 
 export async function calculateCartTotals(cartItems: any[], couponCode: string, city: string) {
   let currentSessionToken: string | undefined;
-
+  
+  // 1. კალათის სინქრონიზაცია (უზრუნველყოფს, რომ WooCommerce-ში კალათა იყოს სავსე)
   for (const item of cartItems) {
     const res: any = await fetchWithSession(ADD_TO_CART_MUTATION, {
       input: {
@@ -59,9 +60,15 @@ export async function calculateCartTotals(cartItems: any[], couponCode: string, 
     
     if (res.sessionToken) currentSessionToken = res.sessionToken;
   }
+  
+  if (!currentSessionToken) {
+      const emptyCartCheck: any = await fetchWithSession(GET_CART_TOTALS_QUERY, {}, undefined);
+      if (emptyCartCheck.sessionToken) currentSessionToken = emptyCartCheck.sessionToken;
+      if (!currentSessionToken) return { errors: [{ message: "Session Error: Could not establish WooCommerce session." }] };
+  }
 
-  if (!currentSessionToken) return { errors: [{ message: "Session Error" }] };
 
+  // 2. კუპონის გამოყენება
   if (couponCode) {
     await fetchWithSession(APPLY_COUPON_MUTATION, {
       input: {
@@ -71,6 +78,7 @@ export async function calculateCartTotals(cartItems: any[], couponCode: string, 
     }, currentSessionToken);
   }
 
+  // 3. მომხმარებლის ქალაქის დაყენება (ეს ეტაპი სასიცოცხლოდ მნიშვნელოვანია Shipping Zone-ის დასადგენად)
   if (city) {
     await fetchWithSession(UPDATE_CUSTOMER_MUTATION, {
       input: {
@@ -81,6 +89,7 @@ export async function calculateCartTotals(cartItems: any[], couponCode: string, 
     }, currentSessionToken);
   }
 
+  // 4. კალათის ჯამური თანხის მოთხოვნა (ახალი Shipping-ის ჩათვლით)
   const cartRes: any = await fetchWithSession(GET_CART_TOTALS_QUERY, {}, currentSessionToken);
 
   return { 
@@ -91,7 +100,8 @@ export async function calculateCartTotals(cartItems: any[], couponCode: string, 
 
 export async function placeOrder(orderInput: any, cartItems: any[], couponCode?: string, existingSession?: string) {
   let currentSessionToken = existingSession;
-
+  
+  // იმეორებს კალათის შევსების ლოგიკას, რათა შეკვეთის გაფორმებისას კალათა იყოს აქტუალური
   if (!currentSessionToken) {
      for (const item of cartItems) {
         const res: any = await fetchWithSession(ADD_TO_CART_MUTATION, {
@@ -123,13 +133,11 @@ export async function placeOrder(orderInput: any, cartItems: any[], couponCode?:
   return res.data?.checkout || { errors: res.errors };
 }
 
-// ✅ განახლებული: იყენებს ადმინ ტოკენს და ამოწმებს Email-ს
 export async function getOrder(orderId: string, email: string) {
   if (!orderId || !email) return null;
 
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   
-  // ავტორიზაცია Admin-ის ტოკენით
   if (WORDPRESS_ADMIN_TOKEN) {
     headers['Authorization'] = `Basic ${WORDPRESS_ADMIN_TOKEN}`;
   }
@@ -154,13 +162,12 @@ export async function getOrder(orderId: string, email: string) {
 
     const order = json.data.order;
 
-    // 🔒 უსაფრთხოების შემოწმება: ელ-ფოსტის შედარება
     const orderEmail = order.billing?.email?.toLowerCase();
     const inputEmail = email.toLowerCase().trim();
 
     if (orderEmail !== inputEmail) {
       console.warn(`Security alert: Email mismatch for order #${orderId}`);
-      return null; // უსაფრთხოების გამო ვაბრუნებთ null-ს
+      return null; 
     }
 
     return order;

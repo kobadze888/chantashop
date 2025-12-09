@@ -1,11 +1,16 @@
+'use client';
+import { useTranslations } from 'next-intl';
+
 const brands = ["GUCCI", "PRADA", "CHANEL", "DIOR", "FENDI", "HERMÈS", "GUCCI", "PRADA", "CHANEL"];
 
 export default function Brands() {
+  const t = useTranslations('Home.Brands');
+
   return (
     <div className="py-20 overflow-hidden bg-brand-gray border-y border-gray-100 relative">
       <div className="container mx-auto px-4 mb-10 text-center">
-          <span className="text-brand-DEFAULT text-sm font-bold tracking-[0.3em] uppercase mb-2 block">პრემიუმ ხარისხი</span>
-          <h3 className="text-3xl md:text-4xl font-serif font-bold text-brand-dark">ექსკლუზიური ბრენდები</h3>
+          <span className="text-brand-DEFAULT text-sm font-bold tracking-[0.3em] uppercase mb-2 block">{t('label')}</span>
+          <h3 className="text-3xl md:text-4xl font-serif font-bold text-brand-dark">{t('title')}</h3>
       </div>
       
       <div className="relative w-full overflow-hidden">

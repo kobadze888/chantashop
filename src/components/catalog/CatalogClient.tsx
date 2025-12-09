@@ -1,5 +1,3 @@
-// src/components/catalog/CatalogClient.tsx
-
 'use client';
 
 import { useState, useEffect, Suspense, useMemo, useTransition, useRef } from 'react'; 
@@ -10,6 +8,7 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useCartStore } from '@/store/cartStore'; 
 import Image from 'next/image';
 import { Link } from '@/navigation';
+import { useTranslations } from 'next-intl';
 
 interface CatalogClientProps {
   initialProducts: Product[];
@@ -34,7 +33,6 @@ const parsePrice = (priceString: string | undefined | null): number => {
   return Math.min(...prices);
 };
 
-// Wrapper for Suspense 
 export default function CatalogClient(props: CatalogClientProps) {
   return (
     <Suspense fallback={<div>Loading...</div>}>
@@ -47,10 +45,12 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const t = useTranslations('Catalog');
+  const tProduct = useTranslations('Product');
+  const tCommon = useTranslations('Common');
   
   const sortDropdownRef = useRef<HTMLDivElement>(null); 
 
-  // 1. URL-თან სინქრონიზებული მდგომარეობა
   const [maxPrice, setMaxPrice] = useState(Number(searchParams.get('maxPrice')) || 5000);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [isPending, startTransition] = useTransition(); 
@@ -65,17 +65,13 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
   const [modalVisible, setModalVisible] = useState(false);
   const addItem = useCartStore((state) => state.addItem);
   
-  // კატეგორიები გაშლილია (true), დანარჩენი ჩაკეცილია (false)
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(true); 
   const [isPriceOpen, setIsPriceOpen] = useState(false);
   const [isColorsOpen, setIsColorsOpen] = useState(false); 
   const [isMaterialsOpen, setIsMaterialsOpen] = useState(false);
 
-  // Custom Sort Dropdown
   const [isSortOpen, setIsSortOpen] = useState(false);
 
-
-  // Scroll Lock
   useEffect(() => {
     if (modalVisible || mobileFiltersOpen) {
       document.body.style.overflow = 'hidden';
@@ -85,7 +81,6 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
     return () => { document.body.style.overflow = 'auto'; };
   }, [modalVisible, mobileFiltersOpen]);
   
-  // Close Sort Dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target as Node)) {
@@ -100,19 +95,15 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
     };
   }, [isSortOpen]); 
 
-
-  // URL განახლების ფუნქცია 
   const updateFilter = (key: string, value: string | number) => {
     const params = new URLSearchParams(searchParams.toString());
     
-    // Default sort-ის URL-დან წაშლა
     if (value === 'all' || value === 0 || (key === 'sort' && value === 'DATE_DESC')) { 
       params.delete(key);
     } else {
       params.set(key, String(value));
     }
     
-    // კატეგორიის შეცვლისას ვასუფთავებთ ფერისა და მასალის ფილტრებს URL-ში
     if (key === 'category') {
         params.delete('color');
         params.delete('material');
@@ -123,10 +114,8 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
     });
   };
   
-  // ფილტრების გასუფთავება
   const handleClearFilters = () => {
     const params = new URLSearchParams();
-    // ვინარჩუნებთ მხოლოდ სორტირებას (თუ არ არის default)
     if (activeSort !== 'DATE_DESC') {
         params.set('sort', activeSort);
     }
@@ -137,15 +126,12 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
     });
   };
 
-
-  // Handlers
   const handleCategoryChange = (slug: string) => updateFilter('category', activeCategory === slug ? 'all' : slug);
   const handleColorChange = (slug: string) => updateFilter('color', activeColor === slug ? 'all' : slug);
   const handleSizeChange = (slug: string) => updateFilter('material', activeSize === slug ? 'all' : slug);
   const handlePriceChangeFinal = (value: number) => updateFilter('maxPrice', value);
   const handleSortChange = (sortValue: string) => updateFilter('sort', sortValue); 
 
-  // Modal Functions
   const openQuickView = (product: Product) => { setSelectedProduct(product); setTimeout(() => setModalVisible(true), 10); };
   const closeQuickView = () => { setModalVisible(false); setTimeout(() => { setSelectedProduct(null); }, 200); };
   
@@ -162,11 +148,8 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
       } 
   };
   
-  // შემოწმება, არის თუ არა ფილტრები აქტიური
   const filtersActive = activeCategory !== 'all' || activeColor !== 'all' || activeSize !== 'all' || maxPrice < 5000;
 
-
-  // --- დინამიური ატრიბუტების ლოგიკა (UI-ის რაოდენობებისათვის) --- 
   const getAttrCounts = (products: Product[], attrName: 'pa_color' | 'pa_masala' | 'category') => {
     const counts: Record<string, number> = {};
     products.forEach(p => {
@@ -184,7 +167,6 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
     return counts;
   };
 
-  // კატეგორიები
   const productsForCategories = useMemo(() => {
     const priceMax = Number(searchParams.get('maxPrice')) || 5000;
     return initialProducts.filter(p => parsePrice(p.price) <= priceMax);
@@ -201,8 +183,6 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
       .filter(c => c.count > 0 || c.slug === activeCategory);
   }, [categories, categoryCounts, activeCategory]);
 
-
-  // ატრიბუტები (ფერები/მასალები)
   const productsForAttrs = useMemo(() => {
     const priceMax = Number(searchParams.get('maxPrice')) || 5000;
     
@@ -213,7 +193,6 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
     });
   }, [initialProducts, activeCategory, searchParams]);
 
-  // ფერები
   const colorCounts = useMemo(() => getAttrCounts(productsForAttrs, 'pa_color'), [productsForAttrs]);
   const availableColors = useMemo(() => {
     return colors
@@ -221,7 +200,6 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
       .filter(c => c.count > 0 || c.slug === activeColor);
   }, [colors, colorCounts, activeColor]);
 
-  // მასალები
   const sizeCounts = useMemo(() => getAttrCounts(productsForAttrs, 'pa_masala'), [productsForAttrs]);
   const availableSizes = useMemo(() => {
     return sizes
@@ -229,19 +207,15 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
       .filter(s => s.count > 0 || s.slug === activeSize);
   }, [sizes, sizeCounts, activeSize]);
   
-  
-  // სორტირების ოფციები 
   const sortOptions = [
-    { value: 'DATE_DESC', label: locale === 'ka' ? 'ახალი დამატებული' : 'Newest' },
-    { value: 'POPULARITY_DESC', label: locale === 'ka' ? 'პოპულარობით' : 'Popularity' },
-    { value: 'PRICE_ASC', label: locale === 'ka' ? 'ფასი: ზრდადობით' : 'Price: Low to High' },
-    { value: 'PRICE_DESC', label: locale === 'ka' ? 'ფასი: კლებადობით' : 'Price: High to Low' },
+    { value: 'DATE_DESC', label: t('Sort.newest') },
+    { value: 'POPULARITY_DESC', label: t('Sort.popularity') },
+    { value: 'PRICE_ASC', label: t('Sort.priceLowHigh') },
+    { value: 'PRICE_DESC', label: t('Sort.priceHighLow') },
   ];
-
 
   return (
     <>
-      {/* QUICK VIEW MODAL (ლოგიკა უცვლელია) */}
       {selectedProduct && (
         <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 transition-opacity duration-300 ${modalVisible ? 'visible' : 'invisible'}`}>
             <div className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity" onClick={closeQuickView}></div>
@@ -255,9 +229,9 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
                         <span className="text-xs font-bold text-brand-DEFAULT uppercase tracking-wider mb-2 block">{selectedProduct.productCategories?.nodes[0]?.name || 'Collection'}</span>
                         <h2 className="text-3xl font-black text-brand-dark mb-2 leading-tight">{selectedProduct.name}</h2>
                         <p className="text-2xl font-black text-brand-dark mb-4">{selectedProduct.salePrice || selectedProduct.price}</p>
-                        <div className="text-gray-600 text-sm leading-relaxed mb-6 line-clamp-4" dangerouslySetInnerHTML={{ __html: selectedProduct.shortDescription || selectedProduct.description || 'აღწერა არ არის.' }} />
+                        <div className="text-gray-600 text-sm leading-relaxed mb-6 line-clamp-4" dangerouslySetInnerHTML={{ __html: selectedProduct.shortDescription || selectedProduct.description || 'No description.' }} />
                         <div className="mb-6">
-                            <span className="text-xs font-bold text-brand-dark uppercase mb-2 block">ფერი</span>
+                            <span className="text-xs font-bold text-brand-dark uppercase mb-2 block">{t('filters.color')}</span>
                             <div className="flex gap-3">
                                 {selectedProduct.attributes?.nodes.find(a => a.name === 'pa_color')?.options?.map((opt, i) => (
                                     <div key={i} className="w-8 h-8 rounded-full border border-gray-200" style={{ backgroundColor: colorMap[opt.toLowerCase()] || '#eee' }} title={opt} />
@@ -266,15 +240,14 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
                         </div>
                     </div>
                     <div className="pt-6 border-t border-gray-100 mt-6">
-                        <button onClick={handleAddToCartFromModal} className="w-full bg-brand-dark text-white py-4 rounded-xl font-bold hover:bg-brand-DEFAULT transition active:scale-95 shadow-lg flex items-center justify-center gap-2"><ShoppingBag className="w-5 h-5" /> კალათაში დამატება</button>
-                        <Link href={`/product/${selectedProduct.slug}`} className="w-full block text-center text-xs font-bold text-brand-dark mt-4 hover:underline uppercase tracking-wide">სრული გვერდის ნახვა</Link>
+                        <button onClick={handleAddToCartFromModal} className="w-full bg-brand-dark text-white py-4 rounded-xl font-bold hover:bg-brand-DEFAULT transition active:scale-95 shadow-lg flex items-center justify-center gap-2"><ShoppingBag className="w-5 h-5" /> {tProduct('addToCart')}</button>
+                        <Link href={`/product/${selectedProduct.slug}`} className="w-full block text-center text-xs font-bold text-brand-dark mt-4 hover:underline uppercase tracking-wide">{tProduct('viewFull')}</Link>
                     </div>
                 </div>
             </div>
         </div>
       )}
 
-      {/* MOBILE FILTERS: Backdrop Close დამატებულია */}
       <div 
         id="filter-overlay" 
         className={`fixed inset-0 bg-black/60 z-[80] transition-opacity duration-300 md:hidden ${mobileFiltersOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
@@ -286,17 +259,17 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
           onClick={(e) => e.stopPropagation()} 
         >
             <div className="flex justify-between items-center mb-8">
-                <h3 className="font-serif font-bold text-2xl">{locale === 'ka' ? 'ფილტრაცია' : 'Filters'}</h3>
+                <h3 className="font-serif font-bold text-2xl">{t('filters.title')}</h3>
                 <button onClick={() => setMobileFiltersOpen(false)} className="p-2 hover:bg-gray-100 rounded-full"><X className="w-6 h-6" /></button>
             </div>
             
             <div className="space-y-8">
                 <div>
-                    <h4 className="font-bold mb-4 uppercase text-xs tracking-widest text-brand-dark">{locale === 'ka' ? 'კატეგორიები' : 'Categories'}</h4>
+                    <h4 className="font-bold mb-4 uppercase text-xs tracking-widest text-brand-dark">{t('filters.categories')}</h4>
                     <div className="space-y-3"> 
                         <label className="flex items-center gap-3 cursor-pointer group">
                             <input type="checkbox" checked={activeCategory === 'all'} onChange={() => handleCategoryChange('all')} className="w-5 h-5 rounded border-gray-300 text-brand-DEFAULT focus:ring-brand-DEFAULT" />
-                            <span className="text-gray-600 group-hover:text-brand-dark transition">{locale === 'ka' ? 'ყველა' : 'All'}</span>
+                            <span className="text-gray-600 group-hover:text-brand-dark transition">{t('filters.all')}</span>
                         </label>
                         {availableCategories.map((cat) => (
                             <label key={cat.id} className="flex items-center gap-3 cursor-pointer group">
@@ -310,9 +283,8 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
                     </div>
                 </div>
 
-                {/* Mobile Price */}
                 <div>
-                  <h4 className="font-bold mb-4 uppercase text-xs tracking-widest text-brand-dark">{locale === 'ka' ? 'ფასი' : 'Price'}</h4>
+                  <h4 className="font-bold mb-4 uppercase text-xs tracking-widest text-brand-dark">{t('filters.price')}</h4>
                   <div className="px-2">
                       <input type="range" className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand-DEFAULT" min="0" max="5000" step="50" value={maxPrice} onMouseUp={(e) => handlePriceChangeFinal(Number((e.target as HTMLInputElement).value))} onChange={(e) => setMaxPrice(Number(e.target.value))} />
                       <div className="flex justify-between mt-3 text-sm font-bold text-gray-500">
@@ -322,12 +294,11 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
                   </div>
                 </div>
 
-                {/* Mobile Colors */}
                 {availableColors.length > 0 && (
                     <div>
-                        <h4 className="font-bold mb-4 uppercase text-xs tracking-widest text-brand-dark">{locale === 'ka' ? 'ფერი' : 'Color'}</h4>
+                        <h4 className="font-bold mb-4 uppercase text-xs tracking-widest text-brand-dark">{t('filters.color')}</h4>
                         <div className="flex flex-wrap gap-4">
-                            <button onClick={() => handleColorChange('all')} className={`px-3 py-1 text-xs border rounded-full transition cursor-pointer ${activeColor === 'all' ? 'bg-brand-dark text-white' : 'bg-white hover:border-brand-dark'}`}>{locale === 'ka' ? 'ყველა' : 'All'}</button>
+                            <button onClick={() => handleColorChange('all')} className={`px-3 py-1 text-xs border rounded-full transition cursor-pointer ${activeColor === 'all' ? 'bg-brand-dark text-white' : 'bg-white hover:border-brand-dark'}`}>{t('filters.all')}</button>
                             {availableColors.map((color) => (
                                 <button key={color.id} onClick={() => handleColorChange(color.slug)} className={`w-8 h-8 rounded-full border-2 border-gray-200 transition duration-150 transform hover:scale-110 cursor-pointer ${activeColor === color.slug ? 'color-swatch-selected' : ''}`} style={{ backgroundColor: colorMap[color.slug] || '#e5e7eb' }} title={color.name} />
                             ))}
@@ -335,10 +306,9 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
                     </div>
                 )}
                 
-                {/* Mobile Materials */}
                 {availableSizes.length > 0 && (
                   <div>
-                      <h4 className="font-bold mb-4 uppercase text-xs tracking-widest text-brand-dark">{locale === 'ka' ? 'მასალა' : 'Material'}</h4>
+                      <h4 className="font-bold mb-4 uppercase text-xs tracking-widest text-brand-dark">{t('filters.material')}</h4>
                       <div className="space-y-3">
                           {availableSizes.map((size) => (
                               <label key={size.id} className="flex items-center gap-3 cursor-pointer group">
@@ -353,31 +323,28 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
                   </div>
                 )}
                 
-                {/* Mobile Filter Clear Button */}
                 <button onClick={handleClearFilters} disabled={!filtersActive} className={`w-full py-3 rounded-xl font-bold mt-8 transition flex items-center justify-center gap-2 ${filtersActive ? 'bg-brand-DEFAULT text-white hover:bg-brand-dark' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}>
-                    <RefreshCcw className="w-4 h-4" /> {locale === 'ka' ? 'ფილტრების გასუფთავება' : 'Clear Filters'}
+                    <RefreshCcw className="w-4 h-4" /> {tCommon('clearFilters')}
                 </button>
                 
-                <button onClick={() => setMobileFiltersOpen(false)} className="w-full bg-brand-dark text-white py-4 rounded-xl font-bold mt-4">{locale === 'ka' ? 'შედეგების ჩვენება' : 'Show Results'}</button>
+                <button onClick={() => setMobileFiltersOpen(false)} className="w-full bg-brand-dark text-white py-4 rounded-xl font-bold mt-4">{tCommon('showResults')}</button>
             </div>
         </div>
       </div>
 
-      {/* 2. MAIN DESKTOP LAYOUT */}
       <div className="container mx-auto px-4 mb-8">
           <div className="flex flex-col md:flex-row justify-between items-end gap-6 border-b border-gray-100 pb-8">
               <div>
-                  <span className="text-brand-DEFAULT text-xs font-bold tracking-widest uppercase mb-2 block">2025 წლის კოლექცია</span>
-                  <h1 className="text-4xl md:text-6xl font-serif font-black text-brand-dark">{locale === 'ka' ? 'სრული კატალოგი' : 'Catalog'}</h1>
+                  <span className="text-brand-DEFAULT text-xs font-bold tracking-widest uppercase mb-2 block">2025</span>
+                  <h1 className="text-4xl md:text-6xl font-serif font-black text-brand-dark">{t('title')}</h1>
                   <p className="text-gray-400 mt-2 text-sm">
-                    {initialProducts.length} {locale === 'ka' ? 'პროდუქტი' : 'products'}
-                    {isPending && <span className="text-brand-DEFAULT ml-2 animate-pulse">იტვირთება...</span>}
+                    {t('productsCount', { count: initialProducts.length })}
+                    {isPending && <span className="text-brand-DEFAULT ml-2 animate-pulse">{tCommon('loading')}</span>}
                   </p>
               </div>
               <div className="flex gap-4 w-full md:w-auto">
-                  <button onClick={() => setMobileFiltersOpen(true)} className="md:hidden flex-1 bg-gray-100 text-brand-dark py-3 px-6 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm active:scale-95 transition"><SlidersHorizontal className="w-5 h-5" /> {locale === 'ka' ? 'ფილტრაცია' : 'Filter'}</button>
+                  <button onClick={() => setMobileFiltersOpen(true)} className="md:hidden flex-1 bg-gray-100 text-brand-dark py-3 px-6 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm active:scale-95 transition"><SlidersHorizontal className="w-5 h-5" /> {t('filters.title')}</button>
                   
-                  {/* Custom Sort Dropdown */}
                   <div className="relative flex-1 md:flex-none" ref={sortDropdownRef}> 
                       <button
                           onClick={() => setIsSortOpen(prev => !prev)}
@@ -409,33 +376,29 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
       </div>
 
       <div className="container mx-auto px-4 flex gap-12 relative">
-        {/* ✅ Desktop Sidebar (ახალი სტრუქტურა Sticky ღილაკისთვის) */}
-        <div className="hidden md:block w-1/4 sticky top-28 h-[calc(100vh-8rem)] relative"> {/* Sticky container for the entire sidebar block */}
+        <div className="hidden md:block w-1/4 sticky top-28 h-[calc(100vh-8rem)] relative"> 
             
-             {/* ✅ 1. Sticky Clear Filters Button at the Top */}
             <div className="sticky top-0 z-10 bg-white pt-4 pb-4 border-b border-gray-100 -mx-4 px-4">
                 <button onClick={handleClearFilters} disabled={!filtersActive} className={`w-full py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 ${filtersActive ? 'bg-brand-DEFAULT text-white hover:bg-brand-dark' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}>
-                    <RefreshCcw className="w-4 h-4" /> {locale === 'ka' ? 'ფილტრების გასუფთავება' : 'Clear Filters'}
+                    <RefreshCcw className="w-4 h-4" /> {tCommon('clearFilters')}
                 </button>
             </div>
 
-            {/* 2. Filters List (Scrollable Below the Sticky Button) */}
-            <aside className="space-y-10 overflow-y-auto pr-4 pt-6 pb-24 h-full"> {/* h-full უზრუნველყოფს სქროლვას */}
+            <aside className="space-y-10 overflow-y-auto pr-4 pt-6 pb-24 h-full"> 
                 
-                {/* 1. Categories Filter (Collapsible) - გაშლილია */}
                 <div>
                     <button 
                       className="flex justify-between items-center w-full font-bold uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2 mb-6 cursor-pointer"
                       onClick={() => setIsCategoriesOpen(!isCategoriesOpen)}
                     >
-                        {locale === 'ka' ? 'კატეგორიები' : 'Categories'}
+                        {t('filters.categories')}
                         <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isCategoriesOpen ? 'rotate-180' : ''}`} />
                     </button>
                     {isCategoriesOpen && (
                         <div className="grid grid-cols-2 gap-x-6 gap-y-3 animate-fade-in">
                             <label className="flex items-center gap-3 cursor-pointer group col-span-2">
                                 <input type="checkbox" checked={activeCategory === 'all'} onChange={() => handleCategoryChange('all')} className="w-5 h-5 rounded border-gray-300 text-brand-DEFAULT focus:ring-brand-DEFAULT shadow-sm flex-shrink-0" />
-                                <span className="text-gray-600 group-hover:text-brand-dark transition font-medium">{locale === 'ka' ? 'ყველა' : 'All'}</span>
+                                <span className="text-gray-600 group-hover:text-brand-dark transition font-medium">{t('filters.all')}</span>
                             </label>
                             {availableCategories.map((cat) => (
                                 <label key={cat.id} className="flex items-center gap-2 cursor-pointer group">
@@ -450,13 +413,12 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
                     )}
                 </div>
 
-                {/* 2. Price Filter (Collapsible) - ჩაკეცილია */}
                 <div>
                     <button 
                       className="flex justify-between items-center w-full font-bold uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2 mb-6 cursor-pointer"
                       onClick={() => setIsPriceOpen(!isPriceOpen)}
                     >
-                        {locale === 'ka' ? 'ფასი' : 'Price'}
+                        {t('filters.price')}
                         <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isPriceOpen ? 'rotate-180' : ''}`} />
                     </button>
                     {isPriceOpen && (
@@ -467,19 +429,18 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
                     )}
                 </div>
 
-                {/* 3. Colors Filter (Collapsible) - ჩაკეცილია */}
                 {availableColors.length > 0 && (
                     <div>
                         <button 
                             className="flex justify-between items-center w-full font-bold uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2 mb-6 cursor-pointer"
                             onClick={() => setIsColorsOpen(!isColorsOpen)}
                         >
-                            {locale === 'ka' ? 'ფერი' : 'Color'}
+                            {t('filters.color')}
                             <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isColorsOpen ? 'rotate-180' : ''}`} />
                         </button>
                         {isColorsOpen && (
                             <div className="flex flex-wrap gap-4 animate-fade-in">
-                                <button onClick={() => handleColorChange('all')} className={`px-3 py-1 text-xs border rounded-full transition cursor-pointer ${activeColor === 'all' ? 'bg-brand-dark text-white' : 'bg-white hover:border-brand-dark'}`}>All</button>
+                                <button onClick={() => handleColorChange('all')} className={`px-3 py-1 text-xs border rounded-full transition cursor-pointer ${activeColor === 'all' ? 'bg-brand-dark text-white' : 'bg-white hover:border-brand-dark'}`}>{t('filters.all')}</button>
                                 {availableColors.map((color) => (
                                     <button key={color.id} onClick={() => handleColorChange(color.slug)} className={`w-8 h-8 rounded-full border-2 border-gray-200 transition duration-150 transform hover:scale-110 cursor-pointer ${activeColor === color.slug ? 'color-swatch-selected' : ''}`} style={{ backgroundColor: colorMap[color.slug] || '#e5e7eb' }} title={color.name} />
                                 ))}
@@ -488,14 +449,13 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
                     </div>
                 )}
 
-                {/* 4. Materials Filter (Collapsible) - ჩაკეცილია */}
                 {availableSizes.length > 0 && (
                     <div className="pb-4"> 
                         <button 
                             className="flex justify-between items-center w-full font-bold uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2 mb-6 cursor-pointer"
                             onClick={() => setIsMaterialsOpen(!isMaterialsOpen)}
                         >
-                            {locale === 'ka' ? 'მასალა' : 'Material'}
+                            {t('filters.material')}
                             <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isMaterialsOpen ? 'rotate-180' : ''}`} />
                         </button>
                         {isMaterialsOpen && (
@@ -539,8 +499,8 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
             </div>
             {initialProducts.length === 0 && (
                 <div className="text-center py-20 text-gray-400">
-                    <p>{locale === 'ka' ? 'პროდუქტები არ მოიძებნა.' : 'No products found.'}</p>
-                    <button onClick={() => updateFilter('category', 'all')} className="mt-4 text-brand-DEFAULT underline text-sm">ფილტრის გასუფთავება</button>
+                    <p>{t('notFound')}</p>
+                    <button onClick={() => updateFilter('category', 'all')} className="mt-4 text-brand-DEFAULT underline text-sm">{tCommon('clearFilters')}</button>
                 </div>
             )}
         </div>
