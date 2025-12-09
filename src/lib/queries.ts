@@ -119,7 +119,6 @@ export const APPLY_COUPON_MUTATION = `
   }
 `;
 
-// ✅ ახალი: კლიენტის განახლება (მისამართი მიწოდების დასათვლელად)
 export const UPDATE_CUSTOMER_MUTATION = `
   mutation UpdateCustomer($input: UpdateCustomerInput!) {
     updateCustomer(input: $input) {
@@ -133,7 +132,6 @@ export const UPDATE_CUSTOMER_MUTATION = `
   }
 `;
 
-// ✅ ახალი: კალათის სრული ინფორმაცია
 export const GET_CART_TOTALS_QUERY = `
   query GetCartTotals {
     cart {
@@ -144,6 +142,40 @@ export const GET_CART_TOTALS_QUERY = `
       appliedCoupons {
         code
         discountAmount(format: RAW)
+      }
+    }
+  }
+`;
+
+// ✅ ახალი: შეკვეთის მოძებნა ID-ით
+export const GET_ORDER_QUERY = `
+  query GetOrder($id: ID!) {
+    order(id: $id, idType: DATABASE_ID) {
+      databaseId
+      orderNumber
+      status
+      date
+      total(format: RAW)
+      currency
+      billing {
+        firstName
+        lastName
+        city
+        address1
+      }
+      lineItems {
+        nodes {
+          product {
+            node {
+              name
+              image {
+                sourceUrl
+              }
+            }
+          }
+          quantity
+          total(format: RAW)
+        }
       }
     }
   }

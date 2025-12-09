@@ -7,7 +7,8 @@ import {
   CHECKOUT_MUTATION, 
   APPLY_COUPON_MUTATION, 
   UPDATE_CUSTOMER_MUTATION, 
-  GET_CART_TOTALS_QUERY 
+  GET_CART_TOTALS_QUERY,
+  GET_ORDER_QUERY 
 } from './queries';
 
 const generateMutationId = () => Math.random().toString(36).substring(7);
@@ -43,11 +44,9 @@ async function fetchWithSession(query: string, variables: any, sessionToken?: st
   }
 }
 
-// ✅ ახალი ფუნქცია: მხოლოდ კალათის გადათვლა (კუპონით და მიწოდებით)
 export async function calculateCartTotals(cartItems: any[], couponCode: string, city: string) {
   let currentSessionToken: string | undefined;
 
-  // 1. ნივთების ჩაყრა
   for (const item of cartItems) {
     const res: any = await fetchWithSession(ADD_TO_CART_MUTATION, {
       input: {
@@ -62,7 +61,6 @@ export async function calculateCartTotals(cartItems: any[], couponCode: string, 
 
   if (!currentSessionToken) return { errors: [{ message: "Session Error" }] };
 
-  // 2. კუპონის გამოყენება (თუ არის)
   if (couponCode) {
     await fetchWithSession(APPLY_COUPON_MUTATION, {
       input: {
@@ -72,41 +70,28 @@ export async function calculateCartTotals(cartItems: any[], couponCode: string, 
     }, currentSessionToken);
   }
 
-  // 3. მისამართის განახლება (მიწოდების ფასისთვის)
-  // თუ ქალაქი არჩეულია, ვაგზავნით მას
   if (city) {
     await fetchWithSession(UPDATE_CUSTOMER_MUTATION, {
       input: {
         clientMutationId: generateMutationId(),
-        shipping: {
-          city: city,
-          country: 'GE'
-        },
-        billing: {
-          city: city,
-          country: 'GE'
-        }
+        shipping: { city: city, country: 'GE' },
+        billing: { city: city, country: 'GE' }
       }
     }, currentSessionToken);
   }
 
-  // 4. საბოლოო მონაცემების წამოღება
   const cartRes: any = await fetchWithSession(GET_CART_TOTALS_QUERY, {}, currentSessionToken);
 
   return { 
     totals: cartRes.data?.cart, 
-    sessionToken: currentSessionToken // ვაბრუნებთ ტოკენს, რომ ჩეკაუტმა გამოიყენოს
+    sessionToken: currentSessionToken 
   };
 }
 
-// ✅ განახლებული შეკვეთის ფუნქცია
 export async function placeOrder(orderInput: any, cartItems: any[], couponCode?: string, existingSession?: string) {
-  // თუ უკვე გვაქვს calculateCartTotals-იდან დაბრუნებული სესია, ვიყენებთ მას.
-  // თუ არა, თავიდან ვქმნით (ნაკლებად ოპტიმალურია, მაგრამ მუშაობს)
   let currentSessionToken = existingSession;
 
   if (!currentSessionToken) {
-     // იგივე ლოგიკა კალათის შესავსებად...
      for (const item of cartItems) {
         const res: any = await fetchWithSession(ADD_TO_CART_MUTATION, {
           input: {
@@ -135,4 +120,11 @@ export async function placeOrder(orderInput: any, cartItems: any[], couponCode?:
   }, currentSessionToken);
 
   return res.data?.checkout || { errors: res.errors };
+}
+
+// ✅ ახალი: შეკვეთის მოძებნა ID-ით
+export async function getOrder(orderId: string) {
+  // ვიყენებთ fetchWithSession-ს ტოკენის გარეშე (Public Query)
+  const res: any = await fetchWithSession(GET_ORDER_QUERY, { id: orderId });
+  return res.data?.order || null;
 }

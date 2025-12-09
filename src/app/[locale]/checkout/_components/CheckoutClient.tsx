@@ -1,13 +1,12 @@
-// src/app/[locale]/checkout/_components/CheckoutClient.tsx
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { useCartStore } from '@/store/cartStore';
 import Image from 'next/image';
 import { Link, useRouter } from '@/navigation'; 
-import { Check, CreditCard, Banknote, ArrowLeft, Loader2, Tag, MapPin, ChevronDown } from 'lucide-react';
+import { CreditCard, Banknote, ArrowLeft, Loader2, Tag, MapPin, ChevronDown, XCircle } from 'lucide-react';
 import { placeOrder, calculateCartTotals } from '@/lib/actions'; 
-import { useTranslations } from 'next-intl'; // ✅
+import { useTranslations } from 'next-intl';
 
 const GE_CITIES = [
   "თბილისი", "ბათუმი", "ქუთაისი", "რუსთავი", "გორი", "ზუგდიდი", "ფოთი", "ქობულეთი", 
@@ -27,9 +26,14 @@ const formatPrice = (price: string | number) => {
 };
 
 export default function CheckoutClient({ locale }: { locale: string }) {
-  const t = useTranslations('Checkout'); // ✅
+  const t = useTranslations('Checkout');
+  const cartT = useTranslations('Cart');
   const { items, totalPrice, clearCart } = useCartStore();
   const [mounted, setMounted] = useState(false);
+  
+  // ✅ ახალი: ერორის სტატუსი
+  const [globalError, setGlobalError] = useState<string | null>(null);
+
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'bacs'>('cod');
   const [isLoading, setIsLoading] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
@@ -92,7 +96,14 @@ export default function CheckoutClient({ locale }: { locale: string }) {
 
   const handleOrder = async (e: React.FormEvent) => {
       e.preventDefault();
-      if (!formData.city) { alert(t('errorCity')); return; }
+      setGlobalError(null); // გასუფთავება ძველი ერორის
+
+      if (!formData.city) { 
+          setGlobalError(t('errorCity')); 
+          window.scrollTo({ top: 0, behavior: 'smooth' }); // ავიდეთ ზემოთ რომ ერორი ნახოს
+          return; 
+      }
+      
       setIsLoading(true);
 
       try {
@@ -107,31 +118,39 @@ export default function CheckoutClient({ locale }: { locale: string }) {
 
         const response = await placeOrder(orderInput, cartItemsData, appliedCoupon || '', sessionToken);
 
+        // 1. შეცდომა (Inline)
         if (response?.errors) {
             const msg = response.errors[0]?.message || t('errorGeneric');
-            alert(`${t('errorGeneric')}: ${msg}`);
+            setGlobalError(msg); // ერორის ჩაწერა
+            setIsLoading(false); // ლოადინგის გათიშვა რომ თავიდან სცადოს
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             return;
         }
 
+        // 2. წარმატება
         if (response?.order) {
             clearCart();
-            // ✅ წარმატების გვერდზე გადასვლა პარამეტრებით
+            // წარმატებისას isLoading რჩება ჩართული
             router.push(`/checkout/success?orderId=${response.order.orderNumber}&email=${formData.email}`); 
         } else {
-            alert(t('errorGeneric'));
+            setGlobalError(t('errorGeneric'));
+            setIsLoading(false);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
       } catch (error) {
-          alert(t('errorGeneric'));
-      } finally {
+          const msg = error instanceof Error ? error.message : t('errorGeneric');
+          setGlobalError(msg);
           setIsLoading(false);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
       }
   };
 
   if (!mounted) return null;
-  if (items.length === 0) {
+
+  if (items.length === 0 && !isLoading) {
     return (
       <div className="text-center py-24 animate-fade-in">
-        <h2 className="text-3xl font-serif font-bold mb-4">{t('errorGeneric')}</h2>
+        <h2 className="text-3xl font-serif font-bold mb-4">{cartT('empty')}</h2>
         <Link href="/collection" className="text-brand-DEFAULT font-bold underline">{t('backToCart')}</Link>
       </div>
     );
@@ -141,22 +160,36 @@ export default function CheckoutClient({ locale }: { locale: string }) {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 animate-fade-in">
-      <div className="lg:col-span-7 space-y-10">
-        <Link href="/cart" className="inline-flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-brand-dark transition mb-4">
+      <div className="lg:col-span-7 space-y-8">
+        
+        {/* Header & Back Link */}
+        <Link href="/cart" className="inline-flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-brand-dark transition">
             <ArrowLeft className="w-4 h-4" /> {t('backToCart')}
         </Link>
 
+        {/* ✅ Global Error Alert Box */}
+        {globalError && (
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3 animate-fade-in">
+                <XCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-red-800">
+                    <span className="font-bold block mb-1">შეკვეთა ვერ შესრულდა</span>
+                    {globalError}
+                </div>
+            </div>
+        )}
+
         <form id="checkout-form" onSubmit={handleOrder} className="space-y-10">
+            {/* ... იგივე ფორმის ველები ... */}
             <section>
                 <h3 className="text-xl font-serif font-bold text-brand-dark mb-6 flex items-center gap-3">
                     <span className="w-8 h-8 rounded-full bg-brand-dark text-white flex items-center justify-center text-sm font-sans">1</span>
                     {t('contactInfo')}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <InputGroup name="firstName" value={formData.firstName} onChange={(e) => setFormData({...formData, [e.target.name]: e.target.value})} label={t('firstName')} placeholder="" />
-                    <InputGroup name="lastName" value={formData.lastName} onChange={(e) => setFormData({...formData, [e.target.name]: e.target.value})} label={t('lastName')} placeholder="" />
-                    <InputGroup name="phone" value={formData.phone} onChange={(e) => setFormData({...formData, [e.target.name]: e.target.value})} label={t('phone')} placeholder="+995..." className="md:col-span-2" />
-                    <InputGroup name="email" value={formData.email} onChange={(e) => setFormData({...formData, [e.target.name]: e.target.value})} label={t('email')} placeholder="example@mail.com" className="md:col-span-2" />
+                    <InputGroup name="firstName" value={formData.firstName} onChange={(e: any) => setFormData({...formData, [e.target.name]: e.target.value})} label={t('firstName')} placeholder="" />
+                    <InputGroup name="lastName" value={formData.lastName} onChange={(e: any) => setFormData({...formData, [e.target.name]: e.target.value})} label={t('lastName')} placeholder="" />
+                    <InputGroup name="phone" value={formData.phone} onChange={(e: any) => setFormData({...formData, [e.target.name]: e.target.value})} label={t('phone')} placeholder="+995..." className="md:col-span-2" />
+                    <InputGroup name="email" value={formData.email} onChange={(e: any) => setFormData({...formData, [e.target.name]: e.target.value})} label={t('email')} placeholder="example@mail.com" className="md:col-span-2" />
                 </div>
             </section>
 
@@ -182,8 +215,8 @@ export default function CheckoutClient({ locale }: { locale: string }) {
                             </div>
                         )}
                     </div>
-                    <InputGroup name="address" value={formData.address} onChange={(e) => setFormData({...formData, [e.target.name]: e.target.value})} label={t('address')} placeholder="" className="md:col-span-2" />
-                    <InputGroup name="apt" value={formData.apt} onChange={(e) => setFormData({...formData, [e.target.name]: e.target.value})} label={t('apt')} placeholder="" className="md:col-span-2" required={false} />
+                    <InputGroup name="address" value={formData.address} onChange={(e: any) => setFormData({...formData, [e.target.name]: e.target.value})} label={t('address')} placeholder="" className="md:col-span-2" />
+                    <InputGroup name="apt" value={formData.apt} onChange={(e: any) => setFormData({...formData, [e.target.name]: e.target.value})} label={t('apt')} placeholder="" className="md:col-span-2" required={false} />
                 </div>
             </section>
 
@@ -233,7 +266,14 @@ export default function CheckoutClient({ locale }: { locale: string }) {
           <div className="border-t-2 border-dashed border-gray-200 pt-6 mt-6 mb-8">
             <div className="flex justify-between items-end"><span className="font-black text-brand-dark text-lg">{t('placeOrder')}</span><span className="font-black text-3xl text-brand-DEFAULT font-serif">{formatPrice(grandTotal)}</span></div>
           </div>
-          <button type="submit" form="checkout-form" disabled={isLoading} className="w-full bg-brand-dark text-white py-5 rounded-2xl font-bold hover:bg-brand-DEFAULT transition-all shadow-xl text-sm uppercase tracking-widest flex items-center justify-center gap-3">{isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : t('placeOrder')}</button>
+          <button 
+            type="submit" 
+            form="checkout-form" 
+            disabled={isLoading} 
+            className="w-full bg-brand-dark text-white py-5 rounded-2xl font-bold hover:bg-brand-DEFAULT transition-all shadow-xl text-sm uppercase tracking-widest flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : t('placeOrder')}
+          </button>
         </div>
       </div>
     </div>
