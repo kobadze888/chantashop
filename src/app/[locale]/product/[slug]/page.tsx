@@ -27,7 +27,6 @@ export default async function ProductPage({ params }: Props) {
   const { slug, locale } = resolvedParams;
   const t = await getTranslations('Common');
 
-  // პარალელურად წამოვიღოთ პროდუქტი და "მსგავსი პროდუქტები"
   const productData = getProductBySlug(slug);
   const relatedProductsData = getProducts({ limit: 8 }, locale);
 
@@ -35,7 +34,6 @@ export default async function ProductPage({ params }: Props) {
 
   if (!product) notFound();
 
-  // მსგავსი პროდუქტების დაფორმატება
   const relatedProducts = relatedProductsRaw
     .filter((p: any) => p.slug !== slug)
     .map((p: any) => ({
@@ -50,11 +48,10 @@ export default async function ProductPage({ params }: Props) {
 
   return (
     <div className="md:pt-32 pt-24 pb-24 bg-white min-h-screen">
-      {/* ✅ შესწორება: max-w-[1600px] -> max-w-[1350px] (უფრო ოპტიმალური ზომა) */}
-      <div className="container mx-auto px-6 max-w-[1350px]">
+      {/* ✅ შესწორება: 1440px არის ზუსტი სტანდარტი ჰედერის მსგავსი სტილისთვის */}
+      <div className="container mx-auto px-6 max-w-[1440px]">
         
-        {/* Breadcrumbs */}
-        <nav className="text-xs font-bold text-gray-400 mb-10 uppercase tracking-widest flex items-center gap-2 overflow-x-auto whitespace-nowrap pb-2 hide-scrollbar">
+        <nav className="text-[11px] md:text-xs font-bold text-gray-400 mb-8 uppercase tracking-widest flex items-center gap-2 overflow-x-auto whitespace-nowrap pb-2 hide-scrollbar">
             <Link href="/" className="hover:text-brand-dark transition">{t('home')}</Link>
             <ChevronRight className="w-3 h-3 flex-shrink-0" />
             <Link href="/collection" className="hover:text-brand-dark transition">{t('collection')}</Link>
@@ -62,10 +59,8 @@ export default async function ProductPage({ params }: Props) {
             <span className="text-brand-dark truncate">{product.name}</span>
         </nav>
         
-        {/* მთავარი კომპონენტი */}
         <ProductInfo product={product} locale={locale} />
 
-        {/* მსგავსი პროდუქტები */}
         {relatedProducts.length > 0 && (
             <div className="mt-32 border-t border-gray-100 pt-20">
                 <FeaturedCarousel 

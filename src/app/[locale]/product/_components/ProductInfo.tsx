@@ -87,7 +87,6 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 animate-fade-in">
       
-      {/* ✅ შესწორება: შევამცირეთ col-span-7 -> col-span-6 */}
       <div className="lg:col-span-6 h-min lg:sticky lg:top-32">
         <ProductGallery 
             mainImage={displayImage} 
@@ -96,13 +95,12 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
         />
       </div>
 
-      {/* ✅ შესწორება: გავზარდეთ col-span-5 -> col-span-6 */}
       <div className="lg:col-span-6 flex flex-col py-2">
         
         {/* HEADER */}
         <div className="flex justify-between items-start mb-6">
-            <div>
-                <div className="flex items-center gap-3 mb-2">
+            <div className="space-y-3">
+                <div className="flex items-center gap-3">
                     <span className="bg-brand-light text-brand-DEFAULT text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
                         {product.productCategories?.nodes[0]?.name || 'Collection'}
                     </span>
@@ -120,7 +118,7 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
                     {product.name}
                 </h1>
             </div>
-            <button className="p-3 bg-white border border-gray-100 rounded-full hover:bg-brand-light hover:text-brand-DEFAULT transition shadow-sm group">
+            <button className="p-3 bg-white border border-gray-100 rounded-full hover:bg-brand-light hover:text-brand-DEFAULT transition shadow-sm group flex-shrink-0">
                 <Heart className="w-5 h-5 group-hover:scale-110 transition-transform" />
             </button>
         </div>
@@ -139,8 +137,6 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
 
         {/* ACTIONS BLOCK */}
         <div className="space-y-6 mb-10">
-            
-            {/* Color Selection */}
             {colorAttribute && (
                 <div>
                     <span className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3 block">
@@ -177,7 +173,6 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
                 </div>
             )}
 
-            {/* Buttons */}
             <div className="grid grid-cols-4 gap-3">
                 <div className="col-span-1 flex items-center bg-gray-50 rounded-2xl h-14 justify-between border border-gray-200 px-1">
                     <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="w-8 h-full flex items-center justify-center hover:text-brand-DEFAULT transition active:scale-90 text-gray-400"><Minus className="w-4 h-4" /></button>
@@ -203,17 +198,50 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
             </div>
         </div>
 
-        {/* INFO ZONE */}
+        {/* --- INFO ZONE --- */}
         <div className="space-y-8 mt-4">
+            
+            {/* Description */}
             <div 
                 className="bg-brand-gray/50 p-6 rounded-2xl text-gray-600 text-sm leading-relaxed border border-gray-100/50" 
                 dangerouslySetInnerHTML={{ __html: product.shortDescription || 'აღწერა არ არის.' }} 
             />
 
+            {/* ✅ TRUST & SERVICE (ავწიეთ ზემოთ) */}
+            <div className="space-y-3 pt-2">
+                <div className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 hover:border-brand-medium/50 hover:bg-brand-light/20 transition-all duration-300 group cursor-default">
+                    <div className="bg-brand-light text-brand-DEFAULT p-3 rounded-full group-hover:scale-110 transition-transform"><Truck className="w-5 h-5" /></div>
+                    <div>
+                        <h4 className="font-bold text-brand-dark text-sm mb-1">უფასო მიწოდება 200₾+</h4>
+                        <p className="text-xs text-gray-500 leading-relaxed">თბილისი: 1-2 დღე | რეგიონები: 2-4 დღე.<br/>სწრაფი და საიმედო კურიერული მომსახურება.</p>
+                    </div>
+                </div>
+
+                <div className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 hover:border-green-200 hover:bg-green-50/50 transition-all duration-300 group cursor-default">
+                    <div className="bg-green-50 text-green-600 p-3 rounded-full group-hover:scale-110 transition-transform"><ShieldCheck className="w-5 h-5" /></div>
+                    <div>
+                        <h4 className="font-bold text-brand-dark text-sm mb-1">უსაფრთხო გადახდა</h4>
+                        <p className="text-xs text-gray-500 leading-relaxed mb-2">გადაიხადეთ ბარათით ან პირდაპირი გადარიცხვით.</p>
+                        <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-green-700 bg-green-50 border border-green-100 px-2 py-1 rounded w-fit">
+                            <Banknote className="w-3 h-3" /> გარანტირებული უსაფრთხოება
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 hover:border-blue-200 hover:bg-blue-50/50 transition-all duration-300 group cursor-default">
+                    <div className="bg-blue-50 text-blue-600 p-3 rounded-full group-hover:scale-110 transition-transform"><RefreshCcw className="w-5 h-5" /></div>
+                    <div>
+                        <h4 className="font-bold text-brand-dark text-sm mb-1">ხარისხის გარანტია</h4>
+                        <p className="text-xs text-gray-500 leading-relaxed">ყველა ნივთი გადის ხარისხის კონტროლს.</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* ✅ Attributes Grid (ჩამოვიდა ქვემოთ) */}
             {technicalAttributes.length > 0 && (
-                <div className="bg-white rounded-2xl p-1">
+                <div className="bg-white rounded-2xl">
                     <h4 className="font-bold text-brand-dark mb-4 text-xs uppercase tracking-widest flex items-center gap-2 opacity-60">
-                        <Info className="w-4 h-4" /> დეტალური მახასიათებლები
+                        <Info className="w-4 h-4" /> დეტალები
                     </h4>
                     <div className="grid grid-cols-2 gap-3">
                         <div className="bg-gray-50 border border-gray-100 p-3 rounded-xl flex items-start gap-3">
@@ -232,35 +260,6 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
                     </div>
                 </div>
             )}
-
-            <div className="space-y-3 pt-2">
-                <div className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 hover:border-brand-medium/50 hover:bg-brand-light/20 transition-all duration-300 group cursor-default">
-                    <div className="bg-brand-light text-brand-DEFAULT p-3 rounded-full group-hover:scale-110 transition-transform"><Truck className="w-5 h-5" /></div>
-                    <div>
-                        <h4 className="font-bold text-brand-dark text-sm mb-1">სწრაფი და უფასო მიწოდება</h4>
-                        <p className="text-xs text-gray-500 leading-relaxed">200₾+ შეკვეთებზე მიწოდება უფასოა.<br/>თბილისი: 1-2 დღე | რეგიონები: 2-4 დღე</p>
-                    </div>
-                </div>
-
-                <div className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 hover:border-green-200 hover:bg-green-50/50 transition-all duration-300 group cursor-default">
-                    <div className="bg-green-50 text-green-600 p-3 rounded-full group-hover:scale-110 transition-transform"><ShieldCheck className="w-5 h-5" /></div>
-                    <div>
-                        <h4 className="font-bold text-brand-dark text-sm mb-1">დაცული გადახდა</h4>
-                        <p className="text-xs text-gray-500 leading-relaxed mb-2">გადაიხადეთ უსაფრთხოდ ნებისმიერი ბარათით.</p>
-                        <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-brand-dark bg-white border border-gray-200 px-2 py-1 rounded w-fit">
-                            <Banknote className="w-3 h-3 text-green-600" /> პირდაპირი გადარიცხვაც
-                        </div>
-                    </div>
-                </div>
-
-                <div className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 hover:border-blue-200 hover:bg-blue-50/50 transition-all duration-300 group cursor-default">
-                    <div className="bg-blue-50 text-blue-600 p-3 rounded-full group-hover:scale-110 transition-transform"><RefreshCcw className="w-5 h-5" /></div>
-                    <div>
-                        <h4 className="font-bold text-brand-dark text-sm mb-1">ხარისხის გარანტია</h4>
-                        <p className="text-xs text-gray-500 leading-relaxed">ყველა პროდუქტი გადის შემოწმებას. მოქმედებს დაბრუნების პოლიტიკა.</p>
-                    </div>
-                </div>
-            </div>
 
         </div>
       </div>
