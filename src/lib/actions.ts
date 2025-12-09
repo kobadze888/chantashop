@@ -2,9 +2,14 @@
 'use server';
 
 import { WORDPRESS_API_URL } from './constants';
-import { ADD_TO_CART_MUTATION, CHECKOUT_MUTATION } from './queries';
+import { 
+  ADD_TO_CART_MUTATION, 
+  CHECKOUT_MUTATION, 
+  APPLY_COUPON_MUTATION, 
+  UPDATE_CUSTOMER_MUTATION, 
+  GET_CART_TOTALS_QUERY 
+} from './queries';
 
-// უნიკალური ID-ს გენერატორი
 const generateMutationId = () => Math.random().toString(36).substring(7);
 
 async function fetchWithSession(query: string, variables: any, sessionToken?: string) {
@@ -22,12 +27,8 @@ async function fetchWithSession(query: string, variables: any, sessionToken?: st
       cache: 'no-store',
     });
 
-    // 🔍 Debug: ჰედერების შემოწმება
     const newSessionToken = res.headers.get('x-woocommerce-session');
-    
-    // ზოგიერთი სერვერი აბრუნებს 'woocommerce-session'-ს 'x-'-ის გარეშე
     const altSessionToken = res.headers.get('woocommerce-session'); 
-    
     const finalToken = newSessionToken || altSessionToken;
 
     const json = await res.json();
@@ -35,52 +36,96 @@ async function fetchWithSession(query: string, variables: any, sessionToken?: st
     return { 
       data: json.data, 
       errors: json.errors, 
-      sessionToken: finalToken || sessionToken // თუ ახალი არ მოვიდა, ვიყენებთ ძველს
+      sessionToken: finalToken || sessionToken 
     };
   } catch (error) {
     return { errors: [{ message: error instanceof Error ? error.message : 'Network Error' }] };
   }
 }
 
-export async function placeOrder(orderInput: any, cartItems: any[]) {
+// ✅ ახალი ფუნქცია: მხოლოდ კალათის გადათვლა (კუპონით და მიწოდებით)
+export async function calculateCartTotals(cartItems: any[], couponCode: string, city: string) {
   let currentSessionToken: string | undefined;
 
-  console.log("🚀 Starting Server-Side Order Process...");
-  console.log(`📦 Cart Items to add: ${cartItems.length}`);
-
-  // 1. კალათის შევსება
-  for (const [index, item] of cartItems.entries()) {
-    console.log(`🔹 Adding item ${index + 1}/${cartItems.length} (ID: ${item.productId})`);
-    
+  // 1. ნივთების ჩაყრა
+  for (const item of cartItems) {
     const res: any = await fetchWithSession(ADD_TO_CART_MUTATION, {
       input: {
-        clientMutationId: generateMutationId(), // ✅ აუცილებელია უნიკალურობისთვის
+        clientMutationId: generateMutationId(),
         productId: item.productId,
         quantity: item.quantity
       }
     }, currentSessionToken);
-
-    if (res.errors) {
-      console.error("❌ Cart Error for item:", item.productId, JSON.stringify(res.errors, null, 2));
-      return { errors: res.errors };
-    }
     
-    // 🔍 Debug Log
-    if (res.sessionToken) {
-        console.log(`✅ Session Token Received: ${res.sessionToken.substring(0, 10)}...`);
-        currentSessionToken = res.sessionToken;
-    } else {
-        console.warn(`⚠️ Warning: No session token returned for item ${item.productId}`);
-    }
+    if (res.sessionToken) currentSessionToken = res.sessionToken;
   }
 
-  // 2. Checkout
+  if (!currentSessionToken) return { errors: [{ message: "Session Error" }] };
+
+  // 2. კუპონის გამოყენება (თუ არის)
+  if (couponCode) {
+    await fetchWithSession(APPLY_COUPON_MUTATION, {
+      input: {
+        clientMutationId: generateMutationId(),
+        code: couponCode
+      }
+    }, currentSessionToken);
+  }
+
+  // 3. მისამართის განახლება (მიწოდების ფასისთვის)
+  // თუ ქალაქი არჩეულია, ვაგზავნით მას
+  if (city) {
+    await fetchWithSession(UPDATE_CUSTOMER_MUTATION, {
+      input: {
+        clientMutationId: generateMutationId(),
+        shipping: {
+          city: city,
+          country: 'GE'
+        },
+        billing: {
+          city: city,
+          country: 'GE'
+        }
+      }
+    }, currentSessionToken);
+  }
+
+  // 4. საბოლოო მონაცემების წამოღება
+  const cartRes: any = await fetchWithSession(GET_CART_TOTALS_QUERY, {}, currentSessionToken);
+
+  return { 
+    totals: cartRes.data?.cart, 
+    sessionToken: currentSessionToken // ვაბრუნებთ ტოკენს, რომ ჩეკაუტმა გამოიყენოს
+  };
+}
+
+// ✅ განახლებული შეკვეთის ფუნქცია
+export async function placeOrder(orderInput: any, cartItems: any[], couponCode?: string, existingSession?: string) {
+  // თუ უკვე გვაქვს calculateCartTotals-იდან დაბრუნებული სესია, ვიყენებთ მას.
+  // თუ არა, თავიდან ვქმნით (ნაკლებად ოპტიმალურია, მაგრამ მუშაობს)
+  let currentSessionToken = existingSession;
+
   if (!currentSessionToken) {
-    console.error("❌ Critical: Session Token is missing after adding items.");
-    return { errors: [{ message: "სესიის შექმნა ვერ მოხერხდა. გთხოვთ, სცადოთ მოგვიანებით ან დაუკავშირდეთ ადმინისტრაციას." }] };
+     // იგივე ლოგიკა კალათის შესავსებად...
+     for (const item of cartItems) {
+        const res: any = await fetchWithSession(ADD_TO_CART_MUTATION, {
+          input: {
+            clientMutationId: generateMutationId(),
+            productId: item.productId,
+            quantity: item.quantity
+          }
+        }, currentSessionToken);
+        if (res.sessionToken) currentSessionToken = res.sessionToken;
+     }
+     
+     if (couponCode) {
+        await fetchWithSession(APPLY_COUPON_MUTATION, {
+            input: { clientMutationId: generateMutationId(), code: couponCode }
+        }, currentSessionToken);
+     }
   }
 
-  console.log("💳 Proceeding to Checkout with Token...");
+  console.log("💳 Checkout with Token:", currentSessionToken);
 
   const res: any = await fetchWithSession(CHECKOUT_MUTATION, {
     input: {
@@ -88,10 +133,6 @@ export async function placeOrder(orderInput: any, cartItems: any[]) {
       ...orderInput
     }
   }, currentSessionToken);
-
-  if (res.errors) {
-      console.error("❌ Checkout API Error:", JSON.stringify(res.errors, null, 2));
-  }
 
   return res.data?.checkout || { errors: res.errors };
 }

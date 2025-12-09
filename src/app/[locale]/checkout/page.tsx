@@ -27,7 +27,7 @@ export default async function CheckoutPage({ params }: { params: Promise<{ local
 
   return (
     <div className="md:pt-36 pt-28 pb-24 min-h-screen bg-white">
-      <div className="container mx-auto px-4 max-w-4xl">
+     <div className="container mx-auto px-4 xl:px-0 max-w-[1400px]">
         <h1 className="text-4xl md:text-5xl font-serif font-black text-brand-dark mb-10">
           {locale === 'ka' ? 'შეკვეთის გაფორმება' : 'Checkout'}
         </h1>

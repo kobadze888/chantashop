@@ -82,7 +82,6 @@ export const GET_PRODUCT_BY_SLUG_QUERY = `
   }
 `;
 
-// ✅ Checkout (LineItems-ის გარეშე)
 export const CHECKOUT_MUTATION = `
   mutation Checkout($input: CheckoutInput!) {
     checkout(input: $input) {
@@ -98,7 +97,6 @@ export const CHECKOUT_MUTATION = `
   }
 `;
 
-// ✅ კალათაში დამატების მუტაცია
 export const ADD_TO_CART_MUTATION = `
   mutation AddToCart($input: AddToCartInput!) {
     addToCart(input: $input) {
@@ -106,6 +104,46 @@ export const ADD_TO_CART_MUTATION = `
         contents {
           itemCount
         }
+      }
+    }
+  }
+`;
+
+export const APPLY_COUPON_MUTATION = `
+  mutation ApplyCoupon($input: ApplyCouponInput!) {
+    applyCoupon(input: $input) {
+      cart {
+        total(format: RAW)
+      }
+    }
+  }
+`;
+
+// ✅ ახალი: კლიენტის განახლება (მისამართი მიწოდების დასათვლელად)
+export const UPDATE_CUSTOMER_MUTATION = `
+  mutation UpdateCustomer($input: UpdateCustomerInput!) {
+    updateCustomer(input: $input) {
+      customer {
+        shipping {
+          city
+          country
+        }
+      }
+    }
+  }
+`;
+
+// ✅ ახალი: კალათის სრული ინფორმაცია
+export const GET_CART_TOTALS_QUERY = `
+  query GetCartTotals {
+    cart {
+      total(format: RAW)
+      subtotal(format: RAW)
+      shippingTotal(format: RAW)
+      discountTotal(format: RAW)
+      appliedCoupons {
+        code
+        discountAmount(format: RAW)
       }
     }
   }

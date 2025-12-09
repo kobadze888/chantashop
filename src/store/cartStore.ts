@@ -48,17 +48,14 @@ export const useCartStore = create<CartStore>()(
 
       clearCart: () => set({ items: [] }),
 
-// src/store/cartStore.ts - განაახლეთ totalPrice ფუნქცია
-totalPrice: () => {
-  const items = get().items;
-  return items.reduce((total, item) => {
-      // უსაფრთხოების შემოწმება: თუ ფასი არ არსებობს, ჩათვალოს 0-ად
-      if (!item.price || typeof item.price !== 'string') return total;
-      
-      const numericPrice = parseFloat(item.price.replace(/[^0-9.]/g, '')); 
-      return total + (isNaN(numericPrice) ? 0 : numericPrice * item.quantity);
-  }, 0);
-}
+      totalPrice: () => {
+        const items = get().items;
+        return items.reduce((total, item) => {
+            if (!item.price) return total;
+            const numericPrice = parseFloat(item.price.replace(/[^0-9.]/g, '')); 
+            return total + (isNaN(numericPrice) ? 0 : numericPrice * item.quantity);
+        }, 0);
+      }
     }),
     { 
       name: 'chantashop-cart',

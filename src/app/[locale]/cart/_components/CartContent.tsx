@@ -11,6 +11,15 @@ import { useCartStore } from '@/store/cartStore';
 // უფასო მიწოდების ზღვარი (ლარი)
 const FREE_SHIPPING_THRESHOLD = 200;
 
+// ✅ ფასის ფორმატერის დამატება
+const formatPrice = (price: number) => {
+  return new Intl.NumberFormat('ka-GE', {
+    style: 'decimal',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(price) + ' ₾';
+};
+
 export default function CartContent({ locale }: { locale: string }) {
   const [mounted, setMounted] = useState(false);
   const { items, removeItem, updateQuantity, totalPrice } = useCartStore();
@@ -25,7 +34,7 @@ export default function CartContent({ locale }: { locale: string }) {
   const progress = Math.min((currentTotal / FREE_SHIPPING_THRESHOLD) * 100, 100);
   const remainingForFreeShip = FREE_SHIPPING_THRESHOLD - currentTotal;
 
-  // ცარიელი კალათის დიზაინი
+  // ცარიელი კალათა
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-32 text-center animate-fade-in">
@@ -53,7 +62,6 @@ export default function CartContent({ locale }: { locale: string }) {
 
   return (
     <div className="animate-fade-in">
-      {/* სათაური */}
       <h1 className="text-4xl md:text-5xl font-serif font-black text-brand-dark mb-10">
         {locale === 'ka' ? 'კალათა' : 'Shopping Cart'} 
         <span className="text-xl md:text-2xl text-gray-400 font-sans ml-4 font-normal">({items.reduce((acc, i) => acc + i.quantity, 0)} {locale === 'ka' ? 'ნივთი' : 'items'})</span>
@@ -64,46 +72,33 @@ export default function CartContent({ locale }: { locale: string }) {
         {/* მარცხენა მხარე: პროდუქტების სია */}
         <div className="lg:col-span-2 space-y-8">
           
-          {/* უფასო მიწოდების პროგრესი */}
           <div className="bg-brand-light/30 border border-brand-light p-6 rounded-3xl">
             <div className="flex items-center gap-3 mb-3 text-brand-dark font-bold text-sm uppercase tracking-wider">
                <Truck className="w-5 h-5 text-brand-DEFAULT" />
                {remainingForFreeShip > 0 
-                 ? (locale === 'ka' ? `დაამატეთ ${remainingForFreeShip.toFixed(2)}₾ უფასო მიწოდებისთვის` : `Add ${remainingForFreeShip.toFixed(2)}₾ for free shipping`)
+                 ? (locale === 'ka' ? `დაამატეთ ${formatPrice(remainingForFreeShip)} უფასო მიწოდებისთვის` : `Add ${formatPrice(remainingForFreeShip)} for free shipping`)
                  : (locale === 'ka' ? 'გილოცავთ! მიწოდება უფასოა' : 'Congratulations! Free shipping unlocked')
                }
             </div>
             <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div 
-                    className="h-full bg-brand-DEFAULT transition-all duration-1000 ease-out rounded-full" 
-                    style={{ width: `${progress}%` }}
-                ></div>
+                <div className="h-full bg-brand-DEFAULT transition-all duration-1000 ease-out rounded-full" style={{ width: `${progress}%` }}></div>
             </div>
           </div>
 
-          {/* პროდუქტები */}
           <div className="space-y-6">
             {items.map((item) => (
               <div key={`${item.id}-${JSON.stringify(item.selectedOptions)}`} className="group bg-white p-4 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex gap-6 items-center">
                 
-                {/* სურათი */}
                 <Link href={`/product/${item.slug}`} className="relative w-28 h-32 flex-shrink-0 rounded-2xl overflow-hidden bg-gray-50 border border-gray-100">
-                  <Image 
-                    src={item.image || '/placeholder.jpg'} 
-                    alt={item.name} 
-                    fill 
-                    className="object-cover group-hover:scale-105 transition-transform duration-500" 
-                  />
+                  <Image src={item.image || '/placeholder.jpg'} alt={item.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
                 </Link>
 
-                {/* ინფორმაცია */}
                 <div className="flex-1 flex flex-col justify-between py-1 h-full">
                   <div className="flex justify-between items-start mb-2">
                     <div>
                       <Link href={`/product/${item.slug}`} className="font-bold text-brand-dark text-lg md:text-xl hover:text-brand-DEFAULT transition line-clamp-1 font-serif">
                         {item.name}
                       </Link>
-                      {/* ვარიაციები */}
                       {item.selectedOptions && Object.keys(item.selectedOptions).length > 0 && (
                         <div className="flex flex-wrap gap-2 mt-2">
                           {Object.entries(item.selectedOptions).map(([key, value]) => (
@@ -114,38 +109,26 @@ export default function CartContent({ locale }: { locale: string }) {
                         </div>
                       )}
                     </div>
-                    <button 
-                      onClick={() => removeItem(item.id)}
-                      className="text-gray-300 hover:text-red-500 transition p-2 hover:bg-red-50 rounded-full"
-                      aria-label="Remove item"
-                    >
+                    <button onClick={() => removeItem(item.id)} className="text-gray-300 hover:text-red-500 transition p-2 hover:bg-red-50 rounded-full">
                       <Trash2 className="w-5 h-5" />
                     </button>
                   </div>
 
                   <div className="flex justify-between items-end mt-4">
-                    {/* რაოდენობის კონტროლი */}
                     <div className="flex items-center bg-gray-50 rounded-full border border-gray-200 h-10 shadow-inner">
-                      <button 
-                        onClick={() => updateQuantity(item.id, 'dec')}
-                        className="w-10 h-full flex items-center justify-center hover:text-brand-DEFAULT transition active:scale-90"
-                        disabled={item.quantity <= 1}
-                      >
+                      <button onClick={() => updateQuantity(item.id, 'dec')} className="w-10 h-full flex items-center justify-center hover:text-brand-DEFAULT transition active:scale-90" disabled={item.quantity <= 1}>
                         <Minus className="w-3 h-3" />
                       </button>
                       <span className="w-6 text-center font-bold text-sm text-brand-dark">{item.quantity}</span>
-                      <button 
-                        onClick={() => updateQuantity(item.id, 'inc')}
-                        className="w-10 h-full flex items-center justify-center hover:text-brand-DEFAULT transition active:scale-90"
-                      >
+                      <button onClick={() => updateQuantity(item.id, 'inc')} className="w-10 h-full flex items-center justify-center hover:text-brand-DEFAULT transition active:scale-90">
                         <Plus className="w-3 h-3" />
                       </button>
                     </div>
 
-                    {/* ფასი */}
                     <div className="flex flex-col items-end">
                        <span className="font-black text-brand-dark text-xl font-serif">
-                         {item.price}
+                         {/* ✅ ფასის გასწორება */}
+                         {formatPrice(parseFloat(item.price.replace(/[^0-9.]/g, '')))}
                        </span>
                     </div>
                   </div>
@@ -155,10 +138,9 @@ export default function CartContent({ locale }: { locale: string }) {
           </div>
         </div>
 
-        {/* მარჯვენა მხარე: შეჯამება (Sticky) */}
+        {/* მარჯვენა მხარე: შეჯამება */}
         <div className="lg:col-span-1 lg:sticky lg:top-32">
           <div className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-xl relative overflow-hidden">
-            {/* დეკორატიული ფონი */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-brand-light/50 rounded-full blur-3xl -z-10 translate-x-10 -translate-y-10"></div>
 
             <h3 className="text-2xl font-serif font-bold text-brand-dark mb-8">{locale === 'ka' ? 'შეჯამება' : 'Summary'}</h3>
@@ -166,7 +148,7 @@ export default function CartContent({ locale }: { locale: string }) {
             <div className="space-y-4 text-sm text-gray-600 mb-8">
               <div className="flex justify-between items-center">
                 <span>{locale === 'ka' ? 'ღირებულება' : 'Subtotal'}</span>
-                <span className="font-bold text-base">{currentTotal.toFixed(2)} ₾</span>
+                <span className="font-bold text-base">{formatPrice(currentTotal)}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span>{locale === 'ka' ? 'მიწოდება' : 'Shipping'}</span>
@@ -182,7 +164,7 @@ export default function CartContent({ locale }: { locale: string }) {
               <div className="flex justify-between items-end">
                 <span className="font-bold text-brand-dark text-lg">{locale === 'ka' ? 'სულ' : 'Total'}</span>
                 <div className="text-right">
-                    <span className="block text-3xl font-black text-brand-DEFAULT font-serif leading-none">{currentTotal.toFixed(2)} ₾</span>
+                    <span className="block text-3xl font-black text-brand-DEFAULT font-serif leading-none">{formatPrice(currentTotal)}</span>
                     <span className="text-[10px] text-gray-400 mt-1 block">დღგ-ს ჩათვლით</span>
                 </div>
               </div>
