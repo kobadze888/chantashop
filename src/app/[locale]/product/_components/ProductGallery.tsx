@@ -2,7 +2,6 @@
 
 import Image from 'next/image';
 import { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react'; 
 
 interface ProductGalleryProps {
   mainImage: string;
@@ -12,60 +11,54 @@ interface ProductGalleryProps {
 
 export default function ProductGallery({ mainImage, gallery, alt }: ProductGalleryProps) {
   const allImages = useMemo(() => {
-    const images = [mainImage, ...gallery.filter(url => url !== mainImage && url !== '')].filter(url => url);
-    return images.filter((url, index, self) => self.indexOf(url) === index);
+      return [mainImage, ...gallery.filter(url => url !== mainImage)].filter(Boolean);
   }, [mainImage, gallery]);
 
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const selectedImage = allImages[currentImageIndex] || '/placeholder.jpg';
+  const [selectedImage, setSelectedImage] = useState(allImages[0]);
 
-  const handlePrev = () => setCurrentImageIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
-  const handleNext = () => setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
-  
   return (
-    <div className="flex flex-col-reverse lg:flex-row gap-4 h-auto lg:h-[600px]">
-      <div className="relative w-full lg:w-24 flex-shrink-0">
-          <div className="flex lg:flex-col gap-3 overflow-x-auto lg:overflow-y-auto h-full pb-2 lg:pb-0 hide-scrollbar">
-              {allImages.map((url, index) => (
-                  <div
-                      key={index}
-                      className={`relative w-16 h-16 lg:w-20 lg:h-24 flex-shrink-0 rounded-xl overflow-hidden border cursor-pointer transition-all duration-200 ${
-                          currentImageIndex === index 
-                              ? 'border-brand-DEFAULT opacity-100 ring-2 ring-brand-light' 
-                              : 'border-transparent opacity-60 hover:opacity-100 hover:border-gray-200'
-                      }`}
-                      onClick={() => setCurrentImageIndex(index)}
-                  >
-                      <Image
-                          src={url}
-                          alt={`${alt} - ${index + 1}`}
-                          fill
-                          className="object-cover"
-                          sizes="100px"
-                      />
-                  </div>
-              ))}
-          </div>
-      </div>
-
-      <div className="flex-1 relative bg-gray-50 rounded-3xl overflow-hidden border border-gray-100 h-[450px] lg:h-full group shadow-sm">
+    <div className="flex flex-col gap-4 lg:flex-row-reverse lg:gap-6">
+      
+      {/* მთავარი სურათი (დიდი) */}
+      {/* ✅ შესწორება: lg:h-[600px] xl:h-[650px] lg:aspect-auto */}
+      <div className="relative w-full aspect-[4/5] md:aspect-square lg:aspect-auto lg:h-[600px] xl:h-[650px] bg-gray-50 rounded-[2rem] overflow-hidden border border-gray-100 shadow-sm group">
         <Image
-          src={selectedImage}
+          src={selectedImage || '/placeholder.jpg'}
           alt={alt}
           fill
           className="object-cover transition-transform duration-700 group-hover:scale-105"
+          sizes="(max-width: 768px) 100vw, 50vw"
           priority
-          sizes="(max-width: 1024px) 100vw, 50vw"
         />
         
-        {allImages.length > 1 && (
-            <>
-                <button onClick={handlePrev} className="absolute top-1/2 left-4 -translate-y-1/2 p-3 bg-white/80 backdrop-blur-md rounded-full text-brand-dark hover:bg-brand-DEFAULT hover:text-white transition-all shadow-lg z-20 opacity-0 group-hover:opacity-100 transform -translate-x-2 group-hover:translate-x-0"><ChevronLeft className="w-5 h-5" /></button>
-                <button onClick={handleNext} className="absolute top-1/2 right-4 -translate-y-1/2 p-3 bg-white/80 backdrop-blur-md rounded-full text-brand-dark hover:bg-brand-DEFAULT hover:text-white transition-all shadow-lg z-20 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0"><ChevronRight className="w-5 h-5" /></button>
-                <div className="absolute bottom-6 right-6 px-3 py-1 bg-black/60 backdrop-blur-md rounded-full text-xs font-bold text-white tracking-widest z-20">{currentImageIndex + 1} / {allImages.length}</div>
-            </>
-        )}
+        <div className="absolute bottom-4 right-4 bg-black/50 backdrop-blur-md text-white text-[10px] px-3 py-1 rounded-full font-bold md:hidden">
+            {allImages.indexOf(selectedImage) + 1} / {allImages.length}
+        </div>
       </div>
+
+      {/* Thumbnails */}
+      {allImages.length > 1 && (
+        <div className="flex lg:flex-col gap-3 overflow-x-auto lg:overflow-y-auto hide-scrollbar pb-2 lg:pb-0 lg:w-24 lg:h-[600px] xl:h-[650px] flex-shrink-0">
+          {allImages.map((url, index) => (
+            <button
+              key={index}
+              onClick={() => setSelectedImage(url)}
+              className={`relative flex-shrink-0 w-16 h-16 lg:w-24 lg:h-24 rounded-2xl overflow-hidden border-2 transition-all duration-200 ${
+                selectedImage === url 
+                  ? 'border-brand-DEFAULT ring-2 ring-brand-light ring-offset-1 opacity-100' 
+                  : 'border-transparent hover:border-gray-200 opacity-70 hover:opacity-100'
+              }`}
+            >
+              <Image
+                src={url}
+                alt={`${alt} view ${index + 1}`}
+                fill
+                className="object-cover"
+              />
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

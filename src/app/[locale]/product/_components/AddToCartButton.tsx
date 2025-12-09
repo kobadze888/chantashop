@@ -1,6 +1,6 @@
 'use client';
 
-import { ShoppingBag, XCircle } from 'lucide-react'; // XCircle დავამატეთ მარაგის არქონის აიკონისთვის
+import { ShoppingBag, XCircle } from 'lucide-react';
 import { useCartStore } from '@/store/cartStore';
 import type { CartItem } from '@/types';
 import { useTranslations } from 'next-intl';
