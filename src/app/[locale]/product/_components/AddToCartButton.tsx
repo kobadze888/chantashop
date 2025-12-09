@@ -1,6 +1,6 @@
 'use client';
 
-import { ShoppingBag } from 'lucide-react';
+import { ShoppingBag, XCircle } from 'lucide-react'; // XCircle დავამატეთ მარაგის არქონის აიკონისთვის
 import { useCartStore } from '@/store/cartStore';
 import type { CartItem } from '@/types';
 import { useTranslations } from 'next-intl';
@@ -29,14 +29,26 @@ export default function AddToCartButton({ product, stockStatus, disabled = false
         <button
             onClick={handleAddToCart}
             disabled={isButtonDisabled}
-            className={`flex-1 rounded-full font-bold h-16 transition shadow-2xl flex items-center justify-center gap-4 active:scale-95 transform duration-200 uppercase tracking-widest text-sm ${
-                !isButtonDisabled
-                    ? 'bg-brand-dark text-white hover:bg-brand-DEFAULT shadow-brand-dark/20 cursor-pointer' 
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
+            className={`
+                w-full h-14 rounded-2xl font-bold transition-all duration-300 
+                flex items-center justify-center gap-3 uppercase tracking-wider text-xs md:text-sm
+                ${!isButtonDisabled
+                    ? 'bg-brand-dark text-white hover:bg-brand-DEFAULT shadow-xl hover:shadow-brand-DEFAULT/30 active:scale-95 cursor-pointer border border-transparent' 
+                    : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed opacity-80'
+                }
+            `}
         >
-            <ShoppingBag className="w-5 h-5" />
-            {inStock ? t('addToCart') : t('outOfStock')}
+            {inStock ? (
+                <>
+                    <ShoppingBag className="w-5 h-5" />
+                    <span>{t('addToCart')}</span>
+                </>
+            ) : (
+                <>
+                    <XCircle className="w-5 h-5" />
+                    <span>{t('outOfStock')}</span>
+                </>
+            )}
         </button>
     );
 }
