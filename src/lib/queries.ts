@@ -147,7 +147,7 @@ export const GET_CART_TOTALS_QUERY = `
   }
 `;
 
-// ✅ ახალი: შეკვეთის მოძებნა ID-ით
+// ✅ განახლებული: დაემატა email ველი billing-ში და გასწორდა lineItems.total
 export const GET_ORDER_QUERY = `
   query GetOrder($id: ID!) {
     order(id: $id, idType: DATABASE_ID) {
@@ -162,6 +162,7 @@ export const GET_ORDER_QUERY = `
         lastName
         city
         address1
+        email 
       }
       lineItems {
         nodes {
@@ -174,7 +175,7 @@ export const GET_ORDER_QUERY = `
             }
           }
           quantity
-          total(format: RAW)
+          total
         }
       }
     }

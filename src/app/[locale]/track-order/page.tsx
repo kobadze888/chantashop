@@ -4,19 +4,23 @@
 import { useState } from 'react';
 import { useRouter } from '@/navigation';
 import { useTranslations } from 'next-intl';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, Mail } from 'lucide-react'; // ✅ დაემატა Mail
 
 export default function TrackOrderPage() {
   const t = useTranslations('Tracking');
   const router = useRouter();
+  
   const [orderId, setOrderId] = useState('');
+  const [email, setEmail] = useState(''); // ✅ ახალი State
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!orderId) return;
+    if (!orderId || !email) return;
+    
     setIsLoading(true);
-    router.push(`/track-order/${orderId}`);
+    // გადავდივართ: /track-order/12345?email=user@example.com
+    router.push(`/track-order/${orderId}?email=${encodeURIComponent(email)}`);
   };
 
   return (
@@ -25,20 +29,39 @@ export default function TrackOrderPage() {
         <h1 className="text-3xl font-serif font-black text-brand-dark mb-4">{t('title')}</h1>
         <p className="text-gray-500 mb-8">{t('desc')}</p>
 
-        <form onSubmit={handleSearch} className="relative">
-            <input 
-                type="text" 
-                value={orderId}
-                onChange={(e) => setOrderId(e.target.value)}
-                placeholder={t('placeholder')}
-                className="w-full h-14 pl-6 pr-14 rounded-2xl border-2 border-gray-100 bg-gray-50 focus:bg-white focus:border-brand-DEFAULT outline-none transition-all font-bold text-lg text-brand-dark placeholder:font-normal"
-            />
+        <form onSubmit={handleSearch} className="space-y-4">
+            {/* შეკვეთის ნომერი */}
+            <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input 
+                    type="text" 
+                    value={orderId}
+                    onChange={(e) => setOrderId(e.target.value)}
+                    placeholder={t('placeholder')}
+                    className="w-full h-14 pl-12 pr-4 rounded-2xl border-2 border-gray-100 bg-gray-50 focus:bg-white focus:border-brand-DEFAULT outline-none transition-all font-bold text-lg text-brand-dark placeholder:font-normal"
+                    required
+                />
+            </div>
+
+            {/* ✅ ელ-ფოსტა */}
+            <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input 
+                    type="email" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="თქვენი ელ-ფოსტა"
+                    className="w-full h-14 pl-12 pr-4 rounded-2xl border-2 border-gray-100 bg-gray-50 focus:bg-white focus:border-brand-DEFAULT outline-none transition-all font-medium text-brand-dark placeholder:font-normal"
+                    required
+                />
+            </div>
+
             <button 
                 type="submit"
-                disabled={!orderId || isLoading}
-                className="absolute right-2 top-2 h-10 w-10 bg-brand-dark text-white rounded-xl flex items-center justify-center hover:bg-brand-DEFAULT transition-colors disabled:opacity-50"
+                disabled={!orderId || !email || isLoading}
+                className="w-full h-14 bg-brand-dark text-white rounded-2xl font-bold hover:bg-brand-DEFAULT transition-colors disabled:opacity-50 flex items-center justify-center gap-2 uppercase tracking-wide text-sm"
             >
-                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
+                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : t('btn')}
             </button>
         </form>
       </div>

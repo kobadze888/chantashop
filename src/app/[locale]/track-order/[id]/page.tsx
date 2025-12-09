@@ -6,35 +6,48 @@ import { ArrowLeft, CheckCircle, Package, Truck, Home, Clock } from 'lucide-reac
 import Image from 'next/image';
 
 const formatPrice = (price: string) => {
+    if (!price) return '0 ₾';
     const num = parseFloat(price.replace(/[^0-9.]/g, ''));
     return isNaN(num) ? price : `${num} ₾`;
 };
 
-// სტატუსის გამოთვლა დროის მიხედვით
 function calculateStatusStep(orderDateString: string) {
     const orderDate = new Date(orderDateString);
     const now = new Date();
-    
     const diffHours = (now.getTime() - orderDate.getTime()) / (1000 * 60 * 60);
-
-    if (diffHours >= 72) return 4; // 3 დღე
-    if (diffHours >= 9) return 3;  // 9 სთ
-    if (diffHours >= 5) return 2;  // 5 სთ
-    return 1;                      // 0-5 სთ
+    if (diffHours >= 72) return 4;
+    if (diffHours >= 9) return 3;
+    if (diffHours >= 5) return 2;
+    return 1;
 }
 
-export default async function OrderDetailsPage({ params }: { params: Promise<{ id: string, locale: string }> }) {
+export default async function OrderDetailsPage({ 
+    params,
+    searchParams 
+}: { 
+    params: Promise<{ id: string, locale: string }>,
+    searchParams: Promise<{ email: string }> 
+}) {
   const { id } = await params;
+  const resolvedSearchParams = await searchParams;
+  const email = resolvedSearchParams.email; // ✅ Email-ის ამოღება
+  
   const t = await getTranslations('Success');
   const tTrack = await getTranslations('Tracking');
   
-  const order = await getOrder(id);
+  // ✅ უსაფრთხო გამოძახება: ვაწვდით ID-ს და Email-ს
+  const order = await getOrder(id, email);
 
   if (!order) {
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center text-center p-4">
+        <div className="min-h-screen bg-white flex flex-col items-center justify-center text-center p-4 pt-32">
             <h1 className="text-2xl font-bold text-brand-dark mb-4">{tTrack('notFound')}</h1>
-            <Link href="/track-order" className="text-brand-DEFAULT underline font-bold">{tTrack('back')}</Link>
+            <p className="text-gray-500 mb-6 max-w-md">
+                შეკვეთა ამ ნომრით და ელ-ფოსტით ვერ მოიძებნა. გთხოვთ შეამოწმოთ მონაცემები.
+            </p>
+            <Link href="/track-order" className="px-6 py-3 bg-brand-dark text-white rounded-xl font-bold hover:bg-brand-DEFAULT transition">
+                {tTrack('back')}
+            </Link>
         </div>
     );
   }
@@ -124,6 +137,7 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
                     <p className="font-bold text-brand-dark text-base">{order.billing?.firstName} {order.billing?.lastName}</p>
                     <p>{order.billing?.city}</p>
                     <p>{order.billing?.address1}</p>
+                    <p className="text-xs text-gray-400 mt-2">{order.billing?.email}</p>
                 </div>
                 
                 <div className="mt-6 pt-6 border-t border-gray-100">

@@ -12,6 +12,7 @@ import {
 } from './queries';
 
 const generateMutationId = () => Math.random().toString(36).substring(7);
+const WORDPRESS_ADMIN_TOKEN = process.env.WORDPRESS_ADMIN_TOKEN; // ადმინ ტოკენი
 
 async function fetchWithSession(query: string, variables: any, sessionToken?: string) {
   const headers: any = { 'Content-Type': 'application/json' };
@@ -122,9 +123,50 @@ export async function placeOrder(orderInput: any, cartItems: any[], couponCode?:
   return res.data?.checkout || { errors: res.errors };
 }
 
-// ✅ ახალი: შეკვეთის მოძებნა ID-ით
-export async function getOrder(orderId: string) {
-  // ვიყენებთ fetchWithSession-ს ტოკენის გარეშე (Public Query)
-  const res: any = await fetchWithSession(GET_ORDER_QUERY, { id: orderId });
-  return res.data?.order || null;
+// ✅ განახლებული: იყენებს ადმინ ტოკენს და ამოწმებს Email-ს
+export async function getOrder(orderId: string, email: string) {
+  if (!orderId || !email) return null;
+
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  
+  // ავტორიზაცია Admin-ის ტოკენით
+  if (WORDPRESS_ADMIN_TOKEN) {
+    headers['Authorization'] = `Basic ${WORDPRESS_ADMIN_TOKEN}`;
+  }
+
+  try {
+    const res = await fetch(WORDPRESS_API_URL, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ 
+        query: GET_ORDER_QUERY, 
+        variables: { id: orderId } 
+      }),
+      cache: 'no-store',
+    });
+
+    const json = await res.json();
+
+    if (json.errors || !json.data?.order) {
+      console.error("Order fetch error:", JSON.stringify(json.errors, null, 2));
+      return null;
+    }
+
+    const order = json.data.order;
+
+    // 🔒 უსაფრთხოების შემოწმება: ელ-ფოსტის შედარება
+    const orderEmail = order.billing?.email?.toLowerCase();
+    const inputEmail = email.toLowerCase().trim();
+
+    if (orderEmail !== inputEmail) {
+      console.warn(`Security alert: Email mismatch for order #${orderId}`);
+      return null; // უსაფრთხოების გამო ვაბრუნებთ null-ს
+    }
+
+    return order;
+
+  } catch (e) {
+    console.error("Failed to fetch order:", e);
+    return null;
+  }
 }
