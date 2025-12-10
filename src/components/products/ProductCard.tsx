@@ -6,6 +6,7 @@ import { Eye, Heart, ShoppingBag, XCircle, CreditCard, Maximize } from 'lucide-r
 import { useCartStore } from '@/store/cartStore';
 import { useTranslations } from 'next-intl';
 import { formatPrice } from '@/lib/utils';
+import { useState } from 'react';
 
 const colorMap: Record<string, string> = {
   'shavi': '#000000', 'tetri': '#FFFFFF', 'lurji': '#2563EB', 'muqi_lurji': '#1E3A8A',
@@ -48,6 +49,9 @@ export default function ProductCard({ id, name, price, salePrice, regularPrice, 
   const addItem = useCartStore((state) => state.addItem);
   const router = useRouter();
   const t = useTranslations('Product');
+  
+  // State ჰოვერის ეფექტისთვის (რომელი ღილაკია აქტიური)
+  const [hoveredBtn, setHoveredBtn] = useState<'cart' | 'buy' | null>(null);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -202,7 +206,7 @@ export default function ProductCard({ id, name, price, salePrice, regularPrice, 
                       </div>
                   ) : (
                       <>
-                          {/* MOBILE: Compact Icons */}
+                          {/* --- MOBILE: Compact Icons --- */}
                           <div className="flex md:hidden gap-2">
                               <button 
                                 onClick={handleAddToCart}
@@ -218,24 +222,49 @@ export default function ProductCard({ id, name, price, salePrice, regularPrice, 
                               </button>
                           </div>
 
-                          {/* DESKTOP: Full Text Buttons (Add to Cart & Buy Now) */}
+                          {/* --- DESKTOP: Interactive Expandable Buttons --- */}
                           <div className="hidden md:flex gap-2">
-                              {/* Add to Cart */}
+                              
+                              {/* 1. Add to Cart (Default: Expanded, Shrinks on Buy Hover) */}
                               <button 
                                 onClick={handleAddToCart}
-                                className="h-11 px-4 rounded-full bg-brand-DEFAULT text-white flex items-center justify-center gap-2 shadow-lg shadow-brand-DEFAULT/20 transition-all active:scale-95 hover:bg-brand-dark hover:shadow-xl"
+                                onMouseEnter={() => setHoveredBtn('cart')}
+                                onMouseLeave={() => setHoveredBtn(null)}
+                                className={`
+                                    h-11 rounded-full bg-brand-DEFAULT text-white flex items-center justify-center gap-2 shadow-lg shadow-brand-DEFAULT/20 transition-all duration-300 ease-in-out hover:bg-brand-dark overflow-hidden
+                                    ${hoveredBtn === 'buy' ? 'w-11 px-0' : 'w-auto px-5'}
+                                `}
                               >
-                                <ShoppingBag className="w-4 h-4" />
-                                <span className="text-[10px] font-bold uppercase tracking-wider">{t('addToCart')}</span>
+                                <ShoppingBag className="w-4 h-4 flex-shrink-0" />
+                                <span 
+                                    className={`
+                                        text-[10px] font-bold uppercase tracking-wider whitespace-nowrap transition-all duration-300
+                                        ${hoveredBtn === 'buy' ? 'w-0 opacity-0' : 'w-auto opacity-100'}
+                                    `}
+                                >
+                                    {t('addToCart')}
+                                </span>
                               </button>
 
-                              {/* Buy Now - with Border & Text */}
+                              {/* 2. Buy Now (Default: Collapsed/Icon, Expands on Hover) */}
                               <button 
                                 onClick={handleBuyNow}
-                                className="h-11 px-4 rounded-full border border-gray-200 text-brand-dark bg-white hover:border-brand-dark hover:text-white hover:bg-brand-dark shadow-sm flex items-center justify-center gap-2 transition-all active:scale-95"
+                                onMouseEnter={() => setHoveredBtn('buy')}
+                                onMouseLeave={() => setHoveredBtn(null)}
+                                className={`
+                                    h-11 rounded-full border border-gray-200 text-brand-dark bg-white hover:border-brand-dark hover:bg-brand-dark hover:text-white shadow-sm flex items-center justify-center gap-2 transition-all duration-300 ease-in-out overflow-hidden
+                                    ${hoveredBtn === 'buy' ? 'w-auto px-5' : 'w-11 px-0'}
+                                `}
                               >
-                                <CreditCard className="w-4 h-4" />
-                                <span className="text-[10px] font-bold uppercase tracking-wider">{t('buyNow')}</span>
+                                <CreditCard className="w-4 h-4 flex-shrink-0" />
+                                <span 
+                                    className={`
+                                        text-[10px] font-bold uppercase tracking-wider whitespace-nowrap transition-all duration-300
+                                        ${hoveredBtn === 'buy' ? 'w-auto opacity-100' : 'w-0 opacity-0'}
+                                    `}
+                                >
+                                    {t('buyNow')}
+                                </span>
                               </button>
                           </div>
                       </>
