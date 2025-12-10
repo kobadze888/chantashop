@@ -17,8 +17,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* --- Utilities from HTML Prototype --- */
-
+/* --- Utilities --- */
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -33,35 +32,39 @@ input[type=range]:active::-webkit-slider-thumb { box-shadow: 0 0 0 3px white, 0 
 .color-swatch-selected { outline: 3px solid white; outline-offset: -3px; box-shadow: 0 0 0 2px var(--color-brand-DEFAULT); transform: scale(1.1); }
 input[type="checkbox"] { accent-color: var(--color-brand-DEFAULT); width: 1.25rem; height: 1.25rem; border-radius: 0.25rem; border-color: #d1d5db; }
 
-/* --- MODAL TRANSITIONS (HTML-დან) --- */
-.modal-enter { opacity: 0; transform: scale(0.95); }
-.modal-enter-active { opacity: 1; transform: scale(1); transition: all 0.3s ease-out; }
-.modal-exit-active { opacity: 0; transform: scale(0.95); transition: all 0.2s ease-in; }
+/* --- Product Card Smooth Hover --- */
+.product-card-image-wrapper {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate; /* აუცილებელია z-index-ების სწორად მუშაობისთვის */
+}
 
-/* --- Product Card Hover Styles for Image Swap --- */
-/* ეს სტილები უზრუნველყოფს სურათების შეცვლას ProductCard.tsx-ში */
+/* მეორე სურათი (ჰოვერზე) */
 .product-card-image-wrapper .hover-image {
-  opacity: 0; /* მეორე სურათი თავიდან დამალულია */
+  opacity: 0;
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 1.5rem;
-  z-index: 20; /* დარწმუნდით, რომ main-image-ს ზემოთაა */
-  transition: opacity 300ms ease-in-out;
+  z-index: 10;
+  transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.7s ease; 
 }
 
+/* მთავარი სურათი */
 .product-card-image-wrapper .main-image {
-  transition: opacity 300ms ease-in-out;
+  position: relative;
+  z-index: 5;
+  transition: transform 0.7s ease;
 }
 
-/* როდესაც მშობელ group-ზეა ჰოვერი: */
+/* ჰოვერ ეფექტები */
 .group:hover .product-card-image-wrapper .hover-image {
-  opacity: 1 !important; /* აჩვენებს hover სურათს */
+  opacity: 1;
+  transform: scale(1.05);
 }
 
 .group:hover .product-card-image-wrapper .main-image {
-  opacity: 0 !important; /* მალავს მთავარ სურათს */
+  transform: scale(1.05);
 }

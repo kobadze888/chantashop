@@ -1,14 +1,17 @@
 import { NextResponse } from 'next/server';
-import { getProducts, getCategories } from '@/lib/api';
+import { getProducts, getFilters } from '@/lib/api'; // ✅ შევცვალეთ getCategories -> getFilters
 
 export async function GET() {
   const start = performance.now();
   
   try {
-    const [products, categories] = await Promise.all([
+    const [products, filters] = await Promise.all([ // ✅ დავარქვით 'filters'
       getProducts(5),
-      getCategories()
+      getFilters() // ✅ გამოვიძახეთ სწორი ფუნქცია
     ]);
+
+    // ✅ ამოვიღეთ კატეგორიები ობიექტიდან
+    const categories = filters.categories; 
 
     const duration = performance.now() - start;
 
