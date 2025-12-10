@@ -3,7 +3,8 @@ import { WORDPRESS_API_URL } from './constants';
 import { GET_PRODUCTS_QUERY, GET_FILTERS_QUERY, GET_PRODUCT_BY_SLUG_QUERY } from './queries';
 import { Product } from '@/types';
 
-async function fetchAPI(query: string, { variables }: { variables?: Record<string, any> } = {}, revalidateTime: number) {
+// შეცვლილი: დაემატა tags არგუმენტი Next.js-ის ქეშირებისთვის
+async function fetchAPI(query: string, { variables }: { variables?: Record<string, any> } = {}, revalidateTime: number, tags?: string[]) {
   const headers = { 'Content-Type': 'application/json' };
   
   const fetchOptions: RequestInit = {
@@ -15,7 +16,11 @@ async function fetchAPI(query: string, { variables }: { variables?: Record<strin
   if (revalidateTime === 0) {
     fetchOptions.cache = 'no-store';
   } else {
-    fetchOptions.next = { revalidate: revalidateTime };
+    // იყენებს Next.js-ის ISR/Data Cache-ს tags-ის მხარდაჭერით
+    fetchOptions.next = { 
+        revalidate: revalidateTime,
+        tags: tags // <--- Next.js ქეშირების ტეგები
+    };
   }
 
   try {
@@ -105,12 +110,14 @@ export async function getProducts(filters: ProductFilters = {}, locale: string =
       whereArgs.language = locale.toUpperCase();
   }
 
-  const data = await fetchAPI(GET_PRODUCTS_QUERY, { variables: { first: limit, where: whereArgs } }, 60);
+  // დავამატეთ 'products' ტეგი
+  const data = await fetchAPI(GET_PRODUCTS_QUERY, { variables: { first: limit, where: whereArgs } }, 60, ['products']);
   return data?.products?.nodes || [];
 }
 
 export async function getFilters() {
-  const data = await fetchAPI(GET_FILTERS_QUERY, {}, 86400);
+  // დავამატეთ 'filters' ტეგი
+  const data = await fetchAPI(GET_FILTERS_QUERY, {}, 86400, ['filters']);
   return {
     categories: data?.productCategories?.nodes || [],
     colors: data?.allPaColor?.nodes || [],
@@ -119,6 +126,7 @@ export async function getFilters() {
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
-  const data = await fetchAPI(GET_PRODUCT_BY_SLUG_QUERY, { variables: { id: slug } }, 3600);
+  // დავამატეთ კონკრეტული პროდუქტის ტეგი
+  const data = await fetchAPI(GET_PRODUCT_BY_SLUG_QUERY, { variables: { id: slug } }, 3600, [`product-${slug}`]);
   return data?.product || null;
 }
