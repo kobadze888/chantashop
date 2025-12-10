@@ -1,4 +1,5 @@
 // src/store/cartStore.ts
+
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { CartItem } from '@/types';
@@ -18,9 +19,8 @@ export const useCartStore = create<CartStore>()(
       items: [],
       
       addItem: (item) => set((state) => {
-        const maxStock = item.stockQuantity !== undefined ? item.stockQuantity : Infinity;
+        const maxStock = (item as CartItem).stockQuantity || Infinity;
         
-        // არ დავამატოთ თუ მარაგი 0-ია და ნივთი ჯერ არ გვაქვს
         if (!state.items.find((i) => i.id === item.id) && maxStock <= 0) {
             return state;
         }
@@ -29,6 +29,7 @@ export const useCartStore = create<CartStore>()(
         
         if (existing) {
           const newQuantity = existing.quantity + 1;
+
           if (newQuantity <= maxStock) { 
             return {
               items: state.items.map((i) => 
@@ -44,7 +45,7 @@ export const useCartStore = create<CartStore>()(
             ...item, 
             quantity: 1,
             stockQuantity: maxStock
-          } as CartItem] 
+          }] 
         };
       }),
 
@@ -56,7 +57,7 @@ export const useCartStore = create<CartStore>()(
         items: state.items.map((i) => {
           if (i.id === id) {
             const newQuantity = action === 'inc' ? i.quantity + 1 : Math.max(1, i.quantity - 1);
-            const maxStock = i.stockQuantity !== undefined ? i.stockQuantity : Infinity;
+            const maxStock = i.stockQuantity || Infinity;
             
             if (newQuantity <= maxStock) {
                 return { ...i, quantity: newQuantity };
@@ -73,9 +74,7 @@ export const useCartStore = create<CartStore>()(
         const items = get().items;
         return items.reduce((total, item) => {
             if (!item.price) return total;
-            // უსაფრთხო პარსინგი: ტოვებს მხოლოდ ციფრებს და წერტილს
-            const cleanPrice = item.price.toString().replace(/[^0-9.]/g, '');
-            const numericPrice = parseFloat(cleanPrice); 
+            const numericPrice = parseFloat(item.price.replace(/[^0-9.]/g, '')); 
             return total + (isNaN(numericPrice) ? 0 : numericPrice * item.quantity);
         }, 0);
       }

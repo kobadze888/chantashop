@@ -120,10 +120,7 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
     price: displayPrice,
     image: displayImage,
     slug: product.slug,
-    // ✅ Fix: Ensure strict typing and no undefined for selectedOptions
-    selectedOptions: selectedColor 
-        ? { Color: selectedColorName || selectedColor || "" } 
-        : {} as Record<string, string>,
+    selectedOptions: selectedColor ? { Color: selectedColorName || selectedColor } : {},
     stockQuantity: displayStockQuantity,
   };
   
@@ -134,10 +131,7 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
 
   const handleBuyNow = () => {
       if(!isBuyNowDisabled) {
-          // ვუძახებთ addItem-ს ციკლში, რადგან addItem ფუნქცია იღებს რაოდენობას 1-ს
-          for (let i = 0; i < quantity; i++) {
-              addItem(cartData); 
-          }
+          addItem({ ...cartData, quantity });
           router.push('/checkout');
       }
   };

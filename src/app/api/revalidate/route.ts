@@ -1,21 +1,14 @@
-// src/app/api/revalidate/route.ts
-
 import { NextRequest, NextResponse } from 'next/server';
-import { revalidatePath, revalidateTag } from 'next/cache'; 
+import { revalidatePath } from 'next/cache';
 
 // უნიკალური საიდუმლო ტოკენი უსაფრთხოებისთვის.
+// ის უნდა ემთხვეოდეს იმას, რასაც WooCommerce-ში ჩაწერთ.
 const REVALIDATION_TOKEN = process.env.REVALIDATION_TOKEN || 'YOUR_SECRET_FALLBACK_TOKEN'; 
 
-/**
- * უნივერსალური ფუნქცია, რომელიც ამუშავებს როგორც GET, ასევე POST მოთხოვნებს.
- * WooCommerce Webhook-ები აგზავნიან POST-ს, მაგრამ პარამეტრები URL-შია.
- * ამიტომ, ლოგიკას ვამუშავებთ request.nextUrl.searchParams-დან.
- */
-async function handleRevalidation(request: NextRequest) {
+export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const secret = searchParams.get('secret');
-  const slug = searchParams.get('slug'); 
-  const type = searchParams.get('type'); 
+  const slug = searchParams.get('slug'); // WooCommerce-დან გადმოგვეცემა პროდუქტის slug
 
   // 1. ტოკენის შემოწმება უსაფრთხოებისთვის
   if (secret !== REVALIDATION_TOKEN) {
@@ -23,49 +16,25 @@ async function handleRevalidation(request: NextRequest) {
     return NextResponse.json({ message: 'Invalid token' }, { status: 401 });
   }
 
-  try {
-    if (type === 'filters') {
-        // @ts-ignore - TS error fix
-        revalidateTag('filters'); 
-        console.log(`✅ Revalidation successful for tag: filters`);
-        return NextResponse.json({ revalidated: true, now: Date.now(), tag: 'filters' });
-    }
-    
-    if (type === 'collection') {
-        // @ts-ignore - TS error fix
-        revalidateTag('products');
-        revalidatePath(`/`, 'page');
-        revalidatePath(`/collection`, 'page');
-        revalidatePath(`/shop`, 'page');
-        console.log(`✅ Revalidation successful for collection/homepage`);
-        return NextResponse.json({ revalidated: true, now: Date.now(), tag: 'products' });
-    }
+  // 2. სლაგის შემოწმება
+  if (!slug) {
+    return NextResponse.json({ message: 'Missing slug parameter' }, { status: 400 });
+  }
 
-    if (type === 'product' && slug) {
-        // @ts-ignore - TS error fix
-        revalidateTag(`product-${slug}`); 
-        // @ts-ignore - TS error fix
-        revalidateTag('products'); 
-        revalidatePath(`/product/${slug}`, 'page'); 
-        
-        console.log(`✅ Revalidation successful for product: ${slug}`);
-        return NextResponse.json({ revalidated: true, now: Date.now(), path: `/product/${slug}` });
-    }
+  // Next.js-ში გზა, რომელიც ყველა ლოკალს მოიცავს (მაგ. /ka/product/test-slug)
+  const path = `/product/${slug}`;
+  
+  try {
+    // revalidatePath ანულებს ქეშს მოცემული დინამიური გზისთვის.
+    // 'page' პარამეტრი უზრუნველყოფს, რომ ყველა ლოკალის ქეში გაუქმდეს.
+    revalidatePath(path, 'page'); 
     
-    return NextResponse.json({ message: 'Missing type or slug parameter' }, { status: 400 });
+    console.log(`✅ Revalidation successful for path: ${path}`);
+    
+    return NextResponse.json({ revalidated: true, now: Date.now(), path: path });
 
   } catch (err) {
     console.error('❌ Revalidation Error:', err);
     return NextResponse.json({ message: 'Error revalidating' }, { status: 500 });
   }
-}
-
-// ✅ ექსპორტირებული GET ფუნქცია
-export async function GET(request: NextRequest) {
-  return handleRevalidation(request);
-}
-
-// ✅ ექსპორტირებული POST ფუნქცია (WooCommerce-ისთვის)
-export async function POST(request: NextRequest) {
-  return handleRevalidation(request);
 }

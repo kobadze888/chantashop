@@ -3,8 +3,7 @@ import { WORDPRESS_API_URL } from './constants';
 import { GET_PRODUCTS_QUERY, GET_FILTERS_QUERY, GET_PRODUCT_BY_SLUG_QUERY } from './queries';
 import { Product } from '@/types';
 
-// შეცვლილი: დაემატა tags არგუმენტი Next.js-ის ქეშირებისთვის
-async function fetchAPI(query: string, { variables }: { variables?: Record<string, any> } = {}, revalidateTime: number, tags?: string[]) {
+async function fetchAPI(query: string, { variables }: { variables?: any } = {}, revalidateTime: number) {
   const headers = { 'Content-Type': 'application/json' };
   
   const fetchOptions: RequestInit = {
@@ -16,11 +15,7 @@ async function fetchAPI(query: string, { variables }: { variables?: Record<strin
   if (revalidateTime === 0) {
     fetchOptions.cache = 'no-store';
   } else {
-    // იყენებს Next.js-ის ISR/Data Cache-ს tags-ის მხარდაჭერით
-    fetchOptions.next = { 
-        revalidate: revalidateTime,
-        tags: tags // <--- Next.js ქეშირების ტეგები
-    };
+    fetchOptions.next = { revalidate: revalidateTime };
   }
 
   try {
@@ -37,7 +32,7 @@ async function fetchAPI(query: string, { variables }: { variables?: Record<strin
   }
 }
 
-export interface ProductFilters {
+interface ProductFilters {
   category?: string;
   color?: string;
   material?: string;
@@ -50,14 +45,16 @@ export interface ProductFilters {
 export async function getProducts(filters: ProductFilters = {}, locale: string = 'ka'): Promise<Product[]> {
   const { category, color, material, minPrice, maxPrice, limit = 50, sort = 'DATE_DESC' } = filters;
 
-  const whereArgs: Record<string, any> = {};
+  const whereArgs: any = {};
 
-  // Taxonomy Filter Structure for WPGraphQL
-  const taxonomyFilter: { relation: string; filters: any[] } = { 
+  // ✅ შესწორება: კატეგორია და ატრიბუტები ისევ ერთიან taxonomyFilter-შია
+  // და წაიშალა field: 'SLUG' (რაც შეცდომას იწვევდა)
+  const taxonomyFilter: any = { 
     relation: 'AND', 
     filters: [] 
   };
 
+  // 1. კატეგორია (დაბრუნდა taxonomyFilter-ში)
   if (category && category !== 'all') {
     taxonomyFilter.filters.push({ 
       taxonomy: 'PRODUCT_CAT', 
@@ -66,6 +63,7 @@ export async function getProducts(filters: ProductFilters = {}, locale: string =
     });
   }
 
+  // 2. ფერი
   if (color && color !== 'all') {
     taxonomyFilter.filters.push({ 
       taxonomy: 'PA_COLOR', 
@@ -74,6 +72,7 @@ export async function getProducts(filters: ProductFilters = {}, locale: string =
     });
   }
 
+  // 3. მასალა
   if (material && material !== 'all') {
     taxonomyFilter.filters.push({ 
       taxonomy: 'PA_MASALA', 
@@ -82,42 +81,38 @@ export async function getProducts(filters: ProductFilters = {}, locale: string =
     });
   }
 
+  // თუ ფილტრები დაემატა, ვამატებთ არგუმენტებში
   if (taxonomyFilter.filters.length > 0) {
     whereArgs.taxonomyFilter = taxonomyFilter;
   }
 
+  // ფასის ფილტრი
   if (minPrice !== undefined || maxPrice !== undefined) {
     whereArgs.minPrice = minPrice;
     whereArgs.maxPrice = maxPrice;
   }
 
-  // Sorting Logic
-  switch (sort) {
-    case 'POPULARITY_DESC':
-      whereArgs.orderby = [{ field: 'TOTAL_SALES', order: 'DESC' }]; // Corrected field for popularity
-      break;
-    case 'PRICE_ASC':
-      whereArgs.orderby = [{ field: 'PRICE', order: 'ASC' }];
-      break;
-    case 'PRICE_DESC':
-      whereArgs.orderby = [{ field: 'PRICE', order: 'DESC' }];
-      break;
-    default: // DATE_DESC
+  // სორტირება
+  if (sort) {
+      if (sort === 'POPULARITY_DESC') whereArgs.orderby = [{ field: 'POPULARITY', order: 'DESC' }]; 
+      else if (sort === 'PRICE_ASC') whereArgs.orderby = [{ field: 'PRICE', order: 'ASC' }];
+      else if (sort === 'PRICE_DESC') whereArgs.orderby = [{ field: 'PRICE', order: 'DESC' }];
+      else whereArgs.orderby = [{ field: 'DATE', order: 'DESC' }];
+  } else {
       whereArgs.orderby = [{ field: 'DATE', order: 'DESC' }];
   }
 
+  // ენის ფილტრი
   if (locale && locale !== 'all') {
       whereArgs.language = locale.toUpperCase();
   }
 
-  // დავამატეთ 'products' ტეგი
-  const data = await fetchAPI(GET_PRODUCTS_QUERY, { variables: { first: limit, where: whereArgs } }, 60, ['products']);
+  const data = await fetchAPI(GET_PRODUCTS_QUERY, { variables: { first: limit, where: whereArgs } }, 60);
   return data?.products?.nodes || [];
 }
 
 export async function getFilters() {
-  // დავამატეთ 'filters' ტეგი
-  const data = await fetchAPI(GET_FILTERS_QUERY, {}, 86400, ['filters']);
+  const data = await fetchAPI(GET_FILTERS_QUERY, {}, 86400);
   return {
     categories: data?.productCategories?.nodes || [],
     colors: data?.allPaColor?.nodes || [],
@@ -126,7 +121,6 @@ export async function getFilters() {
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
-  // დავამატეთ კონკრეტული პროდუქტის ტეგი
-  const data = await fetchAPI(GET_PRODUCT_BY_SLUG_QUERY, { variables: { id: slug } }, 3600, [`product-${slug}`]);
+  const data = await fetchAPI(GET_PRODUCT_BY_SLUG_QUERY, { variables: { id: slug } }, 3600);
   return data?.product || null;
 }

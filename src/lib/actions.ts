@@ -10,13 +10,12 @@ import {
   GET_CART_TOTALS_QUERY,
   GET_ORDER_QUERY 
 } from './queries';
-import { CartTotals } from '@/types';
 
 const generateMutationId = () => Math.random().toString(36).substring(7);
 const WORDPRESS_ADMIN_TOKEN = process.env.WORDPRESS_ADMIN_TOKEN; 
 
 async function fetchWithSession(query: string, variables: any, sessionToken?: string) {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  const headers: any = { 'Content-Type': 'application/json' };
   
   if (sessionToken) {
     headers['woocommerce-session'] = `Session ${sessionToken}`;
@@ -46,18 +45,12 @@ async function fetchWithSession(query: string, variables: any, sessionToken?: st
   }
 }
 
-interface CalculateResponse {
-    totals?: CartTotals;
-    sessionToken?: string;
-    errors?: any[];
-}
-
-export async function calculateCartTotals(cartItems: { productId: number; quantity: number }[], couponCode: string, city: string): Promise<CalculateResponse> {
+export async function calculateCartTotals(cartItems: any[], couponCode: string, city: string) {
   let currentSessionToken: string | undefined;
   
-  // 1. Fill Cart
+  // 1. კალათის სინქრონიზაცია (უზრუნველყოფს, რომ WooCommerce-ში კალათა იყოს სავსე)
   for (const item of cartItems) {
-    const res = await fetchWithSession(ADD_TO_CART_MUTATION, {
+    const res: any = await fetchWithSession(ADD_TO_CART_MUTATION, {
       input: {
         clientMutationId: generateMutationId(),
         productId: item.productId,
@@ -69,12 +62,13 @@ export async function calculateCartTotals(cartItems: { productId: number; quanti
   }
   
   if (!currentSessionToken) {
-      const emptyCartCheck = await fetchWithSession(GET_CART_TOTALS_QUERY, {}, undefined);
+      const emptyCartCheck: any = await fetchWithSession(GET_CART_TOTALS_QUERY, {}, undefined);
       if (emptyCartCheck.sessionToken) currentSessionToken = emptyCartCheck.sessionToken;
       if (!currentSessionToken) return { errors: [{ message: "Session Error: Could not establish WooCommerce session." }] };
   }
 
-  // 2. Apply Coupon
+
+  // 2. კუპონის გამოყენება
   if (couponCode) {
     await fetchWithSession(APPLY_COUPON_MUTATION, {
       input: {
@@ -84,7 +78,7 @@ export async function calculateCartTotals(cartItems: { productId: number; quanti
     }, currentSessionToken);
   }
 
-  // 3. Set Customer Location
+  // 3. მომხმარებლის ქალაქის დაყენება (ეს ეტაპი სასიცოცხლოდ მნიშვნელოვანია Shipping Zone-ის დასადგენად)
   if (city) {
     await fetchWithSession(UPDATE_CUSTOMER_MUTATION, {
       input: {
@@ -95,8 +89,8 @@ export async function calculateCartTotals(cartItems: { productId: number; quanti
     }, currentSessionToken);
   }
 
-  // 4. Get Totals
-  const cartRes = await fetchWithSession(GET_CART_TOTALS_QUERY, {}, currentSessionToken);
+  // 4. კალათის ჯამური თანხის მოთხოვნა (ახალი Shipping-ის ჩათვლით)
+  const cartRes: any = await fetchWithSession(GET_CART_TOTALS_QUERY, {}, currentSessionToken);
 
   return { 
     totals: cartRes.data?.cart, 
@@ -104,12 +98,13 @@ export async function calculateCartTotals(cartItems: { productId: number; quanti
   };
 }
 
-export async function placeOrder(orderInput: any, cartItems: { productId: number; quantity: number }[], couponCode?: string, existingSession?: string) {
+export async function placeOrder(orderInput: any, cartItems: any[], couponCode?: string, existingSession?: string) {
   let currentSessionToken = existingSession;
   
+  // იმეორებს კალათის შევსების ლოგიკას, რათა შეკვეთის გაფორმებისას კალათა იყოს აქტუალური
   if (!currentSessionToken) {
      for (const item of cartItems) {
-        const res = await fetchWithSession(ADD_TO_CART_MUTATION, {
+        const res: any = await fetchWithSession(ADD_TO_CART_MUTATION, {
           input: {
             clientMutationId: generateMutationId(),
             productId: item.productId,
@@ -126,7 +121,9 @@ export async function placeOrder(orderInput: any, cartItems: { productId: number
      }
   }
 
-  const res = await fetchWithSession(CHECKOUT_MUTATION, {
+  console.log("💳 Checkout with Token:", currentSessionToken);
+
+  const res: any = await fetchWithSession(CHECKOUT_MUTATION, {
     input: {
       clientMutationId: generateMutationId(),
       ...orderInput
@@ -164,6 +161,7 @@ export async function getOrder(orderId: string, email: string) {
     }
 
     const order = json.data.order;
+
     const orderEmail = order.billing?.email?.toLowerCase();
     const inputEmail = email.toLowerCase().trim();
 

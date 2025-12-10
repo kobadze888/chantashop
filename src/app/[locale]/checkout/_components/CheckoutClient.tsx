@@ -1,3 +1,4 @@
+// src/app/[locale]/checkout/_components/CheckoutClient.tsx
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -8,15 +9,6 @@ import { CreditCard, Banknote, ArrowLeft, Loader2, Tag, MapPin, ChevronDown, XCi
 import { placeOrder, calculateCartTotals } from '@/lib/actions'; 
 import { useTranslations } from 'next-intl';
 import { getCitiesList, getDefaultCity, isTbilisi } from '@/lib/ge-cities'; 
-
-// ✅ დაემატა ინტერფეისი
-interface CartTotals {
-    total: string | number;
-    subtotal: string | number;
-    shippingTotal: string | number;
-    discountTotal: string | number;
-    appliedCoupons?: { code: string; discountAmount: string; }[];
-}
 
 const formatPrice = (price: string | number) => {
   if (price === null || price === undefined) return '0 ₾';
@@ -43,9 +35,7 @@ export default function CheckoutClient({ locale }: { locale: string }) {
 
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
-  
-  // ✅ გასწორდა ტიპი
-  const [serverTotals, setServerTotals] = useState<CartTotals | null>(null);
+  const [serverTotals, setServerTotals] = useState<any>(null);
   const [sessionToken, setSessionToken] = useState<string | undefined>(undefined);
 
   // --- City & Zone Logic ---
@@ -106,24 +96,12 @@ export default function CheckoutClient({ locale }: { locale: string }) {
         const res = await calculateCartTotals(cartItemsData, coupon, city); 
         
         if (res.totals) {
-            setServerTotals(res.totals as CartTotals); 
+            setServerTotals(res.totals);
             if (res.sessionToken) setSessionToken(res.sessionToken);
         }
     } catch (error) { 
         console.error("Calculate Totals Error:", error);
-        // ✅ გასწორდა prev ტიპი
-        setServerTotals(prev => {
-            const currentTotal = totalPrice();
-            const subtotal = prev?.subtotal ? prev.subtotal : currentTotal; 
-            
-            return {
-                ...(prev || {}), 
-                subtotal: subtotal, 
-                shippingTotal: "0", 
-                discountTotal: "0",
-                total: subtotal 
-            } as CartTotals;
-        });
+        setServerTotals(prev => ({ ...prev, shippingTotal: "0", total: prev?.subtotal || totalPrice() }));
     } 
     finally { setIsCalculating(false); }
   };
@@ -196,14 +174,7 @@ export default function CheckoutClient({ locale }: { locale: string }) {
 
         if (response?.order) {
             clearCart();
-            // ✅ FIX: query პარამეტრების ობიექტის სახით გადაცემა
-            router.push({
-                pathname: '/checkout/success',
-                query: {
-                    orderId: response.order.orderNumber,
-                    email: formData.email
-                }
-            });
+            router.push(`/checkout/success?orderId=${response.order.orderNumber}&email=${formData.email}`); 
         } else {
             setGlobalError(t('errorGeneric'));
             setIsLoading(false);
@@ -371,7 +342,7 @@ export default function CheckoutClient({ locale }: { locale: string }) {
           <div className="border-t border-gray-200 pt-6 space-y-3">
             <div className="flex justify-between text-sm text-gray-600"><span>{cartT('subtotal')}</span><span className="font-bold">{serverTotals ? formatPrice(serverTotals.subtotal) : '...'}</span></div>
             <div className="flex justify-between text-sm text-gray-600"><span>{cartT('shipping')}</span><span className="font-bold">{serverTotals ? formatPrice(serverTotals.shippingTotal) : '...'}</span></div>
-            {serverTotals && parseFloat(serverTotals.discountTotal.toString()) > 0 && <div className="flex justify-between text-sm text-brand-DEFAULT"><span>{t('discount')}</span><span className="font-bold">-{formatPrice(serverTotals.discountTotal)}</span></div>}
+            {serverTotals && parseFloat(serverTotals.discountTotal) > 0 && <div className="flex justify-between text-sm text-brand-DEFAULT"><span>{t('discount')}</span><span className="font-bold">-{formatPrice(serverTotals.discountTotal)}</span></div>}
           </div>
           <div className="mt-6 flex gap-2">
                 <div className="relative flex-1"><Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" /><input type="text" placeholder={t('promoCode')} value={couponCode} onChange={(e) => setCouponCode(e.target.value)} className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:border-brand-DEFAULT uppercase font-bold" /></div>

@@ -1,66 +1,30 @@
-// src/app/api/revalidate/route.ts
+import { NextResponse } from 'next/server';
+import { getProducts, getCategories } from '@/lib/api';
 
-import { NextRequest, NextResponse } from 'next/server';
-import { revalidatePath, revalidateTag } from 'next/cache'; 
-
-// უნიკალური საიდუმლო ტოკენი უსაფრთხოებისთვის.
-const REVALIDATION_TOKEN = process.env.REVALIDATION_TOKEN || 'YOUR_SECRET_FALLBACK_TOKEN'; 
-
-async function handleRevalidation(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const secret = searchParams.get('secret');
-  const slug = searchParams.get('slug'); 
-  const type = searchParams.get('type'); 
-
-  // 1. ტოკენის შემოწმება უსაფრთხოებისთვის
-  if (secret !== REVALIDATION_TOKEN) {
-    console.error('Invalid revalidation token attempt');
-    return NextResponse.json({ message: 'Invalid token' }, { status: 401 });
-  }
-
+export async function GET() {
+  const start = performance.now();
+  
   try {
-    if (type === 'filters') {
-        // @ts-ignore - TS error fix
-        revalidateTag('filters'); 
-        console.log(`✅ Revalidation successful for tag: filters`);
-        return NextResponse.json({ revalidated: true, now: Date.now(), tag: 'filters' });
-    }
-    
-    if (type === 'collection') {
-        // @ts-ignore - TS error fix
-        revalidateTag('products');
-        revalidatePath(`/`, 'page');
-        revalidatePath(`/collection`, 'page');
-        revalidatePath(`/shop`, 'page');
-        console.log(`✅ Revalidation successful for collection/homepage`);
-        return NextResponse.json({ revalidated: true, now: Date.now(), tag: 'products' });
-    }
+    const [products, categories] = await Promise.all([
+      getProducts(5),
+      getCategories()
+    ]);
 
-    if (type === 'product' && slug) {
-        // @ts-ignore - TS error fix
-        revalidateTag(`product-${slug}`); 
-        // @ts-ignore - TS error fix
-        revalidateTag('products'); 
-        revalidatePath(`/product/${slug}`, 'page'); 
-        
-        console.log(`✅ Revalidation successful for product: ${slug}`);
-        return NextResponse.json({ revalidated: true, now: Date.now(), path: `/product/${slug}` });
-    }
-    
-    return NextResponse.json({ message: 'Missing type or slug parameter' }, { status: 400 });
+    const duration = performance.now() - start;
 
-  } catch (err) {
-    console.error('❌ Revalidation Error:', err);
-    return NextResponse.json({ message: 'Error revalidating' }, { status: 500 });
+    return NextResponse.json({
+      status: 'Connected 🟢',
+      responseTime: `${duration.toFixed(2)}ms`,
+      productsCount: products.length,
+      categoriesCount: categories.length,
+      sampleProduct: products[0] || 'No products found',
+      sampleCategory: categories[0] || 'No categories found',
+    });
+
+  } catch (error) {
+    return NextResponse.json({
+      status: 'Failed 🔴',
+      error: error instanceof Error ? error.message : 'Unknown Error'
+    }, { status: 500 });
   }
-}
-
-// ექსპორტირებული GET ფუნქცია
-export async function GET(request: NextRequest) {
-  return handleRevalidation(request);
-}
-
-// ექსპორტირებული POST ფუნქცია (WooCommerce-ისთვის)
-export async function POST(request: NextRequest) {
-  return handleRevalidation(request);
 }
