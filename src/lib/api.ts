@@ -6,7 +6,6 @@ import { Product } from '@/types';
 async function fetchAPI(query: string, { variables }: { variables?: any } = {}, revalidateTime: number) {
   const headers = { 'Content-Type': 'application/json' };
   
-  // ✅ შესწორება: Cache-ის კონფლიქტის თავიდან აცილება
   const fetchOptions: RequestInit = {
     method: 'POST',
     headers,
@@ -46,34 +45,67 @@ interface ProductFilters {
 export async function getProducts(filters: ProductFilters = {}, locale: string = 'ka'): Promise<Product[]> {
   const { category, color, material, minPrice, maxPrice, limit = 50, sort = 'DATE_DESC' } = filters;
 
-  const taxonomyFilter: any = { filters: [] };
-
-  if (category && category !== 'all') {
-    taxonomyFilter.filters.push({ taxonomy: 'PRODUCT_CAT', terms: [category] });
-  }
-  if (color && color !== 'all') {
-    taxonomyFilter.filters.push({ taxonomy: 'PA_COLOR', terms: [color] });
-  }
-  if (material && material !== 'all') {
-    taxonomyFilter.filters.push({ taxonomy: 'PA_MASALA', terms: [material] });
-  }
-
   const whereArgs: any = {};
 
+  // ✅ შესწორება: კატეგორია და ატრიბუტები ისევ ერთიან taxonomyFilter-შია
+  // და წაიშალა field: 'SLUG' (რაც შეცდომას იწვევდა)
+  const taxonomyFilter: any = { 
+    relation: 'AND', 
+    filters: [] 
+  };
+
+  // 1. კატეგორია (დაბრუნდა taxonomyFilter-ში)
+  if (category && category !== 'all') {
+    taxonomyFilter.filters.push({ 
+      taxonomy: 'PRODUCT_CAT', 
+      terms: [category], 
+      operator: 'IN'
+    });
+  }
+
+  // 2. ფერი
+  if (color && color !== 'all') {
+    taxonomyFilter.filters.push({ 
+      taxonomy: 'PA_COLOR', 
+      terms: [color], 
+      operator: 'IN'
+    });
+  }
+
+  // 3. მასალა
+  if (material && material !== 'all') {
+    taxonomyFilter.filters.push({ 
+      taxonomy: 'PA_MASALA', 
+      terms: [material], 
+      operator: 'IN'
+    });
+  }
+
+  // თუ ფილტრები დაემატა, ვამატებთ არგუმენტებში
+  if (taxonomyFilter.filters.length > 0) {
+    whereArgs.taxonomyFilter = taxonomyFilter;
+  }
+
+  // ფასის ფილტრი
+  if (minPrice !== undefined || maxPrice !== undefined) {
+    whereArgs.minPrice = minPrice;
+    whereArgs.maxPrice = maxPrice;
+  }
+
+  // სორტირება
   if (sort) {
       if (sort === 'POPULARITY_DESC') whereArgs.orderby = [{ field: 'POPULARITY', order: 'DESC' }]; 
       else if (sort === 'PRICE_ASC') whereArgs.orderby = [{ field: 'PRICE', order: 'ASC' }];
       else if (sort === 'PRICE_DESC') whereArgs.orderby = [{ field: 'PRICE', order: 'DESC' }];
       else whereArgs.orderby = [{ field: 'DATE', order: 'DESC' }];
+  } else {
+      whereArgs.orderby = [{ field: 'DATE', order: 'DESC' }];
   }
 
-  if (locale && locale !== 'all') whereArgs.language = locale.toUpperCase();
-  if (taxonomyFilter.filters.length > 0) whereArgs.taxonomyFilter = taxonomyFilter;
-  if (minPrice !== undefined || maxPrice !== undefined) {
-    whereArgs.minPrice = minPrice;
-    whereArgs.maxPrice = maxPrice;
+  // ენის ფილტრი
+  if (locale && locale !== 'all') {
+      whereArgs.language = locale.toUpperCase();
   }
-  if (!whereArgs.orderby) whereArgs.orderby = [{ field: 'DATE', order: 'DESC' }];
 
   const data = await fetchAPI(GET_PRODUCTS_QUERY, { variables: { first: limit, where: whereArgs } }, 60);
   return data?.products?.nodes || [];

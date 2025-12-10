@@ -17,7 +17,17 @@ const PRODUCT_FRAGMENT = `
       regularPrice(format: RAW)
       salePrice(format: RAW)
       stockStatus
-      attributes { nodes { name label options } }
+      attributes { 
+        nodes { 
+          name 
+          label 
+          options 
+          # ✅ შესწორება: terms-ის მოთხოვნა მხოლოდ გლობალური ატრიბუტებისთვის
+          ... on GlobalProductAttribute {
+            terms { nodes { id name slug } } 
+          }
+        } 
+      }
     }
     ... on VariableProduct {
       price(format: RAW)
@@ -25,7 +35,17 @@ const PRODUCT_FRAGMENT = `
       salePrice(format: RAW)
       stockStatus
       image { sourceUrl altText }
-      attributes { nodes { name label options } }
+      attributes { 
+        nodes { 
+          name 
+          label 
+          options 
+          # ✅ შესწორება აქაც
+          ... on GlobalProductAttribute {
+            terms { nodes { id name slug } } 
+          }
+        } 
+      }
       variations {
         nodes {
           databaseId
@@ -35,7 +55,12 @@ const PRODUCT_FRAGMENT = `
           salePrice(format: RAW)
           stockStatus
           image { sourceUrl altText }
-          attributes { nodes { name value } }
+          attributes { 
+            nodes { 
+              name 
+              value 
+            } 
+          }
         }
       }
     }
@@ -147,7 +172,6 @@ export const GET_CART_TOTALS_QUERY = `
   }
 `;
 
-// ✅ განახლებული: დაემატა email ველი billing-ში და გასწორდა lineItems.total
 export const GET_ORDER_QUERY = `
   query GetOrder($id: ID!) {
     order(id: $id, idType: DATABASE_ID) {

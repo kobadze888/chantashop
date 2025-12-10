@@ -6,7 +6,7 @@ import { useCartStore } from '@/store/cartStore';
 import { 
     Heart, AlertCircle, Minus, Plus, 
     Ruler, Box, Layers, Tag, Info, 
-    Truck, Check, CreditCard, Star, Smartphone, Eye 
+    Truck, Check, CreditCard, Star, Smartphone, Eye, Landmark 
 } from 'lucide-react';
 import { Product } from '@/types';
 import AddToCartButton from './AddToCartButton';
@@ -16,7 +16,7 @@ import { useTranslations } from 'next-intl';
 // --- ბანკების ლოგოები (SVG) ---
 
 const LogoTBC = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 105.8 93.2" className="h-8 w-auto">
+  <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 105.8 93.2" className="h-6 md:h-8 w-auto">
     <style type="text/css">
         {`.st0{fill:#00A3E0;stroke:#FFFFFF;stroke-width:0.5;stroke-miterlimit:10;}`}
     </style>
@@ -27,7 +27,7 @@ const LogoTBC = () => (
 );
 
 const LogoBOG = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48.07 42.07" className="h-9 w-auto">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48.07 42.07" className="h-7 md:h-9 w-auto">
     <path fill="#e6e7e8" d="M33,0H13.64A11.4,11.4,0,0,0,2.26,11.38V30.69A11.4,11.4,0,0,0,13.64,42.07H33A11.39,11.39,0,0,0,44.32,30.69V11.38A11.39,11.39,0,0,0,33,0m7.67,30.69A7.68,7.68,0,0,1,33,38.36H13.64a7.68,7.68,0,0,1-7-4.63l.67-.59,1.41-4L6,24.55V11.38a7.68,7.68,0,0,1,7.67-7.67H33a7.68,7.68,0,0,1,7.67,7.67Z"/>
     <path fill="#ff671d" d="M36.23,30a4.28,4.28,0,0,0,1.36.2c2.06,0,3-.82,3-1.79,0-1.14-1.55-1.14-1.71-2.14-.2-1.25-.07-6.79,2.08-9.85l1.44.65a1.78,1.78,0,0,0,.9.2,1.36,1.36,0,0,0,1-.5,30.28,30.28,0,0,0,3.76-5.18c.18-.36-2.85-4.14-4.54-5.51A6.78,6.78,0,0,0,32.88,9.08a32.29,32.29,0,0,1-9.61,4.56c-4.64,1.22-9.44.08-12.7.25A6.56,6.56,0,0,0,4,20.73c.11,3.62,2.59,6.91,2.59,10.3a3.72,3.72,0,0,1-3.65,3.84c-1.79,0-1.9-.73-2.45-.73a.48.48,0,0,0-.47.47c0,.9,2.2,1.76,3.45,1.76A5.51,5.51,0,0,0,8.19,34a4.17,4.17,0,0,0,4.15,2.47c2.62,0,3.76-1.26,3.76-2.31,0-.85-.51-1.21-.89-1.71a2.86,2.86,0,0,1-.5-1.58,10.13,10.13,0,0,0,1.43.09c1.91,0,2.49-.77,2.49-1.53,0-1-1.14-.91-1.14-2.52,0-1.22.68-1.62,1.27-1.62s3.08.23,6,.53c1,.1,3.44,1.06,3.44,4.87V32c0,2.33.94,5.21,5.05,5.21,2.79,0,4.36-1.56,4.36-2.68,0-.74-.64-1.06-1-1.5A4.22,4.22,0,0,1,36.21,30"/>
     <g fill="#fff">
@@ -83,6 +83,26 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
     });
   }, [product.variations, selectedColor]);
 
+  const colorOptions = useMemo(() => {
+    if (!colorAttribute) return [];
+    if (colorAttribute.terms?.nodes?.length) {
+        return colorAttribute.terms.nodes.map(term => ({
+            name: term.name,
+            slug: term.slug,
+            value: term.slug
+        }));
+    }
+    return colorAttribute.options?.map(opt => ({
+        name: opt,
+        slug: opt,
+        value: opt
+    })) || [];
+  }, [colorAttribute]);
+
+  const selectedColorName = useMemo(() => {
+      return colorOptions.find(c => c.value === selectedColor)?.name || selectedColor;
+  }, [colorOptions, selectedColor]);
+
   const displayPrice = selectedVariation?.price || product.price;
   const regularPrice = selectedVariation?.regularPrice || product.regularPrice;
   const isSale = selectedVariation?.salePrice || product.salePrice;
@@ -91,11 +111,11 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
   
   const cartData = {
     id: selectedVariation ? selectedVariation.databaseId : product.databaseId,
-    name: selectedVariation ? `${product.name} - ${selectedColor}` : product.name,
+    name: selectedVariation ? `${product.name} - ${selectedColorName}` : product.name,
     price: displayPrice,
     image: displayImage,
     slug: product.slug,
-    selectedOptions: selectedColor ? { Color: selectedColor } : {},
+    selectedOptions: selectedColor ? { Color: selectedColorName || selectedColor } : {},
   };
 
   const isValidSelection = !product.variations || !!selectedVariation;
@@ -108,20 +128,20 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
   };
 
   const colorMap: Record<string, string> = { 
-    'shavi': '#000000', 'tetri': '#FFFFFF', 'lurji': '#2563EB', 
-    'cisferi': '#60A5FA', 'beji': '#F5F5DC', 'yavisferi': '#8B4513', 
-    'vardisferi': '#DB2777', 'witeli': '#DC2626', 'mwvane': '#16A34A',
-    'narinjisferi': '#F97316', 'yviteli': '#FACC15', 'rcuxi': '#9CA3AF',
-    'vardisferi_(pradas_stili)': '#DB2777' 
-  };
-
-  const colorNameTranslator: Record<string, string> = {
-    'shavi': 'შავი', 'tetri': 'თეთრი', 'lurji': 'ლურჯი', 'muqi_lurji': 'მუქი ლურჯი',
-    'cisferi': 'ცისფერი', 'beji': 'ბეჟი', 'yavisferi': 'ყავისფერი', 'vardisferi': 'ვარდისფერი',
-    'witeli': 'წითელი', 'mwvane': 'მწვანე', 'stafilosferi': 'სტაფილოსფერი', 'nacrisferi': 'ნაცრისფერი',
-    'vercxlisferi': 'ვერცხლისფერი', 'oqrosferi': 'ოქროსფერი', 'iasamnisferi': 'იასამნისფერი',
-    'kanisferi': 'კანისფერი', 'narinjisferi': 'ნარინჯისფერი', 'yviteli': 'ყვითელი', 'rcuxi': 'რუხი',
-    'vardisferi_(pradas_stili)': 'ვარდისფერი (პრადა)',
+    'shavi': '#000000', 'შავი': '#000000',
+    'tetri': '#FFFFFF', 'თეთრი': '#FFFFFF',
+    'lurji': '#2563EB', 'ლურჯი': '#2563EB',
+    'muqi_lurji': '#1E3A8A', 'მუქი ლურჯი': '#1E3A8A',
+    'cisferi': '#60A5FA', 'ცისფერი': '#60A5FA',
+    'beji': '#F5F5DC', 'ბეჟი': '#F5F5DC',
+    'yavisferi': '#8B4513', 'ყავისფერი': '#8B4513',
+    'vardisferi': '#DB2777', 'ვარდისფერი': '#DB2777',
+    'witeli': '#DC2626', 'წითელი': '#DC2626',
+    'mwvane': '#16A34A', 'მწვანე': '#16A34A',
+    'narinjisferi': '#F97316', 'ნარინჯისფერი': '#F97316',
+    'yviteli': '#FACC15', 'ყვითელი': '#FACC15',
+    'rcuxi': '#9CA3AF', 'რუხი': '#9CA3AF',
+    'vardisferi_(pradas_stili)': '#DB2777', 'ვარდისფერი (პრადა)': '#DB2777'
   };
 
   return (
@@ -141,17 +161,17 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
         
         {/* HEADER */}
         <div className="flex justify-between items-center mb-4">
-            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest hover:text-brand-dark transition cursor-pointer">
+            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest hover:text-brand-dark transition cursor-pointer cursor-pointer">
                 {product.productCategories?.nodes[0]?.name || 'Collection'}
             </span>
             
             {displayStock === 'IN_STOCK' ? (
                 <span className="flex items-center gap-1.5 text-green-600 text-[10px] font-bold uppercase bg-green-50 px-2 py-1 rounded-full">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> მარაგშია
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> {t('inStock')}
                 </span>
             ) : (
                 <span className="flex items-center gap-1.5 text-red-500 text-[10px] font-bold uppercase bg-red-50 px-2 py-1 rounded-full">
-                    <AlertCircle className="w-3 h-3" /> ამოიწურა
+                    <AlertCircle className="w-3 h-3" /> {t('outOfStock')}
                 </span>
             )}
         </div>
@@ -166,13 +186,13 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
             <div className="flex text-yellow-400">
                 {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-current" />)}
             </div>
-            <span className="text-xs text-gray-400 font-medium">(12 შეფასება)</span>
+            <span className="text-xs text-gray-400 font-medium">{t('reviews', {count: 12})}</span>
         </div>
 
         {/* PRICE & BUY NOW */}
         <div className="bg-gray-50/50 rounded-2xl p-4 border border-gray-100 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex flex-col">
-                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">ფასი</span>
+                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">{t('priceLabel')}</span>
                 <div className="flex items-baseline gap-2">
                     <span className="text-2xl lg:text-3xl font-serif font-black text-brand-dark">
                         {displayPrice?.includes('₾') ? displayPrice : `${displayPrice} ₾`}
@@ -189,45 +209,43 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
                 <button 
                     onClick={handleBuyNow}
                     disabled={!isValidSelection || displayStock !== 'IN_STOCK'}
-                    className="flex-1 sm:flex-none bg-black text-white px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-brand-DEFAULT transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed h-12"
+                    className="flex-1 sm:flex-none bg-black text-white px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-brand-DEFAULT transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed h-12 cursor-pointer"
                 >
-                    <CreditCard className="w-4 h-4" /> იყიდე ახლავე
+                    <CreditCard className="w-4 h-4" /> {t('buyNow')}
                 </button>
                 
-                <button className="h-12 w-12 flex items-center justify-center bg-white border border-gray-200 rounded-xl hover:border-red-200 hover:text-red-500 transition shadow-sm group active:scale-90">
+                <button className="h-12 w-12 flex items-center justify-center bg-white border border-gray-200 rounded-xl hover:border-red-200 hover:text-red-500 transition shadow-sm group active:scale-90 cursor-pointer">
                     <Heart className="w-5 h-5 group-hover:scale-110 transition-transform" />
                 </button>
             </div>
         </div>
 
         {/* COLOR SELECTION */}
-        {colorAttribute && (
+        {colorOptions.length > 0 && (
             <div className="mb-8">
                 <div className="flex justify-between items-center mb-3">
                     <span className="text-xs font-bold text-brand-dark uppercase tracking-wider">
-                        ფერი: <span className="text-gray-500 font-normal capitalize">
-                            {colorNameTranslator[selectedColor?.toLowerCase().replace(/\s+/g, '_') || ''] || selectedColor}
-                        </span>
+                        {t('color')}: <span className="text-gray-500 font-normal capitalize">{selectedColorName}</span>
                     </span>
                 </div>
                 <div className="flex flex-wrap gap-3">
-                    {colorAttribute.options?.map((option) => {
-                        const isSelected = selectedColor === option;
-                        const bg = colorMap[option.toLowerCase().replace(/\s+/g, '_')] || '#E5E7EB';
+                    {colorOptions.map((option) => {
+                        const isSelected = selectedColor === option.value;
+                        const bg = colorMap[option.slug.toLowerCase().replace(/\s+/g, '_')] || '#E5E7EB';
                         
                         return (
                             <button
-                                key={option}
-                                onClick={() => setSelectedColor(option)}
+                                key={option.value}
+                                onClick={() => setSelectedColor(option.value)}
                                 className={`
-                                    w-10 h-10 rounded-full shadow-sm transition-all duration-300 relative
+                                    w-10 h-10 rounded-full shadow-sm transition-all duration-300 relative cursor-pointer
                                     ${isSelected 
                                     ? 'ring-2 ring-offset-2 ring-brand-dark scale-110' 
                                     : 'hover:scale-105 border border-gray-200'
                                     }
                                 `}
                                 style={{ backgroundColor: bg }}
-                                title={option}
+                                title={option.name}
                             />
                         );
                     })}
@@ -238,9 +256,9 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
         {/* BOTTOM ACTIONS */}
         <div className="flex gap-3 mb-8 pb-4">
             <div className="flex items-center bg-white rounded-xl h-14 border border-gray-200 w-32 shadow-sm">
-                <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="w-10 h-full flex items-center justify-center hover:text-brand-DEFAULT transition active:scale-90 text-gray-400"><Minus className="w-4 h-4" /></button>
+                <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="w-10 h-full flex items-center justify-center hover:text-brand-DEFAULT transition active:scale-90 text-gray-400 cursor-pointer"><Minus className="w-4 h-4" /></button>
                 <span className="flex-1 text-center font-bold text-lg text-brand-dark">{quantity}</span>
-                <button onClick={() => setQuantity(q => q + 1)} className="w-10 h-full flex items-center justify-center hover:text-brand-DEFAULT transition active:scale-90 text-gray-400"><Plus className="w-4 h-4" /></button>
+                <button onClick={() => setQuantity(q => q + 1)} className="w-10 h-full flex items-center justify-center hover:text-brand-DEFAULT transition active:scale-90 text-gray-400 cursor-pointer"><Plus className="w-4 h-4" /></button>
             </div>
             
             <div className="flex-1">
@@ -252,33 +270,41 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
             </div>
         </div>
 
-        {/* --- 2 სვეტიანი გადახდის ბლოკი (განახლებული) --- */}
-        <div className="grid grid-cols-2 gap-3 mb-8">
+        {/* --- 3 სვეტიანი გადახდის ბლოკი --- */}
+        <div className="grid grid-cols-3 gap-2 md:gap-3 mb-8">
             
-            {/* 1. ონლაინ გადახდა */}
-            <div className="border border-brand-light bg-brand-light/30 rounded-2xl p-4 flex flex-col items-center text-center justify-center transition-all hover:shadow-md hover:border-brand-medium cursor-default h-full">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">ონლაინ გადახდა</span>
-                <div className="text-[10px] text-gray-600 font-bold mb-3 leading-tight">
-                    ნებისმიერი ქართული<br/>ბანკის ბარათით
-                </div>
-                <div className="flex items-center justify-center gap-3 mb-3">
+            {/* 1. ონლაინ ბარათით */}
+            <div className="border border-brand-light bg-brand-light/30 rounded-2xl p-2 md:p-3 flex flex-col items-center text-center justify-center transition-all hover:shadow-md hover:border-brand-medium cursor-default h-full min-h-[110px]">
+                <span className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-2">{t('Payment.onlineTitle')}</span>
+                <div className="flex items-center justify-center gap-2 mb-2 scale-90">
                     <LogoTBC />
                     <span className="text-gray-300">|</span>
                     <LogoBOG />
                 </div>
-                <div className="text-[10px] text-brand-DEFAULT font-bold bg-white px-2 py-1 rounded-full shadow-sm">
-                    3 წუთში
+                <div className="text-[8px] md:text-[9px] text-brand-DEFAULT font-bold bg-white px-2 py-0.5 rounded-full shadow-sm whitespace-nowrap">
+                    {t('Payment.onlineTime')}
                 </div>
             </div>
 
-            {/* 2. კურიერთან გადახდა */}
-            <div className="border border-gray-100 bg-gray-50 rounded-2xl p-4 flex flex-col items-center text-center justify-center transition-all hover:shadow-md hover:border-gray-200 cursor-default h-full">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">გადახდა კურიერთან</span>
-                <div className="flex items-center gap-2 mb-3 text-gray-600">
-                    <Smartphone className="w-6 h-6" />
+            {/* 2. საბანკო გადარიცხვა */}
+            <div className="border border-gray-100 bg-gray-50 rounded-2xl p-2 md:p-3 flex flex-col items-center text-center justify-center transition-all hover:shadow-md hover:border-gray-200 cursor-default h-full min-h-[110px]">
+                <span className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-2">გადარიცხვა</span>
+                <div className="mb-2 text-gray-600">
+                    <Landmark className="w-5 h-5 md:w-6 md:h-6" />
                 </div>
-                <div className="text-[10px] text-gray-500 font-medium px-1 leading-relaxed">
-                    მხოლოდ საბანკო<br/>გადარიცხვით<br/>(მობაილბანკი)
+                <div className="text-[8px] md:text-[9px] text-gray-500 font-medium leading-tight">
+                    გადახდა საბანკო<br/>გადარიცხვით / ინტერნეტ ბანკით
+                </div>
+            </div>
+
+            {/* 3. კურიერთან გადახდა */}
+            <div className="border border-gray-100 bg-gray-50 rounded-2xl p-2 md:p-3 flex flex-col items-center text-center justify-center transition-all hover:shadow-md hover:border-gray-200 cursor-default h-full min-h-[110px]">
+                <span className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-2">{t('Payment.courierTitle')}</span>
+                <div className="mb-2 text-gray-600">
+                    <Smartphone className="w-5 h-5 md:w-6 md:h-6" />
+                </div>
+                <div className="text-[8px] md:text-[9px] text-gray-500 font-medium leading-tight">
+                    {t('Payment.courierDesc')}
                 </div>
             </div>
         </div>
@@ -299,40 +325,45 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
                         <Info className="w-4 h-4" /> დეტალური მახასიათებლები
                     </h4>
                     <div className="grid grid-cols-2 gap-3">
-                        {technicalAttributes.map((attr) => (
-                            <div key={attr.name} className="bg-gray-50 border border-gray-100 p-3 rounded-xl flex items-start gap-3">
-                                <div className="text-brand-DEFAULT">{getAttributeIcon(attr.name)}</div>
-                                <div className="flex flex-col min-w-0">
-                                    <span className="text-[10px] text-gray-400 font-bold uppercase truncate" title={attr.label || attr.name}>{attr.label || attr.name}</span>
-                                    <span className="text-sm font-bold text-brand-dark truncate">{attr.options?.join(', ')}</span>
+                        {technicalAttributes.map((attr) => {
+                            const label = attr.label || attr.name;
+                            const value = attr.terms?.nodes?.length 
+                                ? attr.terms.nodes.map(t => t.name).join(', ')
+                                : attr.options?.join(', ');
+
+                            return (
+                                <div key={attr.name} className="bg-gray-50 border border-gray-100 p-3 rounded-xl flex items-start gap-3">
+                                    <div className="text-brand-DEFAULT">{getAttributeIcon(attr.name)}</div>
+                                    <div className="flex flex-col min-w-0">
+                                        <span className="text-[10px] text-gray-400 font-bold uppercase truncate" title={label}>{label}</span>
+                                        <span className="text-sm font-bold text-brand-dark truncate">{value}</span>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
             )}
 
-            {/* --- მიწოდება და შემოწმება (ბოლოში) --- */}
+            {/* --- მიწოდება და შემოწმება --- */}
             <div className="space-y-3">
-                {/* 1. მიწოდება */}
                 <div className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 bg-white hover:border-brand-light transition-colors">
                     <div className="bg-brand-light text-brand-DEFAULT p-3 rounded-full flex-shrink-0"><Truck className="w-5 h-5" /></div>
                     <div>
-                        <h4 className="font-bold text-brand-dark text-sm mb-1">მიწოდება და ვადები</h4>
+                        <h4 className="font-bold text-brand-dark text-sm mb-1">{t('Services.deliveryTitle')}</h4>
                         <p className="text-xs text-gray-500 leading-relaxed">
-                            თბილისი: 5₾ (1-2 დღე) | რეგიონები: 10₾ (2-3 დღე).<br/>
-                            <span className="text-brand-DEFAULT font-bold">200₾+ უფასო.</span>
+                            {t('Services.deliveryDesc')}<br/>
+                            <span className="text-brand-DEFAULT font-bold">{t('Services.freeShipping')}</span>
                         </p>
                     </div>
                 </div>
 
-                {/* 2. ადგილზე შემოწმება (ახალი) */}
                 <div className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 bg-white hover:border-blue-100 transition-colors">
                     <div className="bg-blue-50 text-blue-600 p-3 rounded-full flex-shrink-0"><Eye className="w-5 h-5" /></div>
                     <div>
-                        <h4 className="font-bold text-brand-dark text-sm mb-1">შეამოწმე ადგილზე</h4>
+                        <h4 className="font-bold text-brand-dark text-sm mb-1">{t('Services.checkTitle')}</h4>
                         <p className="text-xs text-gray-500 leading-relaxed">
-                            გახსენით და შეამოწმეთ ამანატი ადგილზე. ნებისმიერი წუნის შემთხვევაში შეგიძლიათ დააბრუნოთ.
+                            {t('Services.checkDesc')}
                         </p>
                     </div>
                 </div>

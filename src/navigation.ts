@@ -3,22 +3,18 @@ import {createNavigation} from 'next-intl/navigation';
 import {defineRouting} from 'next-intl/routing';
 
 export const routing = defineRouting({
-  // ჩვენი 3 ენა
   locales: ['ka', 'en', 'ru'],
-  
-  // ნაგულისხმევი ენა (ქართული)
   defaultLocale: 'ka',
-  
-  // კრიტიკული პარამეტრი: 'as-needed' მალავს /ka/ პრეფიქსს URL-დან,
-  // მაგრამ ტოვებს /en/ და /ru/ პრეფიქსებს.
   localePrefix: 'as-needed',
+  
+  // 🛑 ეს აუცილებელია, რომ ბრაუზერის ენაზე არ გადახტეს
+  localeDetection: false, 
 
-  // ✅ ახალი pathnames კონფიგურაცია
   pathnames: {
     '/collection': {
-      ka: '/shop', // შიდა /collection გვერდი ქართულად იქნება /shop
-      en: '/shop', // ინგლისურად იქნება /en/shop
-      ru: '/shop', // რუსულად იქნება /ru/shop
+      ka: '/shop',
+      en: '/shop',
+      ru: '/shop',
     },
   },
 });

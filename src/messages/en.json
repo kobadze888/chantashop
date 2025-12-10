@@ -69,17 +69,29 @@
     }
   },
   "Product": {
-    "colors": "Colors",
-    "buy": "Buy",
-    "addToCart": "Add to Cart",
+    "inStock": "In Stock",
     "outOfStock": "Out of Stock",
-    "description": "Description",
     "reviews": "{count} reviews",
-    "viewFull": "View Full Page",
-    "Trust": {
-      "shipping": "Free Shipping",
-      "warranty": "1 Year Warranty",
-      "return": "Easy Return"
+    "priceLabel": "Price",
+    "buy": "Buy",
+    "buyNow": "Buy Now",
+    "addToCart": "Add to Cart",
+    "color": "Color",
+    "colors": "Colors",
+    "Payment": {
+      "onlineTitle": "Online Payment",
+      "onlineDesc": "Any Georgian Bank Card",
+      "onlineTime": "In 3 mins",
+      "courierTitle": "Pay to Courier",
+      "courierDesc": "Bank Transfer Only (Mobile Bank)",
+      "noCash": "Cash NOT accepted!"
+    },
+    "Services": {
+      "deliveryTitle": "Delivery & Terms",
+      "deliveryDesc": "Tbilisi: 5₾ (1-2 days) | Regions: 10₾ (2-3 days).",
+      "freeShipping": "Free over 200₾.",
+      "checkTitle": "Inspect on Spot",
+      "checkDesc": "Open and check parcel on spot. You can return immediately if defective."
     }
   },
   "Cart": {

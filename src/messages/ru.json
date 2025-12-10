@@ -69,17 +69,29 @@
     }
   },
   "Product": {
-    "colors": "Цвета",
-    "buy": "Купить",
-    "addToCart": "В корзину",
+    "inStock": "В наличии",
     "outOfStock": "Нет в наличии",
-    "description": "Описание",
     "reviews": "{count} отзывов",
-    "viewFull": "Посмотреть полностью",
-    "Trust": {
-      "shipping": "Бесплатная доставка",
-      "warranty": "Гарантия 1 год",
-      "return": "Легкий возврат"
+    "priceLabel": "Цена",
+    "buy": "Купить",
+    "buyNow": "Купить сейчас",
+    "addToCart": "В корзину",
+    "color": "Цвет",
+    "colors": "Цвета",
+    "Payment": {
+      "onlineTitle": "Оплата онлайн",
+      "onlineDesc": "Любой грузинской картой",
+      "onlineTime": "За 3 мин",
+      "courierTitle": "Оплата курьеру",
+      "courierDesc": "Только банковский перевод (Mobile Bank)",
+      "noCash": "Наличные НЕ принимаются!"
+    },
+    "Services": {
+      "deliveryTitle": "Доставка и сроки",
+      "deliveryDesc": "Тбилиси: 5₾ (1-2 дня) | Регионы: 10₾ (2-3 дня).",
+      "freeShipping": "200₾+ Бесплатно.",
+      "checkTitle": "Проверка на месте",
+      "checkDesc": "Откройте и проверьте посылку. В случае брака можно вернуть сразу."
     }
   },
   "Cart": {

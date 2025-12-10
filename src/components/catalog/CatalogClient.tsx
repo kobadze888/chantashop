@@ -35,7 +35,8 @@ const parsePrice = (priceString: string | undefined | null): number => {
 
 export default function CatalogClient(props: CatalogClientProps) {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    // ✅ შესწორება: Loading ტექსტი წაიშალა (fallback={null})
+    <Suspense fallback={null}>
       <CatalogContent {...props} />
     </Suspense>
   );
@@ -152,18 +153,28 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
 
   const getAttrCounts = (products: Product[], attrName: 'pa_color' | 'pa_masala' | 'category') => {
     const counts: Record<string, number> = {};
+    
     products.forEach(p => {
         let terms: { slug: string }[] = [];
-        if (attrName === 'category') terms = p.productCategories?.nodes || [];
-        else {
+        
+        if (attrName === 'category') {
+            terms = p.productCategories?.nodes || [];
+        } else {
             const attr = p.attributes?.nodes.find(a => a.name === attrName);
-            terms = attr?.options?.map(opt => ({ slug: opt.toLowerCase().trim() })) || [];
+            if (attr?.terms?.nodes?.length) {
+                terms = attr.terms.nodes;
+            } else if (attr?.options?.length) {
+                terms = attr.options.map(opt => ({ slug: opt })); 
+            }
         }
+
         terms.forEach(term => {
-            const slug = term.slug;
-            counts[slug] = (counts[slug] || 0) + 1;
+            if (term.slug) {
+                counts[term.slug.toLowerCase()] = (counts[term.slug.toLowerCase()] || 0) + 1;
+            }
         });
     });
+    
     return counts;
   };
 
@@ -254,7 +265,7 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
         onClick={() => setMobileFiltersOpen(false)} 
       >
         <div 
-          className={`absolute right-0 top-0 bottom-0 w-[80%] bg-white p-6 overflow-y-auto transform transition-transform duration-300 ${mobileFiltersOpen ? 'translate-x-0' : 'translate-x-full'}`} 
+          className={`absolute right-0 top-0 bottom-0 w-[80%] bg-white p-6 overflow-y-auto hide-scrollbar transform transition-transform duration-300 ${mobileFiltersOpen ? 'translate-x-0' : 'translate-x-full'}`} 
           id="filter-content"
           onClick={(e) => e.stopPropagation()} 
         >
@@ -384,7 +395,8 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
                 </button>
             </div>
 
-            <aside className="space-y-10 overflow-y-auto pr-4 pt-6 pb-24 h-full"> 
+            {/* ✅ შესწორება: დაემატა hide-scrollbar */}
+            <aside className="space-y-10 overflow-y-auto pr-4 pt-6 pb-24 h-full hide-scrollbar"> 
                 
                 <div>
                     <button 

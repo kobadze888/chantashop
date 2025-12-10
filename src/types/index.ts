@@ -10,9 +10,16 @@ export interface Attribute {
   label?: string;
   options?: string[];
   value?: string;
+  // ✅ დაემატა terms, რეალური სახელების წამოსაღებად
+  terms?: {
+    nodes: {
+      id: string;
+      name: string;
+      slug: string;
+    }[];
+  };
 }
 
-// ✅ ახალი ტიპი ფილტრებისთვის (ფერი, ზომა, კატეგორია)
 export interface FilterTerm {
   id: string;
   name: string;
@@ -49,10 +56,10 @@ export interface Product {
     title: string;
     metaDesc: string;
   };
-  language?: { code: string }; // ესეც დავამატოთ
+  language?: { code: string };
   attributes?: { nodes: Attribute[] };
   variations?: { nodes: Variation[] };
-  productCategories?: { nodes: FilterTerm[] }; // განახლდა
+  productCategories?: { nodes: FilterTerm[] };
 }
 
 export interface Category extends FilterTerm {
