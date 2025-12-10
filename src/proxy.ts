@@ -5,7 +5,16 @@ import {routing} from './navigation';
 import {NextRequest, NextResponse} from 'next/server';
 
 export default function middleware(request: NextRequest) {
+  // 1. ვამოწმებთ, არის თუ არა მოთხოვნა API-ზე, რათა არ გავუშვათ ენის ლოგიკა.
+  const isApiRoute = request.nextUrl.pathname.startsWith('/api/');
+  if (isApiRoute) {
+    return NextResponse.next();
+  }
+
+  // 2. ვქმნით next-intl-ის სტანდარტულ მიდლვეარს
   const handleI18nRouting = createMiddleware(routing);
+
+  // ... (rest of middleware logic remains the same)
 
   const localeCookie = request.cookies.get('NEXT_LOCALE')?.value;
   const { pathname } = request.nextUrl;
@@ -22,14 +31,11 @@ export default function middleware(request: NextRequest) {
   return handleI18nRouting(request);
 }
 
-// ✅ საბოლოო კორექტირება: გამოვრიცხავთ ყველა ფაილურ და API მარშრუტს ენის ლოგიკიდან
+// ✅ კონფიგურაცია: ვამუშავებთ მხოლოდ იმ მარშრუტებს, რომლებიც გვინდა
+// აქ გამორიცხვას ვაკეთებთ არა regex-ით, არამედ უბრალოდ ვუწერთ ლოკალის პათს.
+// თუმცა, რადგან ზემოთ უკვე დავამატეთ if (isApiRoute) { return NextResponse.next(); },
+// ამიტომ matcher-ის გამართვა მარტივდება.
 export const config = {
-  matcher: [
-    // ენის როუტინგი შეეხება მხოლოდ ამათ:
-    '/',
-    '/(ka|en|ru)/:path*',
-
-    // გამოვრიცხავთ API მარშრუტებს
-    '/((?!api|_next|.*\\..*).*)', 
-  ]
+  // ამ მეთოდით ვუზრუნველყოფთ, რომ /api ლოგიკამ გაიაროს next-intl-ის გვერდის ავლით.
+  matcher: ['/((?!api|_next|_vercel|.*\\..*).*)', '/']
 };
