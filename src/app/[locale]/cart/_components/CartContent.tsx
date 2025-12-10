@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Trash2, Minus, Plus, ArrowRight, ShoppingBag, Truck } from 'lucide-react';
 import { Link } from '@/navigation';
 import { useCartStore } from '@/store/cartStore';
-import { useTranslations } from 'next-intl'; // ✅
+import { useTranslations } from 'next-intl';
 
 const FREE_SHIPPING_THRESHOLD = 200;
 
@@ -19,7 +19,7 @@ const formatPrice = (price: number) => {
 };
 
 export default function CartContent({ locale }: { locale: string }) {
-  const t = useTranslations('Cart'); // ✅ თარგმანები
+  const t = useTranslations('Cart');
   const [mounted, setMounted] = useState(false);
   const { items, removeItem, updateQuantity, totalPrice } = useCartStore();
 
@@ -102,7 +102,13 @@ export default function CartContent({ locale }: { locale: string }) {
                     <div className="flex items-center bg-gray-50 rounded-full border border-gray-200 h-10 shadow-inner">
                       <button onClick={() => updateQuantity(item.id, 'dec')} className="w-10 h-full flex items-center justify-center hover:text-brand-DEFAULT transition active:scale-90" disabled={item.quantity <= 1}><Minus className="w-3 h-3" /></button>
                       <span className="w-6 text-center font-bold text-sm text-brand-dark">{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.id, 'inc')} className="w-10 h-full flex items-center justify-center hover:text-brand-DEFAULT transition active:scale-90"><Plus className="w-3 h-3" /></button>
+                      <button 
+                        onClick={() => updateQuantity(item.id, 'inc')} 
+                        disabled={item.quantity >= (item.stockQuantity || Infinity)}
+                        className="w-10 h-full flex items-center justify-center hover:text-brand-DEFAULT transition active:scale-90 disabled:opacity-50"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </button>
                     </div>
                     <span className="font-black text-brand-dark text-xl font-serif">{formatPrice(parseFloat(item.price.replace(/[^0-9.]/g, '')))}</span>
                   </div>

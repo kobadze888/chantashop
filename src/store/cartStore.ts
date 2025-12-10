@@ -19,15 +19,34 @@ export const useCartStore = create<CartStore>()(
       items: [],
       
       addItem: (item) => set((state) => {
-        const existing = state.items.find((i) => i.id === item.id);
-        if (existing) {
-          return {
-            items: state.items.map((i) => 
-              i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
-            ),
-          };
+        const maxStock = (item as CartItem).stockQuantity || Infinity;
+        
+        if (!state.items.find((i) => i.id === item.id) && maxStock <= 0) {
+            return state;
         }
-        return { items: [...state.items, { ...item, quantity: 1 }] };
+
+        const existing = state.items.find((i) => i.id === item.id);
+        
+        if (existing) {
+          const newQuantity = existing.quantity + 1;
+
+          if (newQuantity <= maxStock) { 
+            return {
+              items: state.items.map((i) => 
+                i.id === item.id ? { ...i, quantity: newQuantity } : i
+              ),
+            };
+          }
+          return state;
+        }
+        
+        return { 
+          items: [...state.items, { 
+            ...item, 
+            quantity: 1,
+            stockQuantity: maxStock
+          }] 
+        };
       }),
 
       removeItem: (id) => set((state) => ({
@@ -37,10 +56,13 @@ export const useCartStore = create<CartStore>()(
       updateQuantity: (id, action) => set((state) => ({
         items: state.items.map((i) => {
           if (i.id === id) {
-            return { 
-              ...i, 
-              quantity: action === 'inc' ? i.quantity + 1 : Math.max(1, i.quantity - 1) 
-            };
+            const newQuantity = action === 'inc' ? i.quantity + 1 : Math.max(1, i.quantity - 1);
+            const maxStock = i.stockQuantity || Infinity;
+            
+            if (newQuantity <= maxStock) {
+                return { ...i, quantity: newQuantity };
+            }
+            return i;
           }
           return i;
         })

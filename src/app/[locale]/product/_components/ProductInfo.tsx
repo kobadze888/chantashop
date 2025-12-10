@@ -13,8 +13,6 @@ import AddToCartButton from './AddToCartButton';
 import ProductGallery from './ProductGallery';
 import { useTranslations } from 'next-intl';
 
-// --- ბანკების ლოგოები (SVG) ---
-
 const LogoTBC = () => (
   <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 105.8 93.2" className="h-6 md:h-8 w-auto">
     <style type="text/css">
@@ -108,7 +106,14 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
   const isSale = selectedVariation?.salePrice || product.salePrice;
   const displayImage = selectedVariation?.image?.sourceUrl || product.image?.sourceUrl || '/placeholder.jpg';
   const displayStock = selectedVariation?.stockStatus || product.stockStatus;
-  
+  const displayStockQuantity = selectedVariation?.stockQuantity || product.stockQuantity;
+
+  useMemo(() => {
+    if (displayStockQuantity !== undefined && quantity > displayStockQuantity) {
+        setQuantity(displayStockQuantity);
+    }
+  }, [displayStockQuantity, quantity]);
+
   const cartData = {
     id: selectedVariation ? selectedVariation.databaseId : product.databaseId,
     name: selectedVariation ? `${product.name} - ${selectedColorName}` : product.name,
@@ -116,12 +121,16 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
     image: displayImage,
     slug: product.slug,
     selectedOptions: selectedColor ? { Color: selectedColorName || selectedColor } : {},
+    stockQuantity: displayStockQuantity,
   };
-
+  
+  const isProductOutOfStock = displayStock !== 'IN_STOCK' || (displayStockQuantity !== undefined && displayStockQuantity === 0);
   const isValidSelection = !product.variations || !!selectedVariation;
+  const isBuyNowDisabled = !isValidSelection || isProductOutOfStock || quantity === 0;
+
 
   const handleBuyNow = () => {
-      if(isValidSelection && displayStock === 'IN_STOCK') {
+      if(!isBuyNowDisabled) {
           addItem({ ...cartData, quantity });
           router.push('/checkout');
       }
@@ -141,13 +150,13 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
     'narinjisferi': '#F97316', 'ნარინჯისფერი': '#F97316',
     'yviteli': '#FACC15', 'ყვითელი': '#FACC15',
     'rcuxi': '#9CA3AF', 'რუხი': '#9CA3AF',
+    'vercxlisferi': '#C0C0C0', 'oqrosferi': '#FFD700', 'iasamnisferi': '#A855F7', 'kanisferi': '#FFE4C4', 
     'vardisferi_(pradas_stili)': '#DB2777', 'ვარდისფერი (პრადა)': '#DB2777'
   };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 animate-fade-in pb-10">
       
-      {/* --- მარცხენა მხარე: გალერეა (6/12) --- */}
       <div className="lg:col-span-6 h-min lg:sticky lg:top-32 z-10">
         <ProductGallery 
             mainImage={displayImage} 
@@ -156,32 +165,28 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
         />
       </div>
 
-      {/* --- მარჯვენა მხარე: ინფორმაცია (6/12) --- */}
       <div className="lg:col-span-6 flex flex-col py-2">
         
-        {/* HEADER */}
         <div className="flex justify-between items-center mb-4">
             <span className="text-xs font-bold text-gray-400 uppercase tracking-widest hover:text-brand-dark transition cursor-pointer cursor-pointer">
                 {product.productCategories?.nodes[0]?.name || 'Collection'}
             </span>
             
-            {displayStock === 'IN_STOCK' ? (
-                <span className="flex items-center gap-1.5 text-green-600 text-[10px] font-bold uppercase bg-green-50 px-2 py-1 rounded-full">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> {t('inStock')}
-                </span>
-            ) : (
+            {isProductOutOfStock ? (
                 <span className="flex items-center gap-1.5 text-red-500 text-[10px] font-bold uppercase bg-red-50 px-2 py-1 rounded-full">
                     <AlertCircle className="w-3 h-3" /> {t('outOfStock')}
+                </span>
+            ) : (
+                <span className="flex items-center gap-1.5 text-green-600 text-[10px] font-bold uppercase bg-green-50 px-2 py-1 rounded-full">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> {t('inStock')}
                 </span>
             )}
         </div>
 
-        {/* TITLE */}
         <h1 className="text-2xl md:text-3xl font-serif font-bold text-brand-dark leading-tight mb-3 tracking-tight">
             {product.name}
         </h1>
 
-        {/* RATING */}
         <div className="flex items-center gap-2 mb-6">
             <div className="flex text-yellow-400">
                 {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-current" />)}
@@ -189,7 +194,6 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
             <span className="text-xs text-gray-400 font-medium">{t('reviews', {count: 12})}</span>
         </div>
 
-        {/* PRICE & BUY NOW */}
         <div className="bg-gray-50/50 rounded-2xl p-4 border border-gray-100 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex flex-col">
                 <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">{t('priceLabel')}</span>
@@ -208,7 +212,7 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
             <div className="flex items-center gap-2 w-full sm:w-auto">
                 <button 
                     onClick={handleBuyNow}
-                    disabled={!isValidSelection || displayStock !== 'IN_STOCK'}
+                    disabled={isBuyNowDisabled}
                     className="flex-1 sm:flex-none bg-black text-white px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-brand-DEFAULT transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed h-12 cursor-pointer"
                 >
                     <CreditCard className="w-4 h-4" /> {t('buyNow')}
@@ -220,7 +224,6 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
             </div>
         </div>
 
-        {/* COLOR SELECTION */}
         {colorOptions.length > 0 && (
             <div className="mb-8">
                 <div className="flex justify-between items-center mb-3">
@@ -253,12 +256,23 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
             </div>
         )}
 
-        {/* BOTTOM ACTIONS */}
         <div className="flex gap-3 mb-8 pb-4">
             <div className="flex items-center bg-white rounded-xl h-14 border border-gray-200 w-32 shadow-sm">
-                <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="w-10 h-full flex items-center justify-center hover:text-brand-DEFAULT transition active:scale-90 text-gray-400 cursor-pointer"><Minus className="w-4 h-4" /></button>
-                <span className="flex-1 text-center font-bold text-lg text-brand-dark">{quantity}</span>
-                <button onClick={() => setQuantity(q => q + 1)} className="w-10 h-full flex items-center justify-center hover:text-brand-DEFAULT transition active:scale-90 text-gray-400 cursor-pointer"><Plus className="w-4 h-4" /></button>
+                <button 
+                    onClick={() => setQuantity(q => Math.max(1, q - 1))} 
+                    disabled={isProductOutOfStock || quantity <= 1}
+                    className="w-10 h-full flex items-center justify-center hover:text-brand-DEFAULT transition active:scale-90 text-gray-400 cursor-pointer disabled:opacity-50"
+                >
+                    <Minus className="w-4 h-4" />
+                </button>
+                <span className="flex-1 text-center font-bold text-lg text-brand-dark">{isProductOutOfStock ? 0 : quantity}</span>
+                <button 
+                    onClick={() => setQuantity(q => q + 1)} 
+                    disabled={isProductOutOfStock || (displayStockQuantity !== undefined && quantity >= displayStockQuantity)} 
+                    className="w-10 h-full flex items-center justify-center hover:text-brand-DEFAULT transition active:scale-90 text-gray-400 cursor-pointer disabled:opacity-50"
+                >
+                    <Plus className="w-4 h-4" />
+                </button>
             </div>
             
             <div className="flex-1">
@@ -270,10 +284,8 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
             </div>
         </div>
 
-        {/* --- 3 სვეტიანი გადახდის ბლოკი --- */}
         <div className="grid grid-cols-3 gap-2 md:gap-3 mb-8">
             
-            {/* 1. ონლაინ ბარათით */}
             <div className="border border-brand-light bg-brand-light/30 rounded-2xl p-2 md:p-3 flex flex-col items-center text-center justify-center transition-all hover:shadow-md hover:border-brand-medium cursor-default h-full min-h-[110px]">
                 <span className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-2">{t('Payment.onlineTitle')}</span>
                 <div className="flex items-center justify-center gap-2 mb-2 scale-90">
@@ -286,7 +298,6 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
                 </div>
             </div>
 
-            {/* 2. საბანკო გადარიცხვა */}
             <div className="border border-gray-100 bg-gray-50 rounded-2xl p-2 md:p-3 flex flex-col items-center text-center justify-center transition-all hover:shadow-md hover:border-gray-200 cursor-default h-full min-h-[110px]">
                 <span className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-2">გადარიცხვა</span>
                 <div className="mb-2 text-gray-600">
@@ -297,7 +308,6 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
                 </div>
             </div>
 
-            {/* 3. კურიერთან გადახდა */}
             <div className="border border-gray-100 bg-gray-50 rounded-2xl p-2 md:p-3 flex flex-col items-center text-center justify-center transition-all hover:shadow-md hover:border-gray-200 cursor-default h-full min-h-[110px]">
                 <span className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-2">{t('Payment.courierTitle')}</span>
                 <div className="mb-2 text-gray-600">
@@ -311,7 +321,6 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
 
         <div className="border-t border-gray-100 my-6"></div>
 
-        {/* INFO & DETAILS */}
         <div className="space-y-6">
             
             <div 
@@ -345,7 +354,6 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
                 </div>
             )}
 
-            {/* --- მიწოდება და შემოწმება --- */}
             <div className="space-y-3">
                 <div className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 bg-white hover:border-brand-light transition-colors">
                     <div className="bg-brand-light text-brand-DEFAULT p-3 rounded-full flex-shrink-0"><Truck className="w-5 h-5" /></div>

@@ -1,6 +1,6 @@
 import Hero from '@/components/home/Hero';
 import Brands from '@/components/home/Brands';
-import Categories from '@/components/home/Categories'; // ✅ დარწმუნდი რომ ეს იმპორტი არსებობს
+import Categories from '@/components/home/Categories';
 import FeaturedCarousel from '@/components/home/FeaturedCarousel';
 import { getProducts } from '@/lib/api';
 import { Product } from '@/types';
@@ -32,7 +32,9 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
     regularPrice: p.regularPrice,
     image: p.image?.sourceUrl || '/placeholder.jpg',
     secondImage: getSecondImage(p),
-    slug: p.slug
+    slug: p.slug,
+    stockQuantity: p.stockQuantity,
+    stockStatus: p.stockStatus,
   }));
 
   return (

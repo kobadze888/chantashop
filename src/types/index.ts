@@ -10,7 +10,6 @@ export interface Attribute {
   label?: string;
   options?: string[];
   value?: string;
-  // ✅ დაემატა terms, რეალური სახელების წამოსაღებად
   terms?: {
     nodes: {
       id: string;
@@ -35,6 +34,7 @@ export interface Variation {
   regularPrice?: string;
   salePrice?: string;
   stockStatus: string;
+  stockQuantity?: number;
   image?: ProductImage;
   attributes?: { nodes: Attribute[] };
 }
@@ -51,6 +51,7 @@ export interface Product {
   regularPrice?: string;
   salePrice?: string;
   stockStatus?: string;
+  stockQuantity?: number;
   galleryImages?: { nodes: ProductImage[] };
   seo?: {
     title: string;
@@ -74,4 +75,5 @@ export interface CartItem {
   quantity: number;
   slug: string;
   selectedOptions?: Record<string, string>;
+  stockQuantity?: number;
 }

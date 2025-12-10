@@ -17,12 +17,12 @@ const PRODUCT_FRAGMENT = `
       regularPrice(format: RAW)
       salePrice(format: RAW)
       stockStatus
+      stockQuantity
       attributes { 
         nodes { 
           name 
           label 
           options 
-          # ✅ შესწორება: terms-ის მოთხოვნა მხოლოდ გლობალური ატრიბუტებისთვის
           ... on GlobalProductAttribute {
             terms { nodes { id name slug } } 
           }
@@ -34,13 +34,13 @@ const PRODUCT_FRAGMENT = `
       regularPrice(format: RAW)
       salePrice(format: RAW)
       stockStatus
+      stockQuantity
       image { sourceUrl altText }
       attributes { 
         nodes { 
           name 
           label 
           options 
-          # ✅ შესწორება აქაც
           ... on GlobalProductAttribute {
             terms { nodes { id name slug } } 
           }
@@ -54,6 +54,7 @@ const PRODUCT_FRAGMENT = `
           regularPrice(format: RAW)
           salePrice(format: RAW)
           stockStatus
+          stockQuantity
           image { sourceUrl altText }
           attributes { 
             nodes { 

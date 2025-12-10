@@ -35,7 +35,6 @@ const parsePrice = (priceString: string | undefined | null): number => {
 
 export default function CatalogClient(props: CatalogClientProps) {
   return (
-    // ✅ შესწორება: Loading ტექსტი წაიშალა (fallback={null})
     <Suspense fallback={null}>
       <CatalogContent {...props} />
     </Suspense>
@@ -143,7 +142,8 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
               name: selectedProduct.name, 
               price: selectedProduct.salePrice || selectedProduct.price, 
               image: selectedProduct.image?.sourceUrl || '/placeholder.jpg', 
-              slug: selectedProduct.slug 
+              slug: selectedProduct.slug,
+              stockQuantity: selectedProduct.stockQuantity
           }); 
           closeQuickView(); 
       } 
@@ -215,7 +215,7 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
   const availableSizes = useMemo(() => {
     return sizes
       .map(s => ({ ...s, count: sizeCounts[s.slug.toLowerCase()] || 0 }))
-      .filter(s => s.count > 0 || s.slug === activeSize);
+      .filter(c => c.count > 0 || c.slug === activeSize);
   }, [sizes, sizeCounts, activeSize]);
   
   const sortOptions = [
@@ -224,6 +224,9 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
     { value: 'PRICE_ASC', label: t('Sort.priceLowHigh') },
     { value: 'PRICE_DESC', label: t('Sort.priceHighLow') },
   ];
+  
+  const isSelectedProductOutOfStock = selectedProduct && (selectedProduct.stockQuantity === 0 || selectedProduct.stockStatus !== 'IN_STOCK');
+
 
   return (
     <>
@@ -251,8 +254,15 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
                         </div>
                     </div>
                     <div className="pt-6 border-t border-gray-100 mt-6">
-                        <button onClick={handleAddToCartFromModal} className="w-full bg-brand-dark text-white py-4 rounded-xl font-bold hover:bg-brand-DEFAULT transition active:scale-95 shadow-lg flex items-center justify-center gap-2"><ShoppingBag className="w-5 h-5" /> {tProduct('addToCart')}</button>
-                        <Link href={`/product/${selectedProduct.slug}`} className="w-full block text-center text-xs font-bold text-brand-dark mt-4 hover:underline uppercase tracking-wide">{tProduct('viewFull')}</Link>
+                        <button 
+                            onClick={handleAddToCartFromModal} 
+                            disabled={isSelectedProductOutOfStock}
+                            className="w-full bg-brand-dark text-white py-4 rounded-xl font-bold hover:bg-brand-DEFAULT transition active:scale-95 shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <ShoppingBag className="w-5 h-5" /> 
+                            {isSelectedProductOutOfStock ? tProduct('outOfStock') : tProduct('addToCart')}
+                        </button>
+                        <Link href={`/product/${selectedProduct.slug}`} className="w-full block text-center text-xs font-bold text-brand-dark mt-4 hover:underline uppercase tracking-wide">მთლიანი პროდუქტის ნახვა</Link>
                     </div>
                 </div>
             </div>
@@ -261,7 +271,7 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
 
       <div 
         id="filter-overlay" 
-        className={`fixed inset-0 bg-black/60 z-[80] transition-opacity duration-300 md:hidden ${mobileFiltersOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
+        className={`fixed inset-0 bg-black/60 z-[80] transition-opacity duration-300 md:hidden ${mobileFiltersOpen ? 'opacity-100 visible' : 'invisible'}`}
         onClick={() => setMobileFiltersOpen(false)} 
       >
         <div 
@@ -395,7 +405,6 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
                 </button>
             </div>
 
-            {/* ✅ შესწორება: დაემატა hide-scrollbar */}
             <aside className="space-y-10 overflow-y-auto pr-4 pt-6 pb-24 h-full hide-scrollbar"> 
                 
                 <div>
@@ -504,6 +513,8 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
                         secondImage={product.galleryImages?.nodes[0]?.sourceUrl}
                         slug={product.slug}
                         attributes={product.attributes}
+                        stockQuantity={product.stockQuantity}
+                        stockStatus={product.stockStatus}
                         locale={locale}
                         onQuickView={() => openQuickView(product)}
                     />

@@ -14,8 +14,9 @@ interface AddToCartButtonProps {
 export default function AddToCartButton({ product, stockStatus, disabled = false }: AddToCartButtonProps) {
     const addItem = useCartStore((state) => state.addItem);
     const t = useTranslations('Product');
-    const inStock = stockStatus === 'IN_STOCK';
-    const isButtonDisabled = disabled || !inStock;
+    
+    const isOutOfStock = stockStatus !== 'IN_STOCK' || (product.stockQuantity !== undefined && product.stockQuantity === 0);
+    const isButtonDisabled = disabled || isOutOfStock || product.quantity === 0;
 
     const handleAddToCart = () => {
         if (!isButtonDisabled) {
@@ -38,7 +39,7 @@ export default function AddToCartButton({ product, stockStatus, disabled = false
                 }
             `}
         >
-            {inStock ? (
+            {!isOutOfStock ? (
                 <>
                     <ShoppingBag className="w-5 h-5" />
                     <span>{t('addToCart')}</span>

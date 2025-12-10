@@ -24,6 +24,8 @@ interface ProductCardProps {
   slug: string;
   locale: string;
   attributes?: any; 
+  stockQuantity?: number;
+  stockStatus?: string;
   className?: string;
   onQuickView?: (e: React.MouseEvent) => void;
 }
@@ -34,14 +36,14 @@ function isValidImageUrl(url: string | undefined): boolean {
   return url.length > 5 && validUrlRegex.test(url);
 }
 
-export default function ProductCard({ id, name, price, salePrice, regularPrice, image, secondImage, slug, attributes, className, onQuickView }: ProductCardProps) {
+export default function ProductCard({ id, name, price, salePrice, regularPrice, image, secondImage, slug, attributes, stockQuantity, stockStatus, className, onQuickView }: ProductCardProps) {
   const addItem = useCartStore((state) => state.addItem);
   const t = useTranslations('Product');
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    addItem({ id, name, price: salePrice || price, image, slug });
+    addItem({ id, name, price: salePrice || price, image, slug, stockQuantity });
   };
 
   const displayPrice = salePrice || price;
@@ -49,6 +51,8 @@ export default function ProductCard({ id, name, price, salePrice, regularPrice, 
   const colorOptions = colorAttribute?.options || [];
 
   const hoverImageSource = isValidImageUrl(secondImage) ? secondImage : null;
+  
+  const isOutOfStock = stockQuantity === 0 || stockStatus !== 'IN_STOCK';
 
   return (
     <div className={`group relative flex flex-col bg-white rounded-[2rem] p-4 transition-all hover:shadow-2xl hover:-translate-y-2 border border-gray-100 h-full cursor-pointer ${className || ''}`}>
@@ -87,7 +91,8 @@ export default function ProductCard({ id, name, price, salePrice, regularPrice, 
                     e.stopPropagation();
                     onQuickView?.(e);
                 }}
-                className="bg-white text-brand-dark w-12 h-12 rounded-full flex items-center justify-center hover:bg-brand-DEFAULT hover:text-white transition shadow-lg transform translate-y-4 group-hover:translate-y-0 duration-300 pointer-events-auto"
+                disabled={isOutOfStock}
+                className="bg-white text-brand-dark w-12 h-12 rounded-full flex items-center justify-center hover:bg-brand-DEFAULT hover:text-white transition shadow-lg transform translate-y-4 group-hover:translate-y-0 duration-300 pointer-events-auto disabled:opacity-50 disabled:cursor-not-allowed"
               >
                   <Eye className="w-5 h-5" />
               </button>
@@ -128,9 +133,10 @@ export default function ProductCard({ id, name, price, salePrice, regularPrice, 
               
               <button 
                 onClick={handleAddToCart}
-                className="bg-brand-dark text-white w-full md:w-auto px-5 py-2.5 rounded-full text-xs font-bold hover:bg-brand-DEFAULT transition shadow-lg active:scale-95"
+                disabled={isOutOfStock}
+                className="bg-brand-dark text-white w-full md:w-auto px-5 py-2.5 rounded-full text-xs font-bold hover:bg-brand-DEFAULT transition shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {t('buy')}
+                {isOutOfStock ? t('outOfStock') : t('buy')}
               </button>
           </div>
       </div>
