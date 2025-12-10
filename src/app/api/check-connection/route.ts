@@ -6,11 +6,12 @@ export async function GET() {
   
   try {
     const [products, filters] = await Promise.all([
-      getProducts(5),
-      getFilters() // ✅ გასწორდა: getCategories -> getFilters
+      // ✅ შესწორება: გადასვით ობიექტი, რომელშიც მითითებულია limit
+      getProducts({ limit: 5 }), 
+      getFilters()
     ]);
 
-    const categories = filters.categories; // ✅ ამოვიღეთ კატეგორიები
+    const categories = filters.categories; 
     const duration = performance.now() - start;
 
     return NextResponse.json({
