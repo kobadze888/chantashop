@@ -6,7 +6,12 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 // უნიკალური საიდუმლო ტოკენი უსაფრთხოებისთვის.
 const REVALIDATION_TOKEN = process.env.REVALIDATION_TOKEN || 'YOUR_SECRET_FALLBACK_TOKEN'; 
 
-export async function GET(request: NextRequest) {
+/**
+ * უნივერსალური ფუნქცია, რომელიც ამუშავებს როგორც GET, ასევე POST მოთხოვნებს.
+ * WooCommerce Webhook-ები აგზავნიან POST-ს, მაგრამ პარამეტრები URL-შია.
+ * ამიტომ, ლოგიკას ვამუშავებთ request.nextUrl.searchParams-დან.
+ */
+async function handleRevalidation(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const secret = searchParams.get('secret');
   const slug = searchParams.get('slug'); 
@@ -55,8 +60,12 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// ✅ დაემატა: POST მოთხოვნების მხარდაჭერა WooCommerce-ისთვის
+// ✅ ექსპორტირებული GET ფუნქცია
+export async function GET(request: NextRequest) {
+  return handleRevalidation(request);
+}
+
+// ✅ ექსპორტირებული POST ფუნქცია (WooCommerce-ისთვის)
 export async function POST(request: NextRequest) {
-  // WooCommerce ნაგულისხმევად აგზავნის POST-ს. ვიძახებთ GET-ის ლოგიკას, რადგან პარამეტრები URL-შია.
-  return GET(request);
+  return handleRevalidation(request);
 }
