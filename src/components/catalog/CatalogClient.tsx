@@ -151,6 +151,10 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
   
   const filtersActive = activeCategory !== 'all' || activeColor !== 'all' || activeSize !== 'all' || maxPrice < 5000;
 
+  // ✅ შესწორება: დავამატეთ !! ოპერატორი, რომ ტიპი ყოველთვის იყოს boolean
+  const isSelectedProductOutOfStock = !!selectedProduct && (selectedProduct.stockQuantity === 0 || selectedProduct.stockStatus !== 'IN_STOCK');
+
+
   const getAttrCounts = (products: Product[], attrName: 'pa_color' | 'pa_masala' | 'category') => {
     const counts: Record<string, number> = {};
     
@@ -225,7 +229,8 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
     { value: 'PRICE_DESC', label: t('Sort.priceHighLow') },
   ];
   
-  const isSelectedProductOutOfStock = selectedProduct && (selectedProduct.stockQuantity === 0 || selectedProduct.stockStatus !== 'IN_STOCK');
+  // ✅ შესწორება: აქაც ვიყენებთ !!-ს რათა TypeScript დარწმუნდეს რომ selectedProduct არის არა null
+  const selectedProductOutOfStock = !!selectedProduct && (selectedProduct.stockQuantity === 0 || selectedProduct.stockStatus !== 'IN_STOCK');
 
 
   return (
@@ -256,11 +261,11 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
                     <div className="pt-6 border-t border-gray-100 mt-6">
                         <button 
                             onClick={handleAddToCartFromModal} 
-                            disabled={isSelectedProductOutOfStock}
+                            disabled={selectedProductOutOfStock} // ✅ აქ გამოვიყენეთ შესწორებული ცვლადი
                             className="w-full bg-brand-dark text-white py-4 rounded-xl font-bold hover:bg-brand-DEFAULT transition active:scale-95 shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <ShoppingBag className="w-5 h-5" /> 
-                            {isSelectedProductOutOfStock ? tProduct('outOfStock') : tProduct('addToCart')}
+                            {selectedProductOutOfStock ? tProduct('outOfStock') : tProduct('addToCart')}
                         </button>
                         <Link href={`/product/${selectedProduct.slug}`} className="w-full block text-center text-xs font-bold text-brand-dark mt-4 hover:underline uppercase tracking-wide">მთლიანი პროდუქტის ნახვა</Link>
                     </div>
