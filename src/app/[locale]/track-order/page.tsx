@@ -19,8 +19,13 @@ export default function TrackOrderPage() {
     if (!orderId || !email) return;
     
     setIsLoading(true);
-    // გადავდივართ: /track-order/12345?email=user@example.com
-    router.push(`/track-order/${orderId}?email=${encodeURIComponent(email)}`);
+    
+    // ✅ FIX: ობიექტური სინტაქსის გამოყენება დინამიური მარშრუტიზაციისთვის
+    router.push({
+        pathname: '/track-order/[id]',
+        params: { id: orderId },
+        query: { email: email }
+    });
   };
 
   return (
