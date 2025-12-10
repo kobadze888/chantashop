@@ -5,8 +5,6 @@ import {routing} from './navigation';
 import {NextRequest, NextResponse} from 'next/server';
 
 export default function middleware(request: NextRequest) {
-// ... (rest of middleware logic remains the same)
-
   const handleI18nRouting = createMiddleware(routing);
 
   const localeCookie = request.cookies.get('NEXT_LOCALE')?.value;
@@ -24,7 +22,14 @@ export default function middleware(request: NextRequest) {
   return handleI18nRouting(request);
 }
 
-// ✅ დადასტურდა: /api მარშრუტის გამორიცხვა
+// ✅ საბოლოო კორექტირება: გამოვრიცხავთ ყველა ფაილურ და API მარშრუტს ენის ლოგიკიდან
 export const config = {
-  matcher: ['/((?!api|_next|_vercel|.*\\..*).*)', '/']
+  matcher: [
+    // ენის როუტინგი შეეხება მხოლოდ ამათ:
+    '/',
+    '/(ka|en|ru)/:path*',
+
+    // გამოვრიცხავთ API მარშრუტებს
+    '/((?!api|_next|.*\\..*).*)', 
+  ]
 };
