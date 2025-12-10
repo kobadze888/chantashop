@@ -1,7 +1,8 @@
+// src/components/catalog/CatalogClient.tsx
 'use client';
 
 import { useState, useEffect, Suspense, useMemo, useTransition, useRef } from 'react'; 
-import { SlidersHorizontal, X, ChevronDown, ShoppingBag, RefreshCcw } from 'lucide-react';
+import { SlidersHorizontal, X, ChevronDown, ShoppingBag, RefreshCcw, Loader2 } from 'lucide-react';
 import ProductCard from '@/components/products/ProductCard';
 import type { Product, Category, FilterTerm } from '@/types';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
@@ -32,6 +33,34 @@ const parsePrice = (priceString: string | undefined | null): number => {
   const prices = matches.map(p => parseFloat(p));
   return Math.min(...prices);
 };
+
+// =========================================================
+// ✅ ახალი კომპონენტი: პროდუქტის ჩარჩო (Skeleton)
+// =========================================================
+function ProductSkeleton() {
+    return (
+        <div className="group relative flex flex-col bg-white rounded-[1.5rem] md:rounded-[1.8rem] p-3 md:p-4 transition-all duration-300 border border-gray-100 h-full animate-pulse">
+            <div className="relative mb-3 md:mb-4 aspect-[4/5] rounded-[1.2rem] md:rounded-[1.5rem] overflow-hidden bg-gray-200">
+                <div className="absolute top-3 right-3 md:top-4 md:right-4 z-30 w-8 h-8 md:w-9 md:h-9 bg-white/90 backdrop-blur-md rounded-full"></div>
+            </div>
+            <div className="flex-1 flex flex-col px-0.5 md:px-1">
+                {/* სათაური */}
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2 md:mb-3"></div>
+                {/* ფერები */}
+                <div className="h-3 bg-gray-100 rounded w-1/3 mb-3 md:mb-5"></div>
+                <div className="mt-auto pt-3 md:pt-4 border-t border-dashed border-gray-100 flex items-center justify-between gap-2">
+                    {/* ფასი */}
+                    <div className="flex flex-col">
+                        <div className="h-6 bg-gray-200 rounded w-12"></div>
+                    </div>
+                    {/* ღილაკი */}
+                    <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+                </div>
+            </div>
+        </div>
+    );
+}
+// =========================================================
 
 export default function CatalogClient(props: CatalogClientProps) {
   return (
@@ -71,7 +100,27 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
   const [isMaterialsOpen, setIsMaterialsOpen] = useState(false);
 
   const [isSortOpen, setIsSortOpen] = useState(false);
+  
+  // ✅ ოპტიმიზაცია 1: Debouncing ფასის სლაიდერისთვის
+  const [debouncedMaxPrice, setDebouncedMaxPrice] = useState(maxPrice);
+  
+  useEffect(() => {
+    if (debouncedMaxPrice !== Number(searchParams.get('maxPrice'))) {
+      updateFilter('maxPrice', debouncedMaxPrice);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedMaxPrice]);
+  
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedMaxPrice(maxPrice);
+    }, 300);
 
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [maxPrice]);
+  
   useEffect(() => {
     if (modalVisible || mobileFiltersOpen) {
       document.body.style.overflow = 'hidden';
@@ -129,7 +178,7 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
   const handleCategoryChange = (slug: string) => updateFilter('category', activeCategory === slug ? 'all' : slug);
   const handleColorChange = (slug: string) => updateFilter('color', activeColor === slug ? 'all' : slug);
   const handleSizeChange = (slug: string) => updateFilter('material', activeSize === slug ? 'all' : slug);
-  const handlePriceChangeFinal = (value: number) => updateFilter('maxPrice', value);
+  const handlePriceChangeIntermediate = (value: number) => setMaxPrice(value);
   const handleSortChange = (sortValue: string) => updateFilter('sort', sortValue); 
 
   const openQuickView = (product: Product) => { setSelectedProduct(product); setTimeout(() => setModalVisible(true), 10); };
@@ -151,7 +200,6 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
   
   const filtersActive = activeCategory !== 'all' || activeColor !== 'all' || activeSize !== 'all' || maxPrice < 5000;
 
-  // Type-safe check using boolean conversion
   const isSelectedProductOutOfStock = !!selectedProduct && (selectedProduct.stockQuantity === 0 || selectedProduct.stockStatus !== 'IN_STOCK');
 
   const getAttrCounts = (products: Product[], attrName: 'pa_color' | 'pa_masala' | 'category') => {
@@ -182,7 +230,7 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
   };
 
   const productsForCategories = useMemo(() => {
-    const priceMax = Number(searchParams.get('maxPrice')) || 5000;
+    const priceMax = Number(searchParams.get('maxPrice')) || 5000; 
     return initialProducts.filter(p => parsePrice(p.price) <= priceMax);
   }, [initialProducts, searchParams]);
 
@@ -235,7 +283,7 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
             <div className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity" onClick={closeQuickView}></div>
             <div className={`relative bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col md:flex-row max-h-[90vh] md:max-h-[600px] transition-all duration-300 ${modalVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
                 <button onClick={closeQuickView} className="absolute top-4 right-4 z-10 p-2 bg-white/80 backdrop-blur rounded-full hover:bg-brand-light transition shadow-sm"><X className="w-6 h-6 h-dark" /></button>
-                <div className="w-full md:w-1/2 bg-gray-50 relative min-h-[300px]">
+                <div className="w-full md:w-1/2 bg-gray-50 relative min-h-[300px] flex items-center justify-center">
                     <Image src={selectedProduct.image?.sourceUrl || '/placeholder.jpg'} alt={selectedProduct.name} fill className="object-cover"/>
                 </div>
                 <div className="w-full md:w-1/2 p-8 flex flex-col overflow-y-auto">
@@ -262,7 +310,6 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
                             <ShoppingBag className="w-5 h-5" /> 
                             {isSelectedProductOutOfStock ? tProduct('outOfStock') : tProduct('addToCart')}
                         </button>
-                        {/* ✅ FIX: ობიექტური სინტაქსი დინამიური ლინკისთვის */}
                         <Link 
                             href={{ pathname: '/product/[slug]', params: { slug: selectedProduct.slug } }} 
                             className="w-full block text-center text-xs font-bold text-brand-dark mt-4 hover:underline uppercase tracking-wide"
@@ -275,24 +322,31 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
         </div>
       )}
 
-      {/* ფილტრების და კატალოგის დანარჩენი ნაწილი უცვლელია, მაგრამ აქაც არის შესწორებული Link-ის გამოყენება თუ სადმე იყო */}
+      {/* --- ფილტრების მობილური ოვერლეი --- */}
       <div 
         id="filter-overlay" 
         className={`fixed inset-0 bg-black/60 z-[80] transition-opacity duration-300 md:hidden ${mobileFiltersOpen ? 'opacity-100 visible' : 'invisible'}`}
         onClick={() => setMobileFiltersOpen(false)} 
       >
         <div 
-          className={`absolute right-0 top-0 bottom-0 w-[80%] bg-white p-6 overflow-y-auto hide-scrollbar transform transition-transform duration-300 ${mobileFiltersOpen ? 'translate-x-0' : 'translate-x-full'}`} 
+          className={`relative absolute right-0 top-0 bottom-0 w-[80%] bg-white p-6 overflow-y-auto hide-scrollbar transform transition-transform duration-300 ${mobileFiltersOpen ? 'translate-x-0' : 'translate-x-full'}`} 
           id="filter-content"
           onClick={(e) => e.stopPropagation()} 
         >
+            {/* Loading Overlay მობილურ ფილტრებზე */}
+            {isPending && (
+                <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-50 flex items-center justify-center rounded-[1.5rem]">
+                    <Loader2 className="w-8 h-8 animate-spin text-brand-DEFAULT" />
+                </div>
+            )}
+
             <div className="flex justify-between items-center mb-8">
                 <h3 className="font-serif font-bold text-2xl">{t('filters.title')}</h3>
                 <button onClick={() => setMobileFiltersOpen(false)} className="p-2 hover:bg-gray-100 rounded-full"><X className="w-6 h-6" /></button>
             </div>
             
             <div className="space-y-8">
-                {/* Filters Content (Same as before) */}
+                {/* Filters Content */}
                 <div>
                     <h4 className="font-bold mb-4 uppercase text-xs tracking-widest text-brand-dark">{t('filters.categories')}</h4>
                     <div className="space-y-3"> 
@@ -315,7 +369,14 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
                 <div>
                   <h4 className="font-bold mb-4 uppercase text-xs tracking-widest text-brand-dark">{t('filters.price')}</h4>
                   <div className="px-2">
-                      <input type="range" className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand-DEFAULT" min="0" max="5000" step="50" value={maxPrice} onMouseUp={(e) => handlePriceChangeFinal(Number((e.target as HTMLInputElement).value))} onChange={(e) => setMaxPrice(Number(e.target.value))} />
+                      <input 
+                        type="range" 
+                        className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand-DEFAULT" 
+                        min="0" max="5000" step="50" 
+                        value={maxPrice} 
+                        onChange={(e) => handlePriceChangeIntermediate(Number(e.target.value))} 
+                        onMouseUp={() => { /* Debounced logic will handle updateFilter */ }}
+                      />
                       <div className="flex justify-between mt-3 text-sm font-bold text-gray-500">
                           <span>0 ₾</span>
                           <span>{maxPrice} ₾</span>
@@ -352,7 +413,7 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
                   </div>
                 )}
                 
-                <button onClick={handleClearFilters} disabled={!filtersActive} className={`w-full py-3 rounded-xl font-bold mt-8 transition flex items-center justify-center gap-2 ${filtersActive ? 'bg-brand-DEFAULT text-white hover:bg-brand-dark' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}>
+                <button onClick={handleClearFilters} disabled={!filtersActive || isPending} className={`w-full py-3 rounded-xl font-bold mt-8 transition flex items-center justify-center gap-2 ${filtersActive && !isPending ? 'bg-brand-DEFAULT text-white hover:bg-brand-dark' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}>
                     <RefreshCcw className="w-4 h-4" /> {tCommon('clearFilters')}
                 </button>
                 
@@ -408,12 +469,16 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
         <div className="hidden md:block w-1/4 sticky top-28 h-[calc(100vh-8rem)] relative"> 
             
             <div className="sticky top-0 z-10 bg-white pt-4 pb-4 border-b border-gray-100 -mx-4 px-4">
-                <button onClick={handleClearFilters} disabled={!filtersActive} className={`w-full py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 ${filtersActive ? 'bg-brand-DEFAULT text-white hover:bg-brand-dark' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}>
+                <button onClick={handleClearFilters} disabled={!filtersActive || isPending} className={`w-full py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 ${filtersActive && !isPending ? 'bg-brand-DEFAULT text-white hover:bg-brand-dark' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}>
                     <RefreshCcw className="w-4 h-4" /> {tCommon('clearFilters')}
                 </button>
             </div>
 
             <aside className="space-y-10 overflow-y-auto pr-4 pt-6 pb-24 h-full hide-scrollbar"> 
+                {/* Loading Overlay Desktop Filters-ზე */}
+                {isPending && (
+                    <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-50 rounded-2xl"></div>
+                )}
                 
                 <div>
                     <button 
@@ -452,7 +517,14 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
                     </button>
                     {isPriceOpen && (
                         <div className="px-2 animate-fade-in">
-                            <input type="range" className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand-DEFAULT" min="0" max="5000" step="50" value={maxPrice} onMouseUp={(e) => handlePriceChangeFinal(Number((e.target as HTMLInputElement).value))} onChange={(e) => setMaxPrice(Number(e.target.value))} />
+                            <input 
+                                type="range" 
+                                className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand-DEFAULT" 
+                                min="0" max="5000" step="50" 
+                                value={maxPrice} 
+                                onChange={(e) => handlePriceChangeIntermediate(Number(e.target.value))} 
+                                onMouseUp={() => { /* Debounced logic will handle updateFilter */ }}
+                            />
                             <div className="flex justify-between mt-3 text-sm font-bold text-gray-500"><span>0 ₾</span><span>{maxPrice} ₾</span></div>
                         </div>
                     )}
@@ -508,8 +580,15 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
         </div>
 
         <div className="flex-1">
-            <div className={`grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8 md:gap-8 transition-opacity duration-300 ${isPending ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
-                {initialProducts.map((product) => (
+            {/* ✅ ცვლილება: Skeleton-ების ჩვენება მონაცემთა მოტანის დროს */}
+            <div className={`grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8 md:gap-8 transition-opacity duration-300 ${isPending && initialProducts.length > 0 ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
+                
+                {isPending && initialProducts.length > 0 && (
+                    [...Array(12)].map((_, i) => <ProductSkeleton key={i} />)
+                )}
+
+                {/* თუ არ არის Loading-ი ან ახალი შედეგები მოვიდა */}
+                {(!isPending || initialProducts.length === 0) && initialProducts.map((product) => (
                     <ProductCard 
                         key={product.databaseId || product.id}
                         id={product.databaseId}
@@ -528,7 +607,8 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
                     />
                 ))}
             </div>
-            {initialProducts.length === 0 && (
+            
+            {initialProducts.length === 0 && !isPending && (
                 <div className="text-center py-20 text-gray-400">
                     <p>{t('notFound')}</p>
                     <button onClick={() => updateFilter('category', 'all')} className="mt-4 text-brand-DEFAULT underline text-sm">{tCommon('clearFilters')}</button>
