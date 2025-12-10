@@ -6,7 +6,6 @@ import { Eye, Heart, ShoppingBag, XCircle, CreditCard, Maximize } from 'lucide-r
 import { useCartStore } from '@/store/cartStore';
 import { useTranslations } from 'next-intl';
 import { formatPrice } from '@/lib/utils';
-import { useState } from 'react';
 
 const colorMap: Record<string, string> = {
   'shavi': '#000000', 'tetri': '#FFFFFF', 'lurji': '#2563EB', 'muqi_lurji': '#1E3A8A',
@@ -39,6 +38,7 @@ function isValidImageUrl(url: string | undefined): boolean {
 }
 
 function calculateDiscount(regular: string, sale: string): number | null {
+    if (!regular || !sale) return null;
     const reg = parseFloat(regular.replace(/[^0-9.]/g, ''));
     const sal = parseFloat(sale.replace(/[^0-9.]/g, ''));
     if (isNaN(reg) || isNaN(sal) || reg <= 0) return null;
@@ -49,9 +49,6 @@ export default function ProductCard({ id, name, price, salePrice, regularPrice, 
   const addItem = useCartStore((state) => state.addItem);
   const router = useRouter();
   const t = useTranslations('Product');
-  
-  // State ჰოვერის ეფექტისთვის (რომელი ღილაკია აქტიური)
-  const [hoveredBtn, setHoveredBtn] = useState<'cart' | 'buy' | null>(null);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -83,12 +80,12 @@ export default function ProductCard({ id, name, price, salePrice, regularPrice, 
   const discountPercent = (salePrice && regularPrice) ? calculateDiscount(regularPrice, salePrice) : null;
 
   return (
-    <div className={`group relative flex flex-col bg-white rounded-[1.5rem] md:rounded-[1.8rem] p-3 md:p-4 transition-all duration-500 hover:shadow-2xl border border-gray-100 h-full ${isOutOfStock ? 'opacity-90' : ''} ${className || ''}`}>
+    <div className={`group relative flex flex-col bg-white rounded-[1.5rem] md:rounded-[1.8rem] p-3 md:p-4 transition-all duration-300 hover:shadow-2xl border border-gray-100 h-full ${isOutOfStock ? 'opacity-90' : ''} ${className || ''}`}>
       
       {/* --- Image Section --- */}
-      <div className="relative mb-3 md:mb-4 aspect-[4/5] rounded-[1.2rem] md:rounded-[1.5rem] overflow-hidden bg-gray-50 product-card-image-wrapper">
+      <div className="relative mb-3 md:mb-4 aspect-[4/5] rounded-[1.2rem] md:rounded-[1.5rem] overflow-hidden bg-gray-50 product-card-image-wrapper isolate">
           
-          {/* Main Link (Absolute Cover) */}
+          {/* Main Link (Absolute Cover) - Fixes Nesting & Layout */}
           <Link 
             href={`/product/${slug}`} 
             className={`absolute inset-0 z-10 ${isOutOfStock ? 'cursor-not-allowed' : ''}`} 
@@ -143,6 +140,14 @@ export default function ProductCard({ id, name, price, salePrice, regularPrice, 
                   <Eye className="w-5 h-5" />
               </button>
               
+              <button 
+                onClick={handleAddToCart}
+                className="w-11 h-11 bg-white text-brand-dark rounded-full flex items-center justify-center shadow-lg hover:bg-brand-DEFAULT hover:text-white transition-all transform hover:scale-110 active:scale-95"
+                title={t('addToCart')}
+              >
+                  <ShoppingBag className="w-5 h-5" />
+              </button>
+
               <button 
                 onClick={handleFullView}
                 className="w-11 h-11 bg-white text-brand-dark rounded-full flex items-center justify-center shadow-lg hover:bg-brand-DEFAULT hover:text-white transition-all transform hover:scale-110 active:scale-95"
@@ -206,7 +211,7 @@ export default function ProductCard({ id, name, price, salePrice, regularPrice, 
                       </div>
                   ) : (
                       <>
-                          {/* --- MOBILE: Compact Icons --- */}
+                          {/* MOBILE: Compact Icons (Shopping Bag & Credit Card) */}
                           <div className="flex md:hidden gap-2">
                               <button 
                                 onClick={handleAddToCart}
@@ -222,49 +227,24 @@ export default function ProductCard({ id, name, price, salePrice, regularPrice, 
                               </button>
                           </div>
 
-                          {/* --- DESKTOP: Interactive Expandable Buttons --- */}
+                          {/* DESKTOP: Expanded Text Button + Circle Button */}
                           <div className="hidden md:flex gap-2">
-                              
-                              {/* 1. Add to Cart (Default: Expanded, Shrinks on Buy Hover) */}
+                              {/* Add to Cart (Pill with Text) */}
                               <button 
                                 onClick={handleAddToCart}
-                                onMouseEnter={() => setHoveredBtn('cart')}
-                                onMouseLeave={() => setHoveredBtn(null)}
-                                className={`
-                                    h-11 rounded-full bg-brand-DEFAULT text-white flex items-center justify-center gap-2 shadow-lg shadow-brand-DEFAULT/20 transition-all duration-300 ease-in-out hover:bg-brand-dark overflow-hidden
-                                    ${hoveredBtn === 'buy' ? 'w-11 px-0' : 'w-auto px-5'}
-                                `}
+                                className="h-11 px-5 rounded-full bg-brand-DEFAULT text-white flex items-center justify-center gap-2 shadow-lg shadow-brand-DEFAULT/20 transition-all active:scale-95 hover:bg-brand-dark hover:shadow-xl"
                               >
-                                <ShoppingBag className="w-4 h-4 flex-shrink-0" />
-                                <span 
-                                    className={`
-                                        text-[10px] font-bold uppercase tracking-wider whitespace-nowrap transition-all duration-300
-                                        ${hoveredBtn === 'buy' ? 'w-0 opacity-0' : 'w-auto opacity-100'}
-                                    `}
-                                >
-                                    {t('addToCart')}
-                                </span>
+                                <ShoppingBag className="w-4 h-4" />
+                                <span className="text-[11px] font-bold uppercase tracking-wider">{t('addToCart')}</span>
                               </button>
 
-                              {/* 2. Buy Now (Default: Collapsed/Icon, Expands on Hover) */}
+                              {/* Buy Now (Circle Icon with Border) */}
                               <button 
                                 onClick={handleBuyNow}
-                                onMouseEnter={() => setHoveredBtn('buy')}
-                                onMouseLeave={() => setHoveredBtn(null)}
-                                className={`
-                                    h-11 rounded-full border border-gray-200 text-brand-dark bg-white hover:border-brand-dark hover:bg-brand-dark hover:text-white shadow-sm flex items-center justify-center gap-2 transition-all duration-300 ease-in-out overflow-hidden
-                                    ${hoveredBtn === 'buy' ? 'w-auto px-5' : 'w-11 px-0'}
-                                `}
+                                className="w-11 h-11 rounded-full border-2 border-gray-200 text-brand-dark bg-white hover:border-brand-DEFAULT hover:bg-brand-DEFAULT hover:text-white shadow-sm flex items-center justify-center transition-all active:scale-90"
+                                title={t('buyNow')}
                               >
-                                <CreditCard className="w-4 h-4 flex-shrink-0" />
-                                <span 
-                                    className={`
-                                        text-[10px] font-bold uppercase tracking-wider whitespace-nowrap transition-all duration-300
-                                        ${hoveredBtn === 'buy' ? 'w-auto opacity-100' : 'w-0 opacity-0'}
-                                    `}
-                                >
-                                    {t('buyNow')}
-                                </span>
+                                <CreditCard className="w-5 h-5" />
                               </button>
                           </div>
                       </>
