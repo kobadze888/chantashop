@@ -31,7 +31,7 @@ interface ProductCardProps {
   onQuickView?: (e: React.MouseEvent) => void;
 }
 
-// ✅ FIX: შეიცვალა ტიპი, რომ მიიღოს null
+// ✅ FIX 1: იღებს string | undefined | null ტიპს
 function isValidImageUrl(url: string | undefined | null): boolean {
   if (!url) return false;
   const validUrlRegex = /\.(jpe?g|png|gif|webp|svg)$/i;
@@ -72,7 +72,8 @@ export default function ProductCard({ id, name, price, salePrice, regularPrice, 
 
   const colorAttribute = attributes?.nodes?.find((attr: any) => attr.name === 'pa_color');
   const colorOptions = colorAttribute?.options || [];
-  const hoverImageSource = isValidImageUrl(secondImage) ? secondImage : null;
+  // ✅ FIX 2: თუ არ არის ვალიდური, მიანიჭეთ undefined (და არა null)
+  const hoverImageSource = isValidImageUrl(secondImage) ? secondImage : undefined; 
   
   const isOutOfStock = stockQuantity === 0 || stockStatus !== 'IN_STOCK';
 
