@@ -1,7 +1,9 @@
+// src/navigation.ts
+
 import {createNavigation} from 'next-intl/navigation';
 import {defineRouting} from 'next-intl/routing';
 
-// ✅ დაემატა ტიპები ყველა გზისთვის
+// ✅ Pathnames ტიპი კვლავ საჭიროა ექსპორტისთვის, მაგრამ არა createNavigation-ისთვის
 export type Pathnames = {
   '/collection': {
     ka: '/shop';
@@ -39,4 +41,5 @@ export const routing = defineRouting({
   },
 });
 
-export const {Link, redirect, usePathname, useRouter} = createNavigation<Pathnames>(routing);
+// ✅ შესწორება: მოვაცილეთ ექსპლიციტური ტიპი <Pathnames>
+export const {Link, redirect, usePathname, useRouter} = createNavigation(routing);
