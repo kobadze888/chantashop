@@ -31,7 +31,8 @@ interface ProductCardProps {
   onQuickView?: (e: React.MouseEvent) => void;
 }
 
-function isValidImageUrl(url: string | undefined): boolean {
+// ✅ FIX: შეიცვალა ტიპი, რომ მიიღოს null
+function isValidImageUrl(url: string | undefined | null): boolean {
   if (!url) return false;
   const validUrlRegex = /\.(jpe?g|png|gif|webp|svg)$/i;
   return url.length > 5 && validUrlRegex.test(url);
