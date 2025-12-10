@@ -35,7 +35,7 @@ const parsePrice = (priceString: string | undefined | null): number => {
 };
 
 // =========================================================
-// ✅ ახალი კომპონენტი: პროდუქტის ჩარჩო (Skeleton)
+// ✅ პროდუქტის ჩარჩო (Skeleton)
 // =========================================================
 function ProductSkeleton() {
     return (
@@ -333,7 +333,7 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
           id="filter-content"
           onClick={(e) => e.stopPropagation()} 
         >
-            {/* Loading Overlay მობილურ ფილტრებზე */}
+            {/* Loading Overlay მობილურ ფილტრებზე (ფარავს ფილტრებსაც) */}
             {isPending && (
                 <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-50 flex items-center justify-center rounded-[1.5rem]">
                     <Loader2 className="w-8 h-8 animate-spin text-brand-DEFAULT" />
@@ -475,10 +475,7 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
             </div>
 
             <aside className="space-y-10 overflow-y-auto pr-4 pt-6 pb-24 h-full hide-scrollbar"> 
-                {/* Loading Overlay Desktop Filters-ზე */}
-                {isPending && (
-                    <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-50 rounded-2xl"></div>
-                )}
+                {/* ✅ გასწორება: ამოღებულია isPending Overlay Sidebar-იდან, რათა ფილტრები ყოველთვის ხელმისაწვდომი იყოს. */}
                 
                 <div>
                     <button 
@@ -580,32 +577,32 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
         </div>
 
         <div className="flex-1">
-            {/* ✅ ცვლილება: Skeleton-ების ჩვენება მონაცემთა მოტანის დროს */}
-            <div className={`grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8 md:gap-8 transition-opacity duration-300 ${isPending && initialProducts.length > 0 ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8 md:gap-8 transition-opacity duration-300">
                 
-                {isPending && initialProducts.length > 0 && (
+                {/* ✅ გასწორება: ვაჩვენებთ მხოლოდ Skeleton-ებს isPending-ის დროს */}
+                {isPending ? (
                     [...Array(12)].map((_, i) => <ProductSkeleton key={i} />)
+                ) : (
+                    /* თუ არ არის Loading-ი, ვაჩვენებთ რეალურ პროდუქტებს */
+                    initialProducts.map((product) => (
+                        <ProductCard 
+                            key={product.databaseId || product.id}
+                            id={product.databaseId}
+                            name={product.name}
+                            price={product.price ? `${parsePrice(product.price)} ₾` : ''}
+                            salePrice={product.salePrice}
+                            regularPrice={product.regularPrice}
+                            image={product.image?.sourceUrl}
+                            secondImage={product.galleryImages?.nodes[0]?.sourceUrl}
+                            slug={product.slug}
+                            attributes={product.attributes}
+                            stockQuantity={product.stockQuantity}
+                            stockStatus={product.stockStatus}
+                            locale={locale}
+                            onQuickView={() => openQuickView(product)}
+                        />
+                    ))
                 )}
-
-                {/* თუ არ არის Loading-ი ან ახალი შედეგები მოვიდა */}
-                {(!isPending || initialProducts.length === 0) && initialProducts.map((product) => (
-                    <ProductCard 
-                        key={product.databaseId || product.id}
-                        id={product.databaseId}
-                        name={product.name}
-                        price={product.price ? `${parsePrice(product.price)} ₾` : ''}
-                        salePrice={product.salePrice}
-                        regularPrice={product.regularPrice}
-                        image={product.image?.sourceUrl}
-                        secondImage={product.galleryImages?.nodes[0]?.sourceUrl}
-                        slug={product.slug}
-                        attributes={product.attributes}
-                        stockQuantity={product.stockQuantity}
-                        stockStatus={product.stockStatus}
-                        locale={locale}
-                        onQuickView={() => openQuickView(product)}
-                    />
-                ))}
             </div>
             
             {initialProducts.length === 0 && !isPending && (

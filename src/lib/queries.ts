@@ -1,5 +1,46 @@
 // src/lib/queries.ts
 
+// ✅ ახალი ფრაგმენტი: მხოლოდ კატალოგისთვის საჭირო ველები
+const PRODUCT_CARD_FRAGMENT = `
+  fragment ProductCardFragment on Product {
+    id
+    databaseId
+    name
+    slug
+    image { sourceUrl altText }
+    productCategories { nodes { id name slug } }
+    galleryImages(first: 1) { nodes { sourceUrl altText } }
+    ... on SimpleProduct {
+      price(format: RAW)
+      regularPrice(format: RAW)
+      salePrice(format: RAW)
+      stockStatus
+      stockQuantity
+      attributes { 
+        nodes { 
+          name 
+          options 
+        } 
+      }
+    }
+    ... on VariableProduct {
+      price(format: RAW)
+      regularPrice(format: RAW)
+      salePrice(format: RAW)
+      stockStatus
+      stockQuantity
+      image { sourceUrl altText }
+      attributes { 
+        nodes { 
+          name 
+          options 
+        } 
+      }
+    }
+  }
+`;
+
+// ძველი ფრაგმენტი: გამოიყენება მხოლოდ დეტალური გვერდისთვის
 const PRODUCT_FRAGMENT = `
   fragment ProductFragment on Product {
     id
@@ -68,12 +109,13 @@ const PRODUCT_FRAGMENT = `
   }
 `;
 
+// ✅ ცვლილება: ვიყენებთ PRODUCT_CARD_FRAGMENT-ს პროდუქტების სიისთვის
 export const GET_PRODUCTS_QUERY = `
-  ${PRODUCT_FRAGMENT}
+  ${PRODUCT_CARD_FRAGMENT}
   query GetProducts($first: Int!, $where: RootQueryToProductUnionConnectionWhereArgs) {
     products(first: $first, where: $where) {
       nodes {
-        ...ProductFragment
+        ...ProductCardFragment
       }
       pageInfo {
         hasNextPage
@@ -97,6 +139,7 @@ export const GET_FILTERS_QUERY = `
   }
 `;
 
+// ✅ ცვლილება: ვიყენებთ PRODUCT_FRAGMENT-ს (სრულს) კონკრეტული პროდუქტის გვერდისთვის
 export const GET_PRODUCT_BY_SLUG_QUERY = `
   ${PRODUCT_FRAGMENT} 
   query GetProductBySlug($id: ID!) {

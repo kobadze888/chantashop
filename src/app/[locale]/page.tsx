@@ -8,13 +8,11 @@ import { getTranslations } from 'next-intl/server';
 
 function getSecondImage(product: Product): string | null {
   const galleryNodes = product.galleryImages?.nodes;
-  if (!galleryNodes) return null;
-  let secondImage = galleryNodes[0]?.sourceUrl;
-  if (secondImage) return secondImage;
-  secondImage = galleryNodes[1]?.sourceUrl;
-  if (secondImage) return secondImage;
-  secondImage = galleryNodes[2]?.sourceUrl;
-  if (secondImage) return secondImage;
+  // ✅ კორექტირება: ვინაიდან GraphQL-ში ვითხოვთ galleryImages(first: 1)-ს, 
+  // მეორე სურათი არის გალერეის პირველი (ანუ nodes[0])
+  if (galleryNodes && galleryNodes.length > 0) {
+      return galleryNodes[0]?.sourceUrl || null;
+  }
   return null;
 }
 
