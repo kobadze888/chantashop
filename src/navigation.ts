@@ -1,16 +1,36 @@
-// src/navigation.ts
 import {createNavigation} from 'next-intl/navigation';
 import {defineRouting} from 'next-intl/routing';
+
+// ✅ დაემატა ტიპები ყველა გზისთვის
+export type Pathnames = {
+  '/collection': {
+    ka: '/shop';
+    en: '/shop';
+    ru: '/shop';
+  };
+  '/product/[slug]': '/product/[slug]';
+  '/track-order/[id]': '/track-order/[id]';
+  '/': '/';
+  '/cart': '/cart';
+  '/checkout': '/checkout';
+  '/checkout/success': '/checkout/success';
+  '/track-order': '/track-order';
+};
 
 export const routing = defineRouting({
   locales: ['ka', 'en', 'ru'],
   defaultLocale: 'ka',
   localePrefix: 'as-needed',
-  
-  // 🛑 ეს აუცილებელია, რომ ბრაუზერის ენაზე არ გადახტეს
   localeDetection: false, 
 
   pathnames: {
+    '/': '/', 
+    '/cart': '/cart',
+    '/checkout': '/checkout',
+    '/checkout/success': '/checkout/success',
+    '/track-order': '/track-order',
+    '/track-order/[id]': '/track-order/[id]',
+    '/product/[slug]': '/product/[slug]', 
     '/collection': {
       ka: '/shop',
       en: '/shop',
@@ -19,4 +39,4 @@ export const routing = defineRouting({
   },
 });
 
-export const {Link, redirect, usePathname, useRouter} = createNavigation(routing);
+export const {Link, redirect, usePathname, useRouter} = createNavigation<Pathnames>(routing);

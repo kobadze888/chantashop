@@ -129,9 +129,13 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
   const isBuyNowDisabled = !isValidSelection || isProductOutOfStock || quantity === 0;
 
 
+  // ✅ შესწორებული handleBuyNow ლოგიკა
   const handleBuyNow = () => {
       if(!isBuyNowDisabled) {
-          addItem({ ...cartData, quantity });
+          // ვუძახებთ addItem-ს ციკლში, რადგან addItem ფუნქცია იღებს რაოდენობას 1-ს
+          for (let i = 0; i < quantity; i++) {
+              addItem(cartData); 
+          }
           router.push('/checkout');
       }
   };
