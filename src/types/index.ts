@@ -76,4 +76,17 @@ export interface CartItem {
   slug: string;
   selectedOptions?: Record<string, string>;
   stockQuantity?: number;
+  productId?: number; // Added for API consistency
+}
+
+// ახალი ინტერფეისი კალათის ტოტალებისთვის (Checkout-ისთვის)
+export interface CartTotals {
+  total: string;
+  subtotal: string;
+  shippingTotal: string;
+  discountTotal: string;
+  appliedCoupons?: {
+    code: string;
+    discountAmount: string;
+  }[];
 }

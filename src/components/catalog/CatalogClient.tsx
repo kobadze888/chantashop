@@ -151,9 +151,8 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
   
   const filtersActive = activeCategory !== 'all' || activeColor !== 'all' || activeSize !== 'all' || maxPrice < 5000;
 
-  // ✅ შესწორება: დავამატეთ !! ოპერატორი, რომ ტიპი ყოველთვის იყოს boolean
+  // Type-safe check using boolean conversion
   const isSelectedProductOutOfStock = !!selectedProduct && (selectedProduct.stockQuantity === 0 || selectedProduct.stockStatus !== 'IN_STOCK');
-
 
   const getAttrCounts = (products: Product[], attrName: 'pa_color' | 'pa_masala' | 'category') => {
     const counts: Record<string, number> = {};
@@ -229,10 +228,6 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
     { value: 'PRICE_DESC', label: t('Sort.priceHighLow') },
   ];
   
-  // ✅ შესწორება: აქაც ვიყენებთ !!-ს რათა TypeScript დარწმუნდეს რომ selectedProduct არის არა null
-  const selectedProductOutOfStock = !!selectedProduct && (selectedProduct.stockQuantity === 0 || selectedProduct.stockStatus !== 'IN_STOCK');
-
-
   return (
     <>
       {selectedProduct && (
@@ -261,19 +256,26 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
                     <div className="pt-6 border-t border-gray-100 mt-6">
                         <button 
                             onClick={handleAddToCartFromModal} 
-                            disabled={selectedProductOutOfStock} // ✅ აქ გამოვიყენეთ შესწორებული ცვლადი
+                            disabled={isSelectedProductOutOfStock}
                             className="w-full bg-brand-dark text-white py-4 rounded-xl font-bold hover:bg-brand-DEFAULT transition active:scale-95 shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <ShoppingBag className="w-5 h-5" /> 
-                            {selectedProductOutOfStock ? tProduct('outOfStock') : tProduct('addToCart')}
+                            {isSelectedProductOutOfStock ? tProduct('outOfStock') : tProduct('addToCart')}
                         </button>
-                        <Link href={`/product/${selectedProduct.slug}`} className="w-full block text-center text-xs font-bold text-brand-dark mt-4 hover:underline uppercase tracking-wide">მთლიანი პროდუქტის ნახვა</Link>
+                        {/* ✅ FIX: ობიექტური სინტაქსი დინამიური ლინკისთვის */}
+                        <Link 
+                            href={{ pathname: '/product/[slug]', params: { slug: selectedProduct.slug } }} 
+                            className="w-full block text-center text-xs font-bold text-brand-dark mt-4 hover:underline uppercase tracking-wide"
+                        >
+                            მთლიანი პროდუქტის ნახვა
+                        </Link>
                     </div>
                 </div>
             </div>
         </div>
       )}
 
+      {/* ფილტრების და კატალოგის დანარჩენი ნაწილი უცვლელია, მაგრამ აქაც არის შესწორებული Link-ის გამოყენება თუ სადმე იყო */}
       <div 
         id="filter-overlay" 
         className={`fixed inset-0 bg-black/60 z-[80] transition-opacity duration-300 md:hidden ${mobileFiltersOpen ? 'opacity-100 visible' : 'invisible'}`}
@@ -290,6 +292,7 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
             </div>
             
             <div className="space-y-8">
+                {/* Filters Content (Same as before) */}
                 <div>
                     <h4 className="font-bold mb-4 uppercase text-xs tracking-widest text-brand-dark">{t('filters.categories')}</h4>
                     <div className="space-y-3"> 

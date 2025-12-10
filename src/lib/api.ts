@@ -3,7 +3,7 @@ import { WORDPRESS_API_URL } from './constants';
 import { GET_PRODUCTS_QUERY, GET_FILTERS_QUERY, GET_PRODUCT_BY_SLUG_QUERY } from './queries';
 import { Product } from '@/types';
 
-async function fetchAPI(query: string, { variables }: { variables?: any } = {}, revalidateTime: number) {
+async function fetchAPI(query: string, { variables }: { variables?: Record<string, any> } = {}, revalidateTime: number) {
   const headers = { 'Content-Type': 'application/json' };
   
   const fetchOptions: RequestInit = {
@@ -32,7 +32,7 @@ async function fetchAPI(query: string, { variables }: { variables?: any } = {}, 
   }
 }
 
-interface ProductFilters {
+export interface ProductFilters {
   category?: string;
   color?: string;
   material?: string;
@@ -45,16 +45,14 @@ interface ProductFilters {
 export async function getProducts(filters: ProductFilters = {}, locale: string = 'ka'): Promise<Product[]> {
   const { category, color, material, minPrice, maxPrice, limit = 50, sort = 'DATE_DESC' } = filters;
 
-  const whereArgs: any = {};
+  const whereArgs: Record<string, any> = {};
 
-  // ✅ შესწორება: კატეგორია და ატრიბუტები ისევ ერთიან taxonomyFilter-შია
-  // და წაიშალა field: 'SLUG' (რაც შეცდომას იწვევდა)
-  const taxonomyFilter: any = { 
+  // Taxonomy Filter Structure for WPGraphQL
+  const taxonomyFilter: { relation: string; filters: any[] } = { 
     relation: 'AND', 
     filters: [] 
   };
 
-  // 1. კატეგორია (დაბრუნდა taxonomyFilter-ში)
   if (category && category !== 'all') {
     taxonomyFilter.filters.push({ 
       taxonomy: 'PRODUCT_CAT', 
@@ -63,7 +61,6 @@ export async function getProducts(filters: ProductFilters = {}, locale: string =
     });
   }
 
-  // 2. ფერი
   if (color && color !== 'all') {
     taxonomyFilter.filters.push({ 
       taxonomy: 'PA_COLOR', 
@@ -72,7 +69,6 @@ export async function getProducts(filters: ProductFilters = {}, locale: string =
     });
   }
 
-  // 3. მასალა
   if (material && material !== 'all') {
     taxonomyFilter.filters.push({ 
       taxonomy: 'PA_MASALA', 
@@ -81,28 +77,30 @@ export async function getProducts(filters: ProductFilters = {}, locale: string =
     });
   }
 
-  // თუ ფილტრები დაემატა, ვამატებთ არგუმენტებში
   if (taxonomyFilter.filters.length > 0) {
     whereArgs.taxonomyFilter = taxonomyFilter;
   }
 
-  // ფასის ფილტრი
   if (minPrice !== undefined || maxPrice !== undefined) {
     whereArgs.minPrice = minPrice;
     whereArgs.maxPrice = maxPrice;
   }
 
-  // სორტირება
-  if (sort) {
-      if (sort === 'POPULARITY_DESC') whereArgs.orderby = [{ field: 'POPULARITY', order: 'DESC' }]; 
-      else if (sort === 'PRICE_ASC') whereArgs.orderby = [{ field: 'PRICE', order: 'ASC' }];
-      else if (sort === 'PRICE_DESC') whereArgs.orderby = [{ field: 'PRICE', order: 'DESC' }];
-      else whereArgs.orderby = [{ field: 'DATE', order: 'DESC' }];
-  } else {
+  // Sorting Logic
+  switch (sort) {
+    case 'POPULARITY_DESC':
+      whereArgs.orderby = [{ field: 'TOTAL_SALES', order: 'DESC' }]; // Corrected field for popularity
+      break;
+    case 'PRICE_ASC':
+      whereArgs.orderby = [{ field: 'PRICE', order: 'ASC' }];
+      break;
+    case 'PRICE_DESC':
+      whereArgs.orderby = [{ field: 'PRICE', order: 'DESC' }];
+      break;
+    default: // DATE_DESC
       whereArgs.orderby = [{ field: 'DATE', order: 'DESC' }];
   }
 
-  // ენის ფილტრი
   if (locale && locale !== 'all') {
       whereArgs.language = locale.toUpperCase();
   }
