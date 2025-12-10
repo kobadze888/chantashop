@@ -1,4 +1,3 @@
-// src/app/[locale]/checkout/_components/CheckoutClient.tsx
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -101,7 +100,7 @@ export default function CheckoutClient({ locale }: { locale: string }) {
         }
     } catch (error) { 
         console.error("Calculate Totals Error:", error);
-        setServerTotals(prev => ({ ...prev, shippingTotal: "0", total: prev?.subtotal || totalPrice() }));
+        setServerTotals((prev: any) => ({ ...prev, shippingTotal: "0", total: prev?.subtotal || totalPrice() }));
     } 
     finally { setIsCalculating(false); }
   };
@@ -174,7 +173,10 @@ export default function CheckoutClient({ locale }: { locale: string }) {
 
         if (response?.order) {
             clearCart();
-            router.push(`/checkout/success?orderId=${response.order.orderNumber}&email=${formData.email}`); 
+            router.push({
+                pathname: '/checkout/success',
+                query: { orderId: response.order.orderNumber, email: formData.email }
+            });
         } else {
             setGlobalError(t('errorGeneric'));
             setIsLoading(false);

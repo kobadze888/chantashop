@@ -20,8 +20,10 @@ export default function AddToCartButton({ product, stockStatus, disabled = false
 
     const handleAddToCart = () => {
         if (!isButtonDisabled) {
-            for(let i = 0; i < product.quantity; i++) {
-                addItem(product); 
+            const { quantity: qtyToUse, ...itemBase } = product; 
+            
+            for(let i = 0; i < qtyToUse; i++) {
+                addItem(itemBase); 
             }
         }
     };

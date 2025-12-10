@@ -1,17 +1,16 @@
-// src/app/[locale]/track-order/page.tsx
 'use client';
 
 import { useState } from 'react';
 import { useRouter } from '@/navigation';
 import { useTranslations } from 'next-intl';
-import { Search, Loader2, Mail } from 'lucide-react'; // ✅ დაემატა Mail
+import { Search, Loader2, Mail } from 'lucide-react'; 
 
 export default function TrackOrderPage() {
   const t = useTranslations('Tracking');
   const router = useRouter();
   
   const [orderId, setOrderId] = useState('');
-  const [email, setEmail] = useState(''); // ✅ ახალი State
+  const [email, setEmail] = useState(''); 
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -19,8 +18,11 @@ export default function TrackOrderPage() {
     if (!orderId || !email) return;
     
     setIsLoading(true);
-    // გადავდივართ: /track-order/12345?email=user@example.com
-    router.push(`/track-order/${orderId}?email=${encodeURIComponent(email)}`);
+    router.push({
+        pathname: '/track-order/[id]',
+        params: { id: orderId },
+        query: { email: email }
+    });
   };
 
   return (
@@ -30,7 +32,6 @@ export default function TrackOrderPage() {
         <p className="text-gray-500 mb-8">{t('desc')}</p>
 
         <form onSubmit={handleSearch} className="space-y-4">
-            {/* შეკვეთის ნომერი */}
             <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input 
@@ -43,7 +44,6 @@ export default function TrackOrderPage() {
                 />
             </div>
 
-            {/* ✅ ელ-ფოსტა */}
             <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input 

@@ -225,7 +225,8 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
     { value: 'PRICE_DESC', label: t('Sort.priceHighLow') },
   ];
   
-  const isSelectedProductOutOfStock = selectedProduct && (selectedProduct.stockQuantity === 0 || selectedProduct.stockStatus !== 'IN_STOCK');
+  // FIX: Use !! to explicitly convert the value to a boolean to satisfy the 'disabled' prop type.
+  const isSelectedProductOutOfStock: boolean = !!(selectedProduct && (selectedProduct.stockQuantity === 0 || selectedProduct.stockStatus !== 'IN_STOCK'));
 
 
   return (
@@ -255,14 +256,14 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
                     </div>
                     <div className="pt-6 border-t border-gray-100 mt-6">
                         <button 
-                            onClick={handleAddToCartFromModal} 
+                            onClick={handleAddToCartFromModal}
                             disabled={isSelectedProductOutOfStock}
                             className="w-full bg-brand-dark text-white py-4 rounded-xl font-bold hover:bg-brand-DEFAULT transition active:scale-95 shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <ShoppingBag className="w-5 h-5" /> 
                             {isSelectedProductOutOfStock ? tProduct('outOfStock') : tProduct('addToCart')}
                         </button>
-                        <Link href={`/product/${selectedProduct.slug}`} className="w-full block text-center text-xs font-bold text-brand-dark mt-4 hover:underline uppercase tracking-wide">მთლიანი პროდუქტის ნახვა</Link>
+                        <Link href={{ pathname: '/product/[slug]', params: { slug: selectedProduct.slug } }} className="w-full block text-center text-xs font-bold text-brand-dark mt-4 hover:underline uppercase tracking-wide">მთლიანი პროდუქტის ნახვა</Link>
                     </div>
                 </div>
             </div>
@@ -337,11 +338,11 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
                                   <div className="flex items-center justify-between w-full overflow-hidden">
                                       <span className="text-gray-600 group-hover:text-brand-dark transition font-medium text-sm truncate mr-1" title={size.name}>{size.name}</span>
                                       <span className="ml-auto text-xs text-gray-400 font-bold">{size.count}</span>
-                                  </div>
-                              </label>
-                          ))}
-                      </div>
-                  </div>
+                                    </div>
+                                </label>
+                            ))}
+                        </div>
+                    </div>
                 )}
                 
                 <button onClick={handleClearFilters} disabled={!filtersActive} className={`w-full py-3 rounded-xl font-bold mt-8 transition flex items-center justify-center gap-2 ${filtersActive ? 'bg-brand-DEFAULT text-white hover:bg-brand-dark' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}>
@@ -418,12 +419,12 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
                     {isCategoriesOpen && (
                         <div className="grid grid-cols-2 gap-x-6 gap-y-3 animate-fade-in">
                             <label className="flex items-center gap-3 cursor-pointer group col-span-2">
-                                <input type="checkbox" checked={activeCategory === 'all'} onChange={() => handleCategoryChange('all')} className="w-5 h-5 rounded border-gray-300 text-brand-DEFAULT focus:ring-brand-DEFAULT shadow-sm flex-shrink-0" />
+                                <input type="checkbox" checked={activeCategory === 'all'} onChange={() => handleCategoryChange('all')} className="w-5 h-5 rounded border-gray-300 text-brand-DEFAULT focus:ring-brand-DEFAULT" />
                                 <span className="text-gray-600 group-hover:text-brand-dark transition font-medium">{t('filters.all')}</span>
                             </label>
                             {availableCategories.map((cat) => (
                                 <label key={cat.id} className="flex items-center gap-2 cursor-pointer group">
-                                    <input type="checkbox" checked={activeCategory === cat.slug} onChange={() => handleCategoryChange(cat.slug)} className="w-5 h-5 rounded border-gray-300 text-brand-DEFAULT focus:ring-brand-DEFAULT shadow-sm flex-shrink-0" />
+                                    <input type="checkbox" checked={activeCategory === cat.slug} onChange={() => handleCategoryChange(cat.slug)} className="w-5 h-5 rounded border-gray-300 text-brand-DEFAULT focus:ring-brand-DEFAULT" />
                                     <div className="flex items-center justify-between w-full overflow-hidden">
                                         <span className="text-gray-600 group-hover:text-brand-dark transition font-medium text-sm truncate mr-1" title={cat.name}>{cat.name}</span>
                                         <span className="text-[10px] text-gray-400 font-bold bg-gray-50 px-1.5 py-0.5 rounded flex-shrink-0">{cat.count}</span>

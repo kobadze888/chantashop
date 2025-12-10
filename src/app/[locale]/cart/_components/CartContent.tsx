@@ -1,4 +1,3 @@
-// src/app/[locale]/cart/_components/CartContent.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -18,7 +17,7 @@ const formatPrice = (price: number) => {
   }).format(price) + ' ₾';
 };
 
-export default function CartContent({ locale }: { locale: string }) {
+export default function CartContent() {
   const t = useTranslations('Cart');
   const [mounted, setMounted] = useState(false);
   const { items, removeItem, updateQuantity, totalPrice } = useCartStore();
@@ -57,7 +56,7 @@ export default function CartContent({ locale }: { locale: string }) {
       <h1 className="text-4xl md:text-5xl font-serif font-black text-brand-dark mb-10">
         {t('title')} 
         <span className="text-xl md:text-2xl text-gray-400 font-sans ml-4 font-normal">
-            ({items.reduce((acc, i) => acc + i.quantity, 0)} {items.length === 1 ? t('item') : t('items')})
+            ({items.reduce((acc, item) => acc + item.quantity, 0)} {items.length === 1 ? t('item') : t('items')})
         </span>
       </h1>
 
@@ -79,13 +78,13 @@ export default function CartContent({ locale }: { locale: string }) {
           <div className="space-y-6">
             {items.map((item) => (
               <div key={`${item.id}-${JSON.stringify(item.selectedOptions)}`} className="group bg-white p-4 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex gap-6 items-center">
-                <Link href={`/product/${item.slug}`} className="relative w-28 h-32 flex-shrink-0 rounded-2xl overflow-hidden bg-gray-50 border border-gray-100">
+                <Link href={{ pathname: '/product/[slug]', params: { slug: item.slug } }} className="relative w-28 h-32 flex-shrink-0 rounded-2xl overflow-hidden bg-gray-50 border border-gray-100">
                   <Image src={item.image || '/placeholder.jpg'} alt={item.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
                 </Link>
                 <div className="flex-1 flex flex-col justify-between py-1 h-full">
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <Link href={`/product/${item.slug}`} className="font-bold text-brand-dark text-lg md:text-xl hover:text-brand-DEFAULT transition line-clamp-1 font-serif">
+                      <Link href={{ pathname: '/product/[slug]', params: { slug: item.slug } }} className="font-bold text-brand-dark text-lg md:text-xl hover:text-brand-DEFAULT transition line-clamp-1 font-serif">
                         {item.name}
                       </Link>
                       {item.selectedOptions && Object.keys(item.selectedOptions).length > 0 && (

@@ -1,4 +1,3 @@
-// src/lib/actions.ts
 'use server';
 
 import { WORDPRESS_API_URL } from './constants';
@@ -11,7 +10,7 @@ import {
   GET_ORDER_QUERY 
 } from './queries';
 
-const generateMutationId = () => Math.random().toString(36).substring(7);
+const generateMutationId = () => Math.random().toString(36).substring(2, 15);
 const WORDPRESS_ADMIN_TOKEN = process.env.WORDPRESS_ADMIN_TOKEN; 
 
 async function fetchWithSession(query: string, variables: any, sessionToken?: string) {
@@ -48,7 +47,6 @@ async function fetchWithSession(query: string, variables: any, sessionToken?: st
 export async function calculateCartTotals(cartItems: any[], couponCode: string, city: string) {
   let currentSessionToken: string | undefined;
   
-  // 1. კალათის სინქრონიზაცია (უზრუნველყოფს, რომ WooCommerce-ში კალათა იყოს სავსე)
   for (const item of cartItems) {
     const res: any = await fetchWithSession(ADD_TO_CART_MUTATION, {
       input: {
@@ -67,8 +65,6 @@ export async function calculateCartTotals(cartItems: any[], couponCode: string, 
       if (!currentSessionToken) return { errors: [{ message: "Session Error: Could not establish WooCommerce session." }] };
   }
 
-
-  // 2. კუპონის გამოყენება
   if (couponCode) {
     await fetchWithSession(APPLY_COUPON_MUTATION, {
       input: {
@@ -78,7 +74,6 @@ export async function calculateCartTotals(cartItems: any[], couponCode: string, 
     }, currentSessionToken);
   }
 
-  // 3. მომხმარებლის ქალაქის დაყენება (ეს ეტაპი სასიცოცხლოდ მნიშვნელოვანია Shipping Zone-ის დასადგენად)
   if (city) {
     await fetchWithSession(UPDATE_CUSTOMER_MUTATION, {
       input: {
@@ -89,7 +84,6 @@ export async function calculateCartTotals(cartItems: any[], couponCode: string, 
     }, currentSessionToken);
   }
 
-  // 4. კალათის ჯამური თანხის მოთხოვნა (ახალი Shipping-ის ჩათვლით)
   const cartRes: any = await fetchWithSession(GET_CART_TOTALS_QUERY, {}, currentSessionToken);
 
   return { 
@@ -101,7 +95,6 @@ export async function calculateCartTotals(cartItems: any[], couponCode: string, 
 export async function placeOrder(orderInput: any, cartItems: any[], couponCode?: string, existingSession?: string) {
   let currentSessionToken = existingSession;
   
-  // იმეორებს კალათის შევსების ლოგიკას, რათა შეკვეთის გაფორმებისას კალათა იყოს აქტუალური
   if (!currentSessionToken) {
      for (const item of cartItems) {
         const res: any = await fetchWithSession(ADD_TO_CART_MUTATION, {

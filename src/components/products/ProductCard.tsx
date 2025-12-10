@@ -31,7 +31,7 @@ interface ProductCardProps {
   onQuickView?: (e: React.MouseEvent) => void;
 }
 
-function isValidImageUrl(url: string | undefined): boolean {
+function isValidImageUrl(url: string | undefined | null): boolean {
   if (!url) return false;
   const validUrlRegex = /\.(jpe?g|png|gif|webp|svg)$/i;
   return url.length > 5 && validUrlRegex.test(url);
@@ -63,15 +63,16 @@ export default function ProductCard({ id, name, price, salePrice, regularPrice, 
       router.push('/checkout');
   };
 
+  // ✅ FIX: router.push-ის განახლება ობიექტურ სინტაქსზე
   const handleFullView = (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      router.push(`/product/${slug}`);
+      router.push({ pathname: '/product/[slug]', params: { slug } });
   };
 
   const colorAttribute = attributes?.nodes?.find((attr: any) => attr.name === 'pa_color');
   const colorOptions = colorAttribute?.options || [];
-  const hoverImageSource = isValidImageUrl(secondImage) ? secondImage : null;
+  const hoverImageSource = isValidImageUrl(secondImage) ? secondImage : undefined; 
   
   const isOutOfStock = stockQuantity === 0 || stockStatus !== 'IN_STOCK';
 
@@ -85,9 +86,9 @@ export default function ProductCard({ id, name, price, salePrice, regularPrice, 
       {/* --- Image Section --- */}
       <div className="relative mb-3 md:mb-4 aspect-[4/5] rounded-[1.2rem] md:rounded-[1.5rem] overflow-hidden bg-gray-50 product-card-image-wrapper isolate">
           
-          {/* Main Link (Absolute Cover) - Fixes Nesting & Layout */}
+          {/* Main Link (Absolute Cover) - Object Syntax */}
           <Link 
-            href={`/product/${slug}`} 
+            href={{ pathname: '/product/[slug]', params: { slug } }} 
             className={`absolute inset-0 z-10 ${isOutOfStock ? 'cursor-not-allowed' : ''}`} 
             onClick={(e) => isOutOfStock && e.preventDefault()} 
           />
@@ -160,9 +161,9 @@ export default function ProductCard({ id, name, price, salePrice, regularPrice, 
 
       {/* --- Content Section --- */}
       <div className="flex-1 flex flex-col px-0.5 md:px-1">
-          {/* Title */}
+          {/* Title - Object Syntax */}
           <Link 
-            href={`/product/${slug}`} 
+            href={{ pathname: '/product/[slug]', params: { slug } }} 
             className={`font-bold text-brand-dark text-sm md:text-[15px] leading-tight mb-2 md:mb-3 hover:text-brand-DEFAULT transition-colors line-clamp-2 min-h-[2.5em] ${isOutOfStock ? 'pointer-events-none text-gray-400' : ''}`}
             title={name}
           >

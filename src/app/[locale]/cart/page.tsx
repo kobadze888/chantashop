@@ -1,8 +1,5 @@
-// src/app/[locale]/cart/page.tsx
-
 import { Metadata } from 'next';
-// დავამატეთ .tsx გაფართოება Module Not Found შეცდომის თავიდან ასაცილებლად
-import CartContent from './_components/CartContent.tsx';
+import CartContent from './_components/CartContent';
 
 export const metadata: Metadata = {
   title: 'ჩემი კალათა | ChantaShop.ge',
