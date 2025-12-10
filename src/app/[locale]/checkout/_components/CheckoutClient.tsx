@@ -196,7 +196,14 @@ export default function CheckoutClient({ locale }: { locale: string }) {
 
         if (response?.order) {
             clearCart();
-            router.push(`/checkout/success?orderId=${response.order.orderNumber}&email=${formData.email}`); 
+            // ✅ FIX: query პარამეტრების ობიექტის სახით გადაცემა
+            router.push({
+                pathname: '/checkout/success',
+                query: {
+                    orderId: response.order.orderNumber,
+                    email: formData.email
+                }
+            });
         } else {
             setGlobalError(t('errorGeneric'));
             setIsLoading(false);
