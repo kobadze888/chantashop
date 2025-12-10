@@ -9,7 +9,7 @@ export type Pathnames = {
     en: '/shop';
     ru: '/shop';
   };
-  // ✅ დაემატა დინამიური გზა
+  // ✅ დაემატა დინამიური გზები
   '/product/[slug]': '/product/[slug]';
   '/': '/';
   '/cart': '/cart';
@@ -27,14 +27,15 @@ export const routing = defineRouting({
   
   localeDetection: false, 
 
+  // ✅ ყველა სტატიკური და დინამიური გზა დამატებულია
   pathnames: {
-    '/': '/', // დავამატოთ სტატიკური გზებიც
+    '/': '/', 
     '/cart': '/cart',
     '/checkout': '/checkout',
     '/checkout/success': '/checkout/success',
     '/track-order': '/track-order',
     '/track-order/[id]': '/track-order/[id]',
-    '/product/[slug]': '/product/[slug]', // დავამატოთ დინამიური გზა
+    '/product/[slug]': '/product/[slug]', 
     '/collection': {
       ka: '/shop',
       en: '/shop',

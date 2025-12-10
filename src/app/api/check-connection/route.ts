@@ -5,14 +5,12 @@ export async function GET() {
   const start = performance.now();
   
   try {
-    const [products, filters] = await Promise.all([ // ✅ დავარქვით 'filters'
+    const [products, filters] = await Promise.all([
       getProducts(5),
       getFilters() // ✅ გამოვიძახეთ სწორი ფუნქცია
     ]);
 
-    // ✅ ამოვიღეთ კატეგორიები ობიექტიდან
-    const categories = filters.categories; 
-
+    const categories = filters.categories; // ✅ ამოვიღეთ კატეგორიები ობიექტიდან
     const duration = performance.now() - start;
 
     return NextResponse.json({
