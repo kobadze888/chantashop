@@ -120,7 +120,10 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
     price: displayPrice,
     image: displayImage,
     slug: product.slug,
-    selectedOptions: selectedColor ? { Color: selectedColorName || selectedColor } : {},
+    // ✅ Fix: Ensure strict typing and no undefined for selectedOptions
+    selectedOptions: selectedColor 
+        ? { Color: selectedColorName || selectedColor || "" } 
+        : {} as Record<string, string>,
     stockQuantity: displayStockQuantity,
   };
   
@@ -129,7 +132,6 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
   const isBuyNowDisabled = !isValidSelection || isProductOutOfStock || quantity === 0;
 
 
-  // ✅ შესწორებული handleBuyNow ლოგიკა
   const handleBuyNow = () => {
       if(!isBuyNowDisabled) {
           // ვუძახებთ addItem-ს ციკლში, რადგან addItem ფუნქცია იღებს რაოდენობას 1-ს
