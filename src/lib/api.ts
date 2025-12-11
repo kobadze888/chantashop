@@ -5,7 +5,10 @@ import {
   GET_FILTERS_QUERY, 
   GET_PRODUCT_BY_SLUG_QUERY, 
   GET_PAGE_QUERY, 
-  GET_PAGE_BY_SLUG_NAME_QUERY, // ✅ იმპორტი განახლდა
+  GET_PAGE_BY_SLUG_NAME_QUERY, 
+  GET_SHOP_PAGE_WITH_TRANSLATIONS,
+  GET_SITEMAP_DATA_QUERY,
+  TAXONOMY_SEO_FRAGMENT,
   GET_CATEGORY_SEO_QUERY,
   GET_COLOR_SEO_QUERY,
   GET_MATERIAL_SEO_QUERY
@@ -14,18 +17,14 @@ import { Product, FilterTerm } from '@/types';
 
 async function fetchAPI(query: string, { variables }: { variables?: any } = {}, revalidateTime: number) {
   const headers = { 'Content-Type': 'application/json' };
-  
   const fetchOptions: RequestInit = {
     method: 'POST',
     headers,
     body: JSON.stringify({ query, variables }),
   };
 
-  if (revalidateTime === 0) {
-    fetchOptions.cache = 'no-store';
-  } else {
-    fetchOptions.next = { revalidate: revalidateTime };
-  }
+  if (revalidateTime === 0) fetchOptions.cache = 'no-store';
+  else fetchOptions.next = { revalidate: revalidateTime };
 
   try {
     const res = await fetch(WORDPRESS_API_URL, fetchOptions);
@@ -41,13 +40,14 @@ async function fetchAPI(query: string, { variables }: { variables?: any } = {}, 
   }
 }
 
-// 1. პროდუქტების წამოღება (დინამიური ენით)
-export async function getProducts(filters: any = {}, locale: string = 'ka'): Promise<Product[]> {
-  const { category, color, material, minPrice, maxPrice, limit = 50, sort = 'DATE_DESC' } = filters;
+function snakeToCamel(str: string) {
+  return str.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
+}
 
+export async function getProducts(filters: any = {}, locale: string = 'ka'): Promise<Product[]> {
+  const { category, minPrice, maxPrice, limit = 50, sort = 'DATE_DESC', attributes } = filters;
   const whereArgs: any = {};
   
-  // ✅ ენა დინამიურია (KA, EN, RU)
   if (locale && locale !== 'all') {
     whereArgs.language = locale.toUpperCase(); 
   }
@@ -57,11 +57,22 @@ export async function getProducts(filters: any = {}, locale: string = 'ka'): Pro
   if (category && category !== 'all') {
     taxonomyFilter.filters.push({ taxonomy: 'PRODUCT_CAT', terms: [category], operator: 'IN' });
   }
-  if (color && color !== 'all') {
-    taxonomyFilter.filters.push({ taxonomy: 'PA_COLOR', terms: [color], operator: 'IN' });
+
+  if (attributes && Array.isArray(attributes)) {
+    attributes.forEach((attr: any) => {
+      taxonomyFilter.filters.push({
+        taxonomy: attr.taxonomy,
+        terms: attr.terms,
+        operator: 'IN'
+      });
+    });
   }
-  if (material && material !== 'all') {
-    taxonomyFilter.filters.push({ taxonomy: 'PA_MASALA', terms: [material], operator: 'IN' });
+
+  if (filters.color && filters.color !== 'all') {
+    taxonomyFilter.filters.push({ taxonomy: 'PA_COLOR', terms: [filters.color], operator: 'IN' });
+  }
+  if (filters.material && filters.material !== 'all') {
+    taxonomyFilter.filters.push({ taxonomy: 'PA_MASALA', terms: [filters.material], operator: 'IN' });
   }
 
   if (taxonomyFilter.filters.length > 0) {
@@ -86,13 +97,15 @@ export async function getProducts(filters: any = {}, locale: string = 'ka'): Pro
   return data?.products?.nodes || [];
 }
 
-export async function getFilters(): Promise<{ categories: FilterTerm[]; colors: FilterTerm[]; sizes: FilterTerm[] } | null> {
+export async function getFilters(): Promise<{ categories: FilterTerm[]; colors: FilterTerm[]; sizes: FilterTerm[]; dynamicTerms: any[] } | null> {
   const data = await fetchAPI(GET_FILTERS_QUERY, {}, 86400);
   if (!data) return null;
+  const allTerms = data.terms?.nodes || [];
   return {
     categories: data.productCategories?.nodes || [],
-    colors: data.allPaColor?.nodes || [],
-    sizes: data.allPaMasala?.nodes || [] 
+    colors: allTerms.filter((t: any) => t.taxonomyName === 'pa_color'),
+    sizes: allTerms.filter((t: any) => t.taxonomyName === 'pa_masala'),
+    dynamicTerms: allTerms
   };
 }
 
@@ -101,35 +114,64 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
   return data?.product || null;
 }
 
-// 2. გვერდის მონაცემები URI-ით (Home გვერდისთვის)
 export async function getPageByUri(uri: string) {
   const data = await fetchAPI(GET_PAGE_QUERY, { variables: { id: uri } }, 3600);
   return data?.page || null;
 }
 
-// ✅ 3. გვერდის მონაცემები SLUG-ით (Shop გვერდისთვის - ყველაზე საიმედო მეთოდი)
-// ჩვენ ვეძებთ `pages`-ში ფილტრით { name: "shop" }, რაც თავს არიდებს URI-ს პრობლემებს.
 export async function getPageBySlugReal(slug: string) {
   const data = await fetchAPI(GET_PAGE_BY_SLUG_NAME_QUERY, { variables: { slug: slug } }, 3600);
-  // pages აბრუნებს მასივს, ვიღებთ პირველ ელემენტს
   return data?.pages?.nodes?.[0] || null;
 }
 
-// ალიასი
 export const getPageBySlug = getPageByUri;
 
-// 4. ტაქსონომიის SEO
-export async function getTaxonomySeo(taxonomy: 'category' | 'color' | 'material', slug: string) {
-  let query = '';
-  switch (taxonomy) {
-    case 'category': query = GET_CATEGORY_SEO_QUERY; break;
-    case 'color': query = GET_COLOR_SEO_QUERY; break;
-    case 'material': query = GET_MATERIAL_SEO_QUERY; break;
-  }
-  const data = await fetchAPI(query, { variables: { id: slug } }, 3600);
+export async function getShopSeo(locale: string) {
+  const data = await fetchAPI(GET_SHOP_PAGE_WITH_TRANSLATIONS, {}, 3600);
+  const mainShopPage = data?.pages?.nodes?.[0];
+  if (!mainShopPage) return null;
+  const targetLang = locale.toUpperCase();
+  if (mainShopPage.language?.code === targetLang) return mainShopPage;
+  const translation = mainShopPage.translations?.find((t: any) => t.language?.code === targetLang);
+  return translation || mainShopPage;
+}
+
+// ✅ განახლებული: აბრუნებს 'terms'-ს
+export async function getSitemapData() {
+  const data = await fetchAPI(GET_SITEMAP_DATA_QUERY, {}, 3600);
+  return {
+    products: data?.products?.nodes || [],
+    pages: data?.pages?.nodes || [],
+    terms: data?.terms?.nodes || [] // ✅ ეს აკლდა და მაგიტომ იყო ერორი
+  };
+}
+
+export async function getTaxonomySeo(taxonomy: string, slug: string) {
+  let graphQLField = '';
   
-  if (taxonomy === 'category') return data?.productCategory;
-  if (taxonomy === 'color') return data?.paColor;
-  if (taxonomy === 'material') return data?.paMasala;
-  return null;
+  // ცნობილი ტაქსონომიების სახელების შესწორება
+  if (taxonomy === 'category') graphQLField = 'productCategory'; // category -> productCategory
+  else if (taxonomy === 'color') graphQLField = 'paColor'; // color -> paColor
+  else if (taxonomy === 'material') graphQLField = 'paMasala'; // material -> paMasala
+  
+  // დინამიური
+  else if (taxonomy === 'product_cat') graphQLField = 'productCategory';
+  else if (taxonomy === 'product_tag') graphQLField = 'productTag';
+  else graphQLField = snakeToCamel(taxonomy); 
+
+  const DYNAMIC_QUERY = `
+    ${TAXONOMY_SEO_FRAGMENT}
+    query GetDynamicTaxonomy($id: ID!) {
+      ${graphQLField}(id: $id, idType: SLUG) {
+        id
+        name
+        slug
+        description
+        seo { ...TaxonomySeoFragment }
+      }
+    }
+  `;
+
+  const data = await fetchAPI(DYNAMIC_QUERY, { variables: { id: slug } }, 3600);
+  return data?.[graphQLField];
 }

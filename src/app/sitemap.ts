@@ -1,72 +1,72 @@
 // src/app/sitemap.ts
 import { MetadataRoute } from 'next';
-import { getProducts, getFilters } from '@/lib/api';
-import { FilterTerm, Product } from '@/types';
+import { getSitemapData } from '@/lib/api';
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://chantashop.ge';
 const locales = ['ka', 'en', 'ru'];
 
+const excludePages = ['cart', 'checkout', 'my-account', 'order-received', 'success', 'track-order'];
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const products = await getProducts({ limit: 1000, sort: 'DATE_DESC' }, 'ka') || [];
-  const filters = await getFilters() || { categories: [], colors: [], sizes: [] };
+  const sitemapData = await getSitemapData();
+
+  const products = sitemapData?.products || [];
+  const pages = sitemapData?.pages || [];
+  const terms = sitemapData?.terms || []; // ✅
 
   const sitemapEntries: MetadataRoute.Sitemap = [];
 
-  // 1. სტატიკური გვერდები
-  // ✅ /collection შეიცვალა /shop-ით
-  const staticPages = ['', '/shop', '/brands', '/sale'];
-
-  staticPages.forEach((route) => {
+  const addEntry = (path: string, modifiedDate?: string, priority = 0.7, changeFreq: 'daily' | 'weekly' | 'monthly' = 'weekly') => {
     locales.forEach((locale) => {
+      const localePath = locale === 'ka' ? '' : `/${locale}`;
+      const cleanPath = path.startsWith('/') ? path : `/${path}`;
+      let finalUrl = `${baseUrl}${localePath}${cleanPath}`;
+      
+      if (finalUrl.endsWith('/') && finalUrl !== baseUrl + '/') finalUrl = finalUrl.slice(0, -1);
+
       sitemapEntries.push({
-        url: `${baseUrl}/${locale}${route}`,
-        lastModified: new Date(),
-        changeFrequency: 'daily',
-        priority: route === '' ? 1 : 0.8,
+        url: finalUrl,
+        lastModified: modifiedDate ? new Date(modifiedDate) : new Date(),
+        changeFrequency: changeFreq,
+        priority: priority,
       });
     });
+  };
+
+  // 1. Pages
+  pages.forEach((page: any) => {
+    if (excludePages.includes(page.slug)) return;
+    let path = page.slug;
+    let priority = 0.8;
+
+    if (path === 'home' || path === 'front-page' || path === 'mtavari') { path = '/'; priority = 1.0; }
+    if (path.includes('shop') || path === 'collection' || path === 'full-catalog') { path = 'shop'; priority = 0.9; }
+    
+    addEntry(path, page.modified, priority, 'daily');
   });
 
-  // 2. პროდუქტები
-  if (products.length > 0) {
-    products.forEach((product: Product) => {
-      locales.forEach((locale) => {
-        sitemapEntries.push({
-          url: `${baseUrl}/${locale}/product/${product.slug}`,
-          lastModified: new Date(),
-          changeFrequency: 'weekly',
-          priority: 0.9,
-        });
-      });
-    });
-  }
+  if (!pages.some((p: any) => p.slug.includes('shop'))) addEntry('/shop', undefined, 0.9, 'daily');
 
-  // ... (კატეგორიები და ფერები რჩება იგივე)
-  if (filters.categories.length > 0) {
-    filters.categories.forEach((cat: FilterTerm) => {
-      locales.forEach((locale) => {
-        sitemapEntries.push({
-          url: `${baseUrl}/${locale}/product-category/${cat.slug}`,
-          lastModified: new Date(),
-          changeFrequency: 'weekly',
-          priority: 0.7,
-        });
-      });
-    });
-  }
+  // 2. Products
+  products.forEach((product: any) => {
+    addEntry(`/product/${product.slug}`, product.modified, 0.9, 'weekly');
+  });
 
-  if (filters.colors.length > 0) {
-    filters.colors.forEach((color: FilterTerm) => {
-      locales.forEach((locale) => {
-        sitemapEntries.push({
-          url: `${baseUrl}/${locale}/color/${color.slug}`,
-          lastModified: new Date(),
-          changeFrequency: 'weekly',
-          priority: 0.6,
-        });
-      });
-    });
-  }
+  // 3. Dynamic Terms
+  terms.forEach((term: any) => {
+    const tax = term.taxonomyName; 
 
-  return sitemapEntries;
+    if (tax === 'product_cat') {
+      addEntry(`/product-category/${term.slug}`, undefined, 0.7, 'weekly');
+    } else if (tax.startsWith('pa_')) {
+      const attrName = tax.replace('pa_', '');
+      addEntry(`/${attrName}/${term.slug}`, undefined, 0.6, 'weekly');
+    }
+  });
+
+  const uniqueEntries = Array.from(
+    new Map(sitemapEntries.map((item) => [item.url, item])).values()
+  );
+
+  return uniqueEntries;
 }
