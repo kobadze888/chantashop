@@ -1,3 +1,4 @@
+// src/navigation.ts
 import {createNavigation} from 'next-intl/navigation';
 import {defineRouting} from 'next-intl/routing';
 
@@ -26,6 +27,9 @@ export const routing = defineRouting({
       en: '/product/[slug]',
       ru: '/product/[slug]',
     },
+    // 👇 დაამატე ეს ორი ხაზი:
+    '/product-category/[slug]': '/product-category/[slug]',
+    '/[attribute]/[slug]': '/[attribute]/[slug]', 
   },
 });
 
