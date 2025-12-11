@@ -29,11 +29,8 @@ async function fetchAPI(query: string, { variables }: { variables?: any } = {}, 
   try {
     const res = await fetch(WORDPRESS_API_URL, fetchOptions);
     const json = await res.json();
-    
-    // 🛑 შეცდომების ლოგირება (ტერმინალში გამოჩნდება)
     if (json.errors) {
       console.error('❌ WPGraphQL Error:', JSON.stringify(json.errors, null, 2));
-      // თუ SEO ველების პრობლემაა, ვაბრუნებთ null-ს
       return null;
     }
     return json.data;
@@ -43,19 +40,37 @@ async function fetchAPI(query: string, { variables }: { variables?: any } = {}, 
   }
 }
 
-// 1. პროდუქტების წამოღება (ენის ფილტრის გარეშე, სტაბილურობისთვის)
+// 1. პროდუქტების წამოღება
 export async function getProducts(filters: any = {}, locale: string = 'ka'): Promise<Product[]> {
   const { category, color, material, minPrice, maxPrice, limit = 50, sort = 'DATE_DESC' } = filters;
 
   const whereArgs: any = {};
+  
+  // ✅ ენის ფილტრი (მკაცრი)
+  if (locale && locale !== 'all') {
+    whereArgs.language = locale.toUpperCase(); // 'ka' -> 'KA'
+  }
+
   const taxonomyFilter: any = { relation: 'AND', filters: [] };
 
-  if (category && category !== 'all') taxonomyFilter.filters.push({ taxonomy: 'PRODUCT_CAT', terms: [category], operator: 'IN' });
-  if (color && color !== 'all') taxonomyFilter.filters.push({ taxonomy: 'PA_COLOR', terms: [color], operator: 'IN' });
-  if (material && material !== 'all') taxonomyFilter.filters.push({ taxonomy: 'PA_MASALA', terms: [material], operator: 'IN' });
+  if (category && category !== 'all') {
+    taxonomyFilter.filters.push({ taxonomy: 'PRODUCT_CAT', terms: [category], operator: 'IN' });
+  }
+  if (color && color !== 'all') {
+    taxonomyFilter.filters.push({ taxonomy: 'PA_COLOR', terms: [color], operator: 'IN' });
+  }
+  if (material && material !== 'all') {
+    taxonomyFilter.filters.push({ taxonomy: 'PA_MASALA', terms: [material], operator: 'IN' });
+  }
 
-  if (taxonomyFilter.filters.length > 0) whereArgs.taxonomyFilter = taxonomyFilter;
-  if (minPrice !== undefined || maxPrice !== undefined) { whereArgs.minPrice = minPrice; whereArgs.maxPrice = maxPrice; }
+  if (taxonomyFilter.filters.length > 0) {
+    whereArgs.taxonomyFilter = taxonomyFilter;
+  }
+
+  if (minPrice !== undefined || maxPrice !== undefined) {
+    whereArgs.minPrice = minPrice;
+    whereArgs.maxPrice = maxPrice;
+  }
 
   if (sort) {
       if (sort === 'POPULARITY_DESC') whereArgs.orderby = [{ field: 'POPULARITY', order: 'DESC' }]; 
@@ -65,9 +80,6 @@ export async function getProducts(filters: any = {}, locale: string = 'ka'): Pro
   } else {
       whereArgs.orderby = [{ field: 'DATE', order: 'DESC' }];
   }
-
-  // ⚠️ ენის ფილტრი გავთიშეთ, რადგან Polylang-თან კონფლიქტში არ მოვიდეს
-  // whereArgs.language = locale.toUpperCase();
 
   const data = await fetchAPI(GET_PRODUCTS_QUERY, { variables: { first: limit, where: whereArgs } }, 60);
   return data?.products?.nodes || [];
@@ -88,16 +100,23 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
   return data?.product || null;
 }
 
-// 2. გვერდის მონაცემები (SEO-სთვის)
+// 2. გვერდის მონაცემები URI-ით (უკვე სწორია)
 export async function getPageByUri(uri: string) {
   const data = await fetchAPI(GET_PAGE_QUERY, { variables: { id: uri } }, 3600);
   return data?.page || null;
 }
 
-// ✅ ალიასი, რომ ბილდი არ გავარდეს
-export const getPageBySlug = getPageByUri; 
+// ✅ 3. გვერდის მონაცემები SLUG-ით (შესწორებული)
+// ეს ფუნქცია იღებს სლაგს (მაგ: 'shop'), გადააქცევს URI-დ (მაგ: '/shop/') და იყენებს URI Query-ს.
+export async function getPageBySlugReal(slug: string) {
+  const uri = slug.startsWith('/') ? slug : `/${slug}/`;
+  const data = await fetchAPI(GET_PAGE_QUERY, { variables: { id: uri } }, 3600);
+  return data?.page || null;
+}
 
-// 3. ტაქსონომიის SEO (კატეგორია/ფერი)
+export const getPageBySlug = getPageByUri;
+
+// 4. ტაქსონომიის SEO
 export async function getTaxonomySeo(taxonomy: 'category' | 'color' | 'material', slug: string) {
   let query = '';
   switch (taxonomy) {

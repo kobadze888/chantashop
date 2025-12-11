@@ -1,6 +1,6 @@
 // src/app/[locale]/shop/page.tsx
 import { Metadata } from 'next';
-import { getProducts, getFilters, getPageByUri } from '@/lib/api';
+import { getProducts, getFilters, getPageBySlugReal } from '@/lib/api';
 import CatalogClient from '@/components/catalog/CatalogClient';
 import { FilterTerm } from '@/types';
 
@@ -9,27 +9,30 @@ type Props = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
-// ✅ Shop გვერდის SEO
+// ✅ Shop გვერდის SEO (ისევ ვიყენებთ სლაგს, რადგან უფრო საიმედოა)
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   
-  // ka -> '/shop/', en -> '/en/shop/'
-  const uri = locale === 'ka' ? '/shop/' : `/${locale}/shop/`;
-  const pageData = await getPageByUri(uri);
+  // ვეძებთ გვერდს სლაგით "shop"
+  const pageData = await getPageBySlugReal('shop');
 
-  const title = pageData?.seo?.title || 'მაღაზია | ChantaShop';
-  const desc = pageData?.seo?.metaDesc || 'საუკეთესო ჩანთები და აქსესუარები.';
+  if (pageData?.seo) {
+    return {
+      title: pageData.seo.title,
+      description: pageData.seo.metaDesc,
+      openGraph: {
+        title: pageData.seo.opengraphTitle || pageData.seo.title,
+        description: pageData.seo.opengraphDescription || pageData.seo.metaDesc,
+        images: pageData.seo.opengraphImage?.sourceUrl ? [pageData.seo.opengraphImage.sourceUrl] : [],
+        locale: locale,
+        type: 'website',
+      }
+    };
+  }
 
   return {
-    title: title,
-    description: desc,
-    openGraph: {
-      title: pageData?.seo?.opengraphTitle || title,
-      description: pageData?.seo?.opengraphDescription || desc,
-      images: pageData?.seo?.opengraphImage?.sourceUrl ? [pageData.seo.opengraphImage.sourceUrl] : [],
-      locale: locale,
-      type: 'website',
-    }
+    title: 'მაღაზია | ChantaShop',
+    description: 'საუკეთესო ჩანთები და აქსესუარები.',
   };
 }
 
@@ -48,7 +51,7 @@ export default async function ShopPage({
   const maxPrice = typeof resolvedSearchParams.maxPrice === 'string' ? Number(resolvedSearchParams.maxPrice) : undefined;
   const sort = typeof resolvedSearchParams.sort === 'string' ? resolvedSearchParams.sort : 'DATE_DESC';
 
-  // API მოთხოვნა
+  // API მოთხოვნა (დინამიური ენით)
   const [productsRaw, filters] = await Promise.all([
     getProducts({ 
       category: category !== 'all' ? category : undefined,
@@ -65,7 +68,9 @@ export default async function ShopPage({
   const products = productsRaw || [];
   const safeFilters = filters || { categories: [], colors: [], sizes: [] };
 
-  const targetLang = locale.toUpperCase();
+  // ✅ დინამიური ფილტრაცია: მარცხენა მენიუში გამოჩნდება მხოლოდ იმ ენის კატეგორიები, რომელზეც ვართ
+  const targetLang = locale.toUpperCase(); 
+  
   const filterByLang = (item: FilterTerm) => 
     !item.safeLanguage || item.safeLanguage === "" || item.safeLanguage === targetLang;
 

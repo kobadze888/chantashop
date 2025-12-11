@@ -14,31 +14,33 @@ function getSecondImage(product: Product): string | null {
   return galleryNodes[0]?.sourceUrl || null;
 }
 
-// ✅ დინამიური SEO მთავარი გვერდისთვის (ენის მიხედვით)
+// ✅ მთავარი გვერდის დინამიური SEO
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   
-  // ka -> '/' (მთავარი), en -> '/en/'
+  // განსაზღვრეთ URI
+  // ქართულისთვის (ka) - '/', ინგლისურისთვის (en) - '/en/'
   const uri = locale === 'ka' ? '/' : `/${locale}/`;
+  
+  // მონაცემების წამოღება
   const pageData = await getPageByUri(uri);
 
-  // თუ გვერდი ვერ იპოვა, ვაბრუნებთ დეფოლტს
-  if (!pageData) {
-      console.warn(`SEO Warning: Homepage not found for locale ${locale} at URI ${uri}`);
-      return { title: 'ChantaShop - Iconic Luxury' };
+  if (pageData?.seo) {
+    return {
+      title: pageData.seo.title,
+      description: pageData.seo.metaDesc,
+      openGraph: {
+        title: pageData.seo.opengraphTitle || pageData.seo.title,
+        description: pageData.seo.opengraphDescription || pageData.seo.metaDesc,
+        images: pageData.seo.opengraphImage?.sourceUrl ? [pageData.seo.opengraphImage.sourceUrl] : [],
+        locale: locale,
+        type: 'website',
+      }
+    };
   }
 
-  return {
-    title: pageData.seo?.title || 'ChantaShop',
-    description: pageData.seo?.metaDesc,
-    openGraph: {
-      title: pageData.seo?.opengraphTitle,
-      description: pageData.seo?.opengraphDescription,
-      images: pageData.seo?.opengraphImage?.sourceUrl ? [pageData.seo.opengraphImage.sourceUrl] : [],
-      locale: locale,
-      type: 'website',
-    }
-  };
+  // Fallback (თუ WP-ში მთავარი გვერდი ვერ იპოვა)
+  return { title: 'ChantaShop - Iconic Luxury' };
 }
 
 export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
