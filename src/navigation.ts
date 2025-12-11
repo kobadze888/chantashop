@@ -27,9 +27,9 @@ export const routing = defineRouting({
       en: '/product/[slug]',
       ru: '/product/[slug]',
     },
-    // 👇 დაამატე ეს ორი ხაზი:
     '/product-category/[slug]': '/product-category/[slug]',
-    '/[attribute]/[slug]': '/[attribute]/[slug]', 
+    // 👇 შევცვალეთ ეს ხაზი Catch-all-ზე, რათა დაიჭიროს ყველაფერი დანარჩენი:
+    '/[...slug]': '/[...slug]', 
   },
 });
 

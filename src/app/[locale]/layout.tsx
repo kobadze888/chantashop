@@ -10,9 +10,18 @@ import "../globals.css";
 const inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
 const playfair = Playfair_Display({ subsets: ["latin"], variable: '--font-playfair' });
 
+// Base URL აუცილებელია SEO-სთვის
 export const metadata: Metadata = {
-  title: "ChantaShop - Iconic Luxury",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://chantashop.ge'),
+  title: {
+    default: "ChantaShop - Iconic Luxury",
+    template: "%s | ChantaShop",
+  },
   description: "Premium Bags and Accessories",
+  openGraph: {
+    siteName: 'ChantaShop',
+    type: 'website',
+  },
 };
 
 export default async function RootLayout({
@@ -20,9 +29,9 @@ export default async function RootLayout({
   params
 }: {
   children: React.ReactNode;
-  params: Promise<{ locale: string }>;
+  params: Promise<{ locale: string }>; // Promise ტიპი
 }) {
-  const { locale } = await params;
+  const { locale } = await params; // await
   const messages = await getMessages();
 
   return (

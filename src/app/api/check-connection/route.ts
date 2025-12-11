@@ -10,17 +10,18 @@ export async function GET() {
       getFilters()
     ]);
 
-    const categories = filters.categories;
+    // ✅ FIX: უსაფრთხო შემოწმება (Null Check)
+    const categories = filters ? filters.categories : [];
 
     const duration = performance.now() - start;
 
     return NextResponse.json({
       status: 'Connected 🟢',
       responseTime: `${duration.toFixed(2)}ms`,
-      productsCount: products.length,
+      productsCount: products ? products.length : 0,
       categoriesCount: categories.length,
-      sampleProduct: products[0] || 'No products found',
-      sampleCategory: categories[0] || 'No categories found',
+      sampleProduct: products && products.length > 0 ? products[0] : 'No products found',
+      sampleCategory: categories.length > 0 ? categories[0] : 'No categories found',
     });
 
   } catch (error) {

@@ -108,6 +108,31 @@ export const GET_PRODUCT_BY_SLUG_QUERY = `
   }
 `;
 
+// ✅ ახალი: გვერდის (Page) წამოღება
+export const GET_PAGE_QUERY = `
+  query GetPage($id: ID!) {
+    page(id: $id, idType: URI) {
+      title
+      content
+      slug
+      seo { title metaDesc }
+    }
+  }
+`;
+
+// ✅ ახალი: კატეგორიის/ტერმინის დეტალები
+export const GET_CATEGORY_SINGLE_QUERY = `
+  query GetCategory($id: ID!) {
+    productCategory(id: $id, idType: SLUG) {
+      id
+      name
+      slug
+      description
+      seo { title metaDesc }
+    }
+  }
+`;
+
 export const CHECKOUT_MUTATION = `
   mutation Checkout($input: CheckoutInput!) {
     checkout(input: $input) {
