@@ -22,7 +22,8 @@ export default function FeaturedCarousel({ title, subtitle, products, locale }: 
                 <span className="text-brand-DEFAULT text-xs font-bold tracking-widest uppercase mb-2 block">{subtitle}</span>
                 <h2 className="text-4xl md:text-5xl font-serif font-bold text-brand-dark">{title}</h2>
             </div>
-            <Link href="/collection" className="px-8 py-3 rounded-full border border-gray-200 text-sm font-bold text-brand-dark hover:bg-brand-dark hover:text-white transition uppercase tracking-widest flex items-center gap-2 group">
+            {/* ✅ შეცვლილია /shop-ზე */}
+            <Link href="/shop" className="px-8 py-3 rounded-full border border-gray-200 text-sm font-bold text-brand-dark hover:bg-brand-dark hover:text-white transition uppercase tracking-widest flex items-center gap-2 group">
                 {t('viewAll')} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
         </div>

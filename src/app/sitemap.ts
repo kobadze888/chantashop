@@ -1,6 +1,7 @@
+// src/app/sitemap.ts
 import { MetadataRoute } from 'next';
 import { getProducts, getFilters } from '@/lib/api';
-import { FilterTerm, Product } from '@/types'; // ✅ ტიპების იმპორტი
+import { FilterTerm, Product } from '@/types';
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://chantashop.ge';
 const locales = ['ka', 'en', 'ru'];
@@ -12,7 +13,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const sitemapEntries: MetadataRoute.Sitemap = [];
 
   // 1. სტატიკური გვერდები
-  const staticPages = ['', '/collection', '/brands', '/sale'];
+  // ✅ /collection შეიცვალა /shop-ით
+  const staticPages = ['', '/shop', '/brands', '/sale'];
 
   staticPages.forEach((route) => {
     locales.forEach((locale) => {
@@ -27,7 +29,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // 2. პროდუქტები
   if (products.length > 0) {
-    products.forEach((product: Product) => { // ✅ ტიპი
+    products.forEach((product: Product) => {
       locales.forEach((locale) => {
         sitemapEntries.push({
           url: `${baseUrl}/${locale}/product/${product.slug}`,
@@ -39,9 +41,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   }
 
-  // 3. კატეგორიები
+  // ... (კატეგორიები და ფერები რჩება იგივე)
   if (filters.categories.length > 0) {
-    filters.categories.forEach((cat: FilterTerm) => { // ✅ ტიპი
+    filters.categories.forEach((cat: FilterTerm) => {
       locales.forEach((locale) => {
         sitemapEntries.push({
           url: `${baseUrl}/${locale}/product-category/${cat.slug}`,
@@ -53,9 +55,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   }
 
-  // 4. ფერები
   if (filters.colors.length > 0) {
-    filters.colors.forEach((color: FilterTerm) => { // ✅ ტიპი
+    filters.colors.forEach((color: FilterTerm) => {
       locales.forEach((locale) => {
         sitemapEntries.push({
           url: `${baseUrl}/${locale}/color/${color.slug}`,

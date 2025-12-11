@@ -196,7 +196,8 @@ export default function CheckoutClient({ locale }: { locale: string }) {
     return (
       <div className="text-center py-24 animate-fade-in">
         <h2 className="text-3xl font-serif font-bold mb-4">{cartT('empty')}</h2>
-        <Link href="/collection" className="text-brand-DEFAULT font-bold underline">{t('backToCart')}</Link>
+        {/* ✅ შეცვლილია: გადადის /shop-ზე */}
+        <Link href="/shop" className="text-brand-DEFAULT font-bold underline">{t('backToCart')}</Link>
       </div>
     );
   }

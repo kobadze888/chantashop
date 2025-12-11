@@ -5,7 +5,7 @@ import {defineRouting} from 'next-intl/routing';
 export const routing = defineRouting({
   locales: ['ka', 'en', 'ru'],
   defaultLocale: 'ka',
-  localePrefix: 'as-needed',
+  localePrefix: 'as-needed', // ✅ ეს უზრუნველყოფს, რომ 'ka' პრეფიქსი არ ჩანს
   localeDetection: false, 
 
   pathnames: {
@@ -17,7 +17,7 @@ export const routing = defineRouting({
     '/track-order/[id]': '/track-order/[id]',
     '/brands': '/brands',
     '/sale': '/sale',
-    '/collection': {
+    '/shop': { // ✅ აქ /shop უნდა იყოს ყველა ენისთვის (ან თარგმნილი სლაგები)
       ka: '/shop',
       en: '/shop',
       ru: '/shop',
@@ -28,7 +28,6 @@ export const routing = defineRouting({
       ru: '/product/[slug]',
     },
     '/product-category/[slug]': '/product-category/[slug]',
-    // 👇 შევცვალეთ ეს ხაზი Catch-all-ზე, რათა დაიჭიროს ყველაფერი დანარჩენი:
     '/[...slug]': '/[...slug]', 
   },
 });

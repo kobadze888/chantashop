@@ -27,7 +27,8 @@ export default function Hero() {
                 <h1 className="text-5xl md:text-8xl font-serif italic font-black leading-[0.9] mb-8 drop-shadow-2xl tracking-tight">
                     Iconic <br /> <span className="text-brand-DEFAULT not-italic font-sans">Luxury.</span>
                 </h1>
-                <Link href="/collection" className="group w-full md:w-auto bg-white text-brand-dark px-10 py-4 rounded-full font-bold text-sm md:text-base hover:bg-brand-DEFAULT hover:text-white transition-all transform hover:scale-105 shadow-xl flex items-center justify-center gap-3">
+                {/* ✅ შეცვლილია /shop-ზე */}
+                <Link href="/shop" className="group w-full md:w-auto bg-white text-brand-dark px-10 py-4 rounded-full font-bold text-sm md:text-base hover:bg-brand-DEFAULT hover:text-white transition-all transform hover:scale-105 shadow-xl flex items-center justify-center gap-3">
                     {t('cta')} 
                     <ArrowDown className="w-4 h-4 group-hover:translate-y-1 transition-transform" />
                 </Link>

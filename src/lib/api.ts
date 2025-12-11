@@ -11,7 +11,6 @@ import {
 } from './queries';
 import { Product, FilterTerm } from '@/types';
 
-// ძირითადი Fetch ფუნქცია
 async function fetchAPI(query: string, { variables }: { variables?: any } = {}, revalidateTime: number) {
   const headers = { 'Content-Type': 'application/json' };
   
@@ -30,46 +29,48 @@ async function fetchAPI(query: string, { variables }: { variables?: any } = {}, 
   try {
     const res = await fetch(WORDPRESS_API_URL, fetchOptions);
     const json = await res.json();
+    
+    // 🛑 შეცდომების ლოგირება (ტერმინალში გამოჩნდება)
     if (json.errors) {
-      console.error('WPGraphQL Error:', JSON.stringify(json.errors, null, 2));
+      console.error('❌ WPGraphQL Error:', JSON.stringify(json.errors, null, 2));
+      // თუ SEO ველების პრობლემაა, ვაბრუნებთ null-ს
       return null;
     }
     return json.data;
   } catch (error) {
-    console.error('API Fetch Error:', error);
+    console.error('❌ API Network Error:', error);
     return null;
   }
 }
 
-// ... (getProducts და getFilters რჩება უცვლელი - შეგიძლიათ დატოვოთ ისე, როგორც იყო) ...
-// მხოლოდ ჩასვით არსებული getProducts და getFilters კოდი აქ (ადგილი რომ არ დავიკავო, არ ვიმეორებ)
-
+// 1. პროდუქტების წამოღება (ენის ფილტრის გარეშე, სტაბილურობისთვის)
 export async function getProducts(filters: any = {}, locale: string = 'ka'): Promise<Product[]> {
-    // ... თქვენი არსებული getProducts კოდი ...
-    // (დააკოპირეთ ძველი ფაილიდან)
-    // აქ ცვლილება არ არის საჭირო, მთავარია SEO ფუნქციები დაემატოს ქვემოთ
-    const { category, color, material, minPrice, maxPrice, limit = 50, sort = 'DATE_DESC' } = filters;
-    const whereArgs: any = {};
-    const taxonomyFilter: any = { relation: 'AND', filters: [] };
+  const { category, color, material, minPrice, maxPrice, limit = 50, sort = 'DATE_DESC' } = filters;
 
-    if (category && category !== 'all') taxonomyFilter.filters.push({ taxonomy: 'PRODUCT_CAT', terms: [category], operator: 'IN' });
-    if (color && color !== 'all') taxonomyFilter.filters.push({ taxonomy: 'PA_COLOR', terms: [color], operator: 'IN' });
-    if (material && material !== 'all') taxonomyFilter.filters.push({ taxonomy: 'PA_MASALA', terms: [material], operator: 'IN' });
+  const whereArgs: any = {};
+  const taxonomyFilter: any = { relation: 'AND', filters: [] };
 
-    if (taxonomyFilter.filters.length > 0) whereArgs.taxonomyFilter = taxonomyFilter;
-    if (minPrice !== undefined || maxPrice !== undefined) { whereArgs.minPrice = minPrice; whereArgs.maxPrice = maxPrice; }
+  if (category && category !== 'all') taxonomyFilter.filters.push({ taxonomy: 'PRODUCT_CAT', terms: [category], operator: 'IN' });
+  if (color && color !== 'all') taxonomyFilter.filters.push({ taxonomy: 'PA_COLOR', terms: [color], operator: 'IN' });
+  if (material && material !== 'all') taxonomyFilter.filters.push({ taxonomy: 'PA_MASALA', terms: [material], operator: 'IN' });
 
-    if (sort) {
-        if (sort === 'POPULARITY_DESC') whereArgs.orderby = [{ field: 'POPULARITY', order: 'DESC' }]; 
-        else if (sort === 'PRICE_ASC') whereArgs.orderby = [{ field: 'PRICE', order: 'ASC' }];
-        else if (sort === 'PRICE_DESC') whereArgs.orderby = [{ field: 'PRICE', order: 'DESC' }];
-        else whereArgs.orderby = [{ field: 'DATE', order: 'DESC' }];
-    } else { whereArgs.orderby = [{ field: 'DATE', order: 'DESC' }]; }
+  if (taxonomyFilter.filters.length > 0) whereArgs.taxonomyFilter = taxonomyFilter;
+  if (minPrice !== undefined || maxPrice !== undefined) { whereArgs.minPrice = minPrice; whereArgs.maxPrice = maxPrice; }
 
-    if (locale && locale !== 'all') whereArgs.language = locale.toUpperCase();
+  if (sort) {
+      if (sort === 'POPULARITY_DESC') whereArgs.orderby = [{ field: 'POPULARITY', order: 'DESC' }]; 
+      else if (sort === 'PRICE_ASC') whereArgs.orderby = [{ field: 'PRICE', order: 'ASC' }];
+      else if (sort === 'PRICE_DESC') whereArgs.orderby = [{ field: 'PRICE', order: 'DESC' }];
+      else whereArgs.orderby = [{ field: 'DATE', order: 'DESC' }];
+  } else {
+      whereArgs.orderby = [{ field: 'DATE', order: 'DESC' }];
+  }
 
-    const data = await fetchAPI(GET_PRODUCTS_QUERY, { variables: { first: limit, where: whereArgs } }, 60);
-    return data?.products?.nodes || [];
+  // ⚠️ ენის ფილტრი გავთიშეთ, რადგან Polylang-თან კონფლიქტში არ მოვიდეს
+  // whereArgs.language = locale.toUpperCase();
+
+  const data = await fetchAPI(GET_PRODUCTS_QUERY, { variables: { first: limit, where: whereArgs } }, 60);
+  return data?.products?.nodes || [];
 }
 
 export async function getFilters(): Promise<{ categories: FilterTerm[]; colors: FilterTerm[]; sizes: FilterTerm[] } | null> {
@@ -87,26 +88,27 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
   return data?.product || null;
 }
 
-export async function getPageBySlug(slug: string) {
-  const data = await fetchAPI(GET_PAGE_QUERY, { variables: { id: slug } }, 3600);
+// 2. გვერდის მონაცემები (SEO-სთვის)
+export async function getPageByUri(uri: string) {
+  const data = await fetchAPI(GET_PAGE_QUERY, { variables: { id: uri } }, 3600);
   return data?.page || null;
 }
 
-// ✅ ახალი: უნივერსალური SEO ფუნქცია
+// ✅ ალიასი, რომ ბილდი არ გავარდეს
+export const getPageBySlug = getPageByUri; 
+
+// 3. ტაქსონომიის SEO (კატეგორია/ფერი)
 export async function getTaxonomySeo(taxonomy: 'category' | 'color' | 'material', slug: string) {
   let query = '';
-  
   switch (taxonomy) {
     case 'category': query = GET_CATEGORY_SEO_QUERY; break;
     case 'color': query = GET_COLOR_SEO_QUERY; break;
     case 'material': query = GET_MATERIAL_SEO_QUERY; break;
   }
-
   const data = await fetchAPI(query, { variables: { id: slug } }, 3600);
   
   if (taxonomy === 'category') return data?.productCategory;
   if (taxonomy === 'color') return data?.paColor;
   if (taxonomy === 'material') return data?.paMasala;
-  
   return null;
 }

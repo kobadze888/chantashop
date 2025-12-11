@@ -1,8 +1,7 @@
 // src/app/[locale]/[...slug]/page.tsx
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
 import CatalogClient from '@/components/catalog/CatalogClient';
-import { getProducts, getFilters, getPageBySlug, getTaxonomySeo } from '@/lib/api';
+import { getProducts, getFilters, getPageByUri, getTaxonomySeo } from '@/lib/api';
 
 type Props = {
   params: Promise<{ locale: string; slug: string[] }>;
@@ -10,11 +9,13 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug, locale } = await params;
   
-  // 1. სტატიკური გვერდი (მაგ: /about-us)
+  // 1. სტატიკური გვერდი (URI-ის აწყობა ენის მიხედვით)
   if (slug.length === 1) {
-    const page = await getPageBySlug(slug[0]);
+    const uri = locale === 'ka' ? `/${slug[0]}/` : `/${locale}/${slug[0]}/`;
+    const page = await getPageByUri(uri);
+    
     if (page) {
       return { 
         title: page.seo?.title || page.title, 
@@ -23,22 +24,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
   }
 
-  // 2. ატრიბუტის გვერდი (მაგ: /color/shavi ან /material/tyavi)
+  // 2. ატრიბუტის SEO (ფერები/მასალები)
   if (slug.length === 2) {
      const [attrType, attrSlug] = slug;
      let seoData = null;
 
-     // ვამოწმებთ ფერია თუ მასალა
      if (['color', 'fer', 'pa_color'].includes(attrType)) {
         seoData = await getTaxonomySeo('color', attrSlug);
      } else if (['material', 'masala', 'pa_masala'].includes(attrType)) {
         seoData = await getTaxonomySeo('material', attrSlug);
      }
 
-     // თუ მონაცემები მოვიდა, ვაბრუნებთ ქართულ სათაურს
      if (seoData) {
         const title = seoData.seo?.title || `${seoData.name} | ChantaShop`;
-        const desc = seoData.seo?.metaDesc || `შეარჩიეთ ${seoData.name} ფერის/მასალის ჩანთები.`;
+        const desc = seoData.seo?.metaDesc || `შეარჩიეთ ${seoData.name} კოლექცია.`;
         
         return { 
            title: title,
@@ -47,15 +46,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
              title: seoData.seo?.opengraphTitle || title,
              description: seoData.seo?.opengraphDescription || desc,
              images: seoData.seo?.opengraphImage?.sourceUrl ? [seoData.seo.opengraphImage.sourceUrl] : [],
-           },
-           alternates: {
-             canonical: seoData.seo?.canonical
            }
         };
      }
   }
 
-  // თუ ვერაფერი ვიპოვეთ
   return { title: 'ChantaShop', robots: { index: false } };
 }
 
@@ -63,9 +58,11 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
   const { locale, slug } = await params;
   const resolvedSearchParams = await searchParams;
 
-  // --- ლოგიკა 1: სტატიკური გვერდი ---
+  // --- გვერდის რენდერი ---
   if (slug.length === 1) {
-    const page = await getPageBySlug(slug[0]);
+    const uri = locale === 'ka' ? `/${slug[0]}/` : `/${locale}/${slug[0]}/`;
+    const page = await getPageByUri(uri);
+    
     if (page) {
       return (
         <div className="container mx-auto px-6 py-24 md:py-32">
@@ -76,18 +73,12 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
     }
   }
 
-  // --- ლოგიკა 2: კატალოგი (ფილტრი ან კატეგორია) ---
+  // --- კატალოგი ---
   const minPrice = typeof resolvedSearchParams.minPrice === 'string' ? Number(resolvedSearchParams.minPrice) : undefined;
   const maxPrice = typeof resolvedSearchParams.maxPrice === 'string' ? Number(resolvedSearchParams.maxPrice) : undefined;
   const sort = typeof resolvedSearchParams.sort === 'string' ? resolvedSearchParams.sort : 'DATE_DESC';
 
-  const apiFilters: any = {
-    limit: 50,
-    sort: sort as any,
-    minPrice,
-    maxPrice,
-  };
-
+  const apiFilters: any = { limit: 50, sort: sort as any, minPrice, maxPrice };
   let isAttributePage = false;
 
   if (slug.length === 2) {
@@ -101,7 +92,6 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
      }
   }
 
-  // თუ არ არის ატრიბუტი და 1 სეგმენტია, ვცადოთ როგორც კატეგორია
   if (!isAttributePage && slug.length === 1) {
      apiFilters.category = slug[slug.length - 1]; 
   }

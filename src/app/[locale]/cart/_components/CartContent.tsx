@@ -44,7 +44,8 @@ export default function CartContent() {
         <p className="text-gray-500 mb-10 text-lg max-w-md mx-auto">
           {t('emptyDesc')}
         </p>
-        <Link href="/collection" className="bg-brand-dark text-white px-10 py-4 rounded-full font-bold hover:bg-brand-DEFAULT transition-all shadow-xl hover:shadow-brand-DEFAULT/30 active:scale-95 flex items-center gap-2">
+        {/* ✅ შეცვლილია /shop-ზე */}
+        <Link href="/shop" className="bg-brand-dark text-white px-10 py-4 rounded-full font-bold hover:bg-brand-DEFAULT transition-all shadow-xl hover:shadow-brand-DEFAULT/30 active:scale-95 flex items-center gap-2">
           {t('viewCollection')} <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
@@ -53,6 +54,7 @@ export default function CartContent() {
 
   return (
     <div className="animate-fade-in">
+      {/* ... კალათის დანარჩენი კოდი იგივეა ... */}
       <h1 className="text-4xl md:text-5xl font-serif font-black text-brand-dark mb-10">
         {t('title')} 
         <span className="text-xl md:text-2xl text-gray-400 font-sans ml-4 font-normal">

@@ -1,45 +1,45 @@
 // src/app/[locale]/product/[slug]/page.tsx
-import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+// ... (Metadata და სხვა იმპორტები რჩება იგივე)
 import { getProductBySlug, getProducts } from '@/lib/api';
 import { Link } from '@/navigation';
 import { ChevronRight } from 'lucide-react';
 import ProductInfo from '../_components/ProductInfo'; 
 import FeaturedCarousel from '@/components/home/FeaturedCarousel';
 import { getTranslations } from 'next-intl/server';
-import Script from 'next/script'; // ✅ აუცილებელია JSON-LD-სთვის
+import Script from 'next/script';
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 
 type Props = {
   params: Promise<{ slug: string; locale: string }>;
 };
 
-// 1. SEO Metadata
+// ... (Metadata ფუნქცია რჩება იგივე რაც წინა პასუხში მოგეცით) ...
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const resolvedParams = await params;
-  const product = await getProductBySlug(resolvedParams.slug);
+    const resolvedParams = await params;
+    const product = await getProductBySlug(resolvedParams.slug);
+    
+    if (!product) return { title: 'პროდუქტი არ მოიძებნა' };
   
-  if (!product) return { title: 'პროდუქტი არ მოიძებნა' };
+    // Yoast-ის მონაცემები
+    const title = product.seo?.title || `${product.name} | ChantaShop`;
+    const desc = product.seo?.metaDesc || product.shortDescription?.replace(/<[^>]*>?/gm, '').slice(0, 160);
+  
+    return {
+      title: title,
+      description: desc,
+      openGraph: {
+        title: product.seo?.opengraphTitle || title,
+        description: product.seo?.opengraphDescription || desc,
+        images: [product.seo?.opengraphImage?.sourceUrl || product.image?.sourceUrl || '/placeholder.jpg'],
+        type: 'website',
+      },
+      alternates: {
+        canonical: product.seo?.canonical || `${process.env.NEXT_PUBLIC_SITE_URL}/${resolvedParams.locale}/product/${product.slug}`,
+      }
+    };
+  }
 
-  // Yoast-ის მონაცემები
-  const title = product.seo?.title || `${product.name} | ChantaShop`;
-  const desc = product.seo?.metaDesc || product.shortDescription?.replace(/<[^>]*>?/gm, '').slice(0, 160);
-
-  return {
-    title: title,
-    description: desc,
-    openGraph: {
-      title: product.seo?.opengraphTitle || title,
-      description: product.seo?.opengraphDescription || desc,
-      images: [product.seo?.opengraphImage?.sourceUrl || product.image?.sourceUrl || '/placeholder.jpg'],
-      type: 'website',
-    },
-    alternates: {
-      canonical: product.seo?.canonical || `${process.env.NEXT_PUBLIC_SITE_URL}/${resolvedParams.locale}/product/${product.slug}`,
-    }
-  };
-}
-
-// 2. გვერდის რენდერი
 export default async function ProductPage({ params }: Props) {
   const resolvedParams = await params;
   const { slug, locale } = resolvedParams;
@@ -48,7 +48,6 @@ export default async function ProductPage({ params }: Props) {
   const product = await getProductBySlug(slug);
   if (!product) notFound();
 
-  // მსგავსი პროდუქტები
   const categorySlug = product.productCategories?.nodes[0]?.slug;
   const relatedProductsRaw = await getProducts({ limit: 8, category: categorySlug }, locale) || [];
 
@@ -66,7 +65,7 @@ export default async function ProductPage({ params }: Props) {
       stockStatus: p.stockStatus
     }));
 
-  // ✅ 100% Valid Schema.org (Google Merchant Center-ისთვის)
+  // Schema LD (იგივე რჩება)
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -74,10 +73,7 @@ export default async function ProductPage({ params }: Props) {
     image: product.image?.sourceUrl ? [product.image.sourceUrl] : [],
     description: product.seo?.metaDesc || product.shortDescription?.replace(/<[^>]*>?/gm, '') || product.name,
     sku: product.databaseId,
-    brand: {
-      '@type': 'Brand',
-      name: 'ChantaShop'
-    },
+    brand: { '@type': 'Brand', name: 'ChantaShop' },
     offers: {
       '@type': 'Offer',
       url: `${process.env.NEXT_PUBLIC_SITE_URL}/${locale}/product/${slug}`,
@@ -90,18 +86,14 @@ export default async function ProductPage({ params }: Props) {
 
   return (
     <div className="md:pt-32 pt-24 pb-24 bg-white min-h-screen">
-      {/* Schema Script */}
-      <Script
-        id="product-schema"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <Script id="product-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <div className="container mx-auto px-6 max-w-[1350px]">
         <nav className="text-xs font-bold text-gray-400 mb-10 uppercase tracking-widest flex items-center gap-2 overflow-x-auto whitespace-nowrap pb-2 hide-scrollbar">
             <Link href="/" className="hover:text-brand-dark transition">{t('home')}</Link>
             <ChevronRight className="w-3 h-3 flex-shrink-0" />
-            <Link href="/collection" className="hover:text-brand-dark transition">{t('collection')}</Link>
+            {/* ✅ შეცვლილია /shop-ზე */}
+            <Link href="/shop" className="hover:text-brand-dark transition">{t('collection')}</Link>
             <ChevronRight className="w-3 h-3 flex-shrink-0" />
             <span className="text-brand-dark truncate">{product.name}</span>
         </nav>
@@ -110,12 +102,7 @@ export default async function ProductPage({ params }: Props) {
 
         {relatedProducts.length > 0 && (
             <div className="mt-8 border-t border-gray-100 pt-8">
-                <FeaturedCarousel 
-                    title="შეიძლება მოგეწონოთ"
-                    subtitle="მსგავსი სტილი"
-                    products={relatedProducts}
-                    locale={locale}
-                />
+                <FeaturedCarousel title="შეიძლება მოგეწონოთ" subtitle="მსგავსი სტილი" products={relatedProducts} locale={locale} />
             </div>
         )}
       </div>

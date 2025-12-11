@@ -21,7 +21,8 @@ export default function Footer() {
                     <h5 className="font-bold mb-8 text-lg font-serif">{t('navigation')}</h5>
                     <ul className="text-sm text-white/60 space-y-4">
                         <li><Link href="/" className="hover:text-white transition flex items-center gap-2"><span className="w-1 h-1 bg-brand-DEFAULT rounded-full"></span> {tCommon('home')}</Link></li>
-                        <li><Link href="/collection" className="hover:text-white transition flex items-center gap-2"><span className="w-1 h-1 bg-brand-DEFAULT rounded-full"></span> {tCommon('collection')}</Link></li>
+                        {/* ✅ შეცვლილია /shop-ზე */}
+                        <li><Link href="/shop" className="hover:text-white transition flex items-center gap-2"><span className="w-1 h-1 bg-brand-DEFAULT rounded-full"></span> {tCommon('collection')}</Link></li>
                     </ul>
                 </div>
                 <div>
