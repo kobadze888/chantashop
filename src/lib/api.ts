@@ -142,20 +142,16 @@ export async function getSitemapData() {
   return {
     products: data?.products?.nodes || [],
     pages: data?.pages?.nodes || [],
-    terms: data?.terms?.nodes || [] // ✅ ეს აკლდა და მაგიტომ იყო ერორი
+    terms: data?.terms?.nodes || [] // ✅ ეს იყო გამორჩენილი
   };
 }
 
 export async function getTaxonomySeo(taxonomy: string, slug: string) {
   let graphQLField = '';
   
-  // ცნობილი ტაქსონომიების სახელების შესწორება
-  if (taxonomy === 'category') graphQLField = 'productCategory'; // category -> productCategory
-  else if (taxonomy === 'color') graphQLField = 'paColor'; // color -> paColor
-  else if (taxonomy === 'material') graphQLField = 'paMasala'; // material -> paMasala
-  
-  // დინამიური
-  else if (taxonomy === 'product_cat') graphQLField = 'productCategory';
+  if (taxonomy === 'category' || taxonomy === 'product_cat') graphQLField = 'productCategory';
+  else if (taxonomy === 'color') graphQLField = 'paColor';
+  else if (taxonomy === 'material') graphQLField = 'paMasala';
   else if (taxonomy === 'product_tag') graphQLField = 'productTag';
   else graphQLField = snakeToCamel(taxonomy); 
 

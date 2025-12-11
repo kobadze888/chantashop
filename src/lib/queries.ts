@@ -156,29 +156,34 @@ export const GET_SHOP_PAGE_WITH_TRANSLATIONS = `
   }
 `;
 
-// ✅ განახლებული: საიტმაპისთვის მომაქვს "terms" (ყველა ტერმინი ერთად)
+// ✅ განახლებული: საიტმაპისთვის მომაქვს "terms" (ყველა ტერმინი ერთად) და მათი SEO
 export const GET_SITEMAP_DATA_QUERY = `
   query GetSitemapData {
     products(first: 2000, where: { status: PUBLISH }) {
-      nodes { slug modified }
+      nodes { 
+        slug 
+        modified 
+        seo { metaRobotsNoindex }
+      }
     }
     pages(first: 1000, where: { status: PUBLISH }) {
-      nodes { slug modified }
+      nodes { 
+        slug 
+        modified 
+        seo { metaRobotsNoindex }
+      }
     }
     terms(first: 5000, where: { hideEmpty: true }) {
-      nodes { slug taxonomyName }
+      nodes { 
+        slug 
+        taxonomyName 
+        seo { metaRobotsNoindex }
+      }
     }
   }
 `;
 
-export const CHECKOUT_MUTATION = ` mutation Checkout($input: CheckoutInput!) { checkout(input: $input) { order { databaseId orderNumber status total(format: RAW) } result redirect } } `;
-export const ADD_TO_CART_MUTATION = ` mutation AddToCart($input: AddToCartInput!) { addToCart(input: $input) { cart { contents { itemCount } } } } `;
-export const APPLY_COUPON_MUTATION = ` mutation ApplyCoupon($input: ApplyCouponInput!) { applyCoupon(input: $input) { cart { total(format: RAW) } } } `;
-export const UPDATE_CUSTOMER_MUTATION = ` mutation UpdateCustomer($input: UpdateCustomerInput!) { updateCustomer(input: $input) { customer { shipping { city country } } } } `;
-export const GET_CART_TOTALS_QUERY = ` query GetCartTotals { cart { total(format: RAW) subtotal(format: RAW) shippingTotal(format: RAW) discountTotal(format: RAW) appliedCoupons { code discountAmount(format: RAW) } } } `;
-export const GET_ORDER_QUERY = ` query GetOrder($id: ID!) { order(id: $id, idType: DATABASE_ID) { databaseId orderNumber status date total(format: RAW) currency billing { firstName lastName city address1 email } lineItems { nodes { product { node { name image { sourceUrl } } } quantity total } } } } `;
-
-// ✅ დავიწყებული ექსპორტები
+// ✅ აუცილებელი ექსპორტები
 export const GET_CATEGORY_SEO_QUERY = `
   ${TAXONOMY_SEO_FRAGMENT}
   query GetCategorySeo($id: ID!) {
@@ -215,3 +220,10 @@ export const GET_MATERIAL_SEO_QUERY = `
     }
   }
 `;
+
+export const CHECKOUT_MUTATION = ` mutation Checkout($input: CheckoutInput!) { checkout(input: $input) { order { databaseId orderNumber status total(format: RAW) } result redirect } } `;
+export const ADD_TO_CART_MUTATION = ` mutation AddToCart($input: AddToCartInput!) { addToCart(input: $input) { cart { contents { itemCount } } } } `;
+export const APPLY_COUPON_MUTATION = ` mutation ApplyCoupon($input: ApplyCouponInput!) { applyCoupon(input: $input) { cart { total(format: RAW) } } } `;
+export const UPDATE_CUSTOMER_MUTATION = ` mutation UpdateCustomer($input: UpdateCustomerInput!) { updateCustomer(input: $input) { customer { shipping { city country } } } } `;
+export const GET_CART_TOTALS_QUERY = ` query GetCartTotals { cart { total(format: RAW) subtotal(format: RAW) shippingTotal(format: RAW) discountTotal(format: RAW) appliedCoupons { code discountAmount(format: RAW) } } } `;
+export const GET_ORDER_QUERY = ` query GetOrder($id: ID!) { order(id: $id, idType: DATABASE_ID) { databaseId orderNumber status date total(format: RAW) currency billing { firstName lastName city address1 email } lineItems { nodes { product { node { name image { sourceUrl } } } quantity total } } } } `;
