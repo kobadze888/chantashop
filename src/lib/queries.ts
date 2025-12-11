@@ -112,7 +112,7 @@ export const GET_PRODUCT_BY_SLUG_QUERY = `
   }
 `;
 
-// ✅ ეს არის მთავარი Query გვერდებისთვის (მუშაობს URI-ზე)
+// გვერდის ძებნა URI-ით (Home გვერდისთვის)
 export const GET_PAGE_QUERY = `
   ${SEO_FRAGMENT}
   query GetPage($id: ID!) {
@@ -125,7 +125,20 @@ export const GET_PAGE_QUERY = `
   }
 `;
 
-// ⚠️ GET_PAGE_BY_SLUG_QUERY ამოღებულია, რადგან WPGraphQL-ში PageIdType: SLUG არ მუშაობს.
+// ✅ ახალი: გვერდის ძებნა SLUG-ით (ფილტრის გამოყენებით) - Shop გვერდისთვის
+export const GET_PAGE_BY_SLUG_NAME_QUERY = `
+  ${SEO_FRAGMENT}
+  query GetPageBySlugName($slug: String!) {
+    pages(where: {name: $slug}) {
+      nodes {
+        title
+        content
+        slug
+        seo { ...SeoFragment }
+      }
+    }
+  }
+`;
 
 export const GET_CATEGORY_SEO_QUERY = `
   ${TAXONOMY_SEO_FRAGMENT}
@@ -164,6 +177,7 @@ export const GET_MATERIAL_SEO_QUERY = `
   }
 `;
 
+// ... მუტაციები (უცვლელი)
 export const CHECKOUT_MUTATION = ` mutation Checkout($input: CheckoutInput!) { checkout(input: $input) { order { databaseId orderNumber status total(format: RAW) } result redirect } } `;
 export const ADD_TO_CART_MUTATION = ` mutation AddToCart($input: AddToCartInput!) { addToCart(input: $input) { cart { contents { itemCount } } } } `;
 export const APPLY_COUPON_MUTATION = ` mutation ApplyCoupon($input: ApplyCouponInput!) { applyCoupon(input: $input) { cart { total(format: RAW) } } } `;

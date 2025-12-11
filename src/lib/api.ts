@@ -5,6 +5,7 @@ import {
   GET_FILTERS_QUERY, 
   GET_PRODUCT_BY_SLUG_QUERY, 
   GET_PAGE_QUERY, 
+  GET_PAGE_BY_SLUG_NAME_QUERY, // ✅ იმპორტი განახლდა
   GET_CATEGORY_SEO_QUERY,
   GET_COLOR_SEO_QUERY,
   GET_MATERIAL_SEO_QUERY
@@ -40,15 +41,15 @@ async function fetchAPI(query: string, { variables }: { variables?: any } = {}, 
   }
 }
 
-// 1. პროდუქტების წამოღება
+// 1. პროდუქტების წამოღება (დინამიური ენით)
 export async function getProducts(filters: any = {}, locale: string = 'ka'): Promise<Product[]> {
   const { category, color, material, minPrice, maxPrice, limit = 50, sort = 'DATE_DESC' } = filters;
 
   const whereArgs: any = {};
   
-  // ✅ ენის ფილტრი (მკაცრი)
+  // ✅ ენა დინამიურია (KA, EN, RU)
   if (locale && locale !== 'all') {
-    whereArgs.language = locale.toUpperCase(); // 'ka' -> 'KA'
+    whereArgs.language = locale.toUpperCase(); 
   }
 
   const taxonomyFilter: any = { relation: 'AND', filters: [] };
@@ -100,20 +101,21 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
   return data?.product || null;
 }
 
-// 2. გვერდის მონაცემები URI-ით (უკვე სწორია)
+// 2. გვერდის მონაცემები URI-ით (Home გვერდისთვის)
 export async function getPageByUri(uri: string) {
   const data = await fetchAPI(GET_PAGE_QUERY, { variables: { id: uri } }, 3600);
   return data?.page || null;
 }
 
-// ✅ 3. გვერდის მონაცემები SLUG-ით (შესწორებული)
-// ეს ფუნქცია იღებს სლაგს (მაგ: 'shop'), გადააქცევს URI-დ (მაგ: '/shop/') და იყენებს URI Query-ს.
+// ✅ 3. გვერდის მონაცემები SLUG-ით (Shop გვერდისთვის - ყველაზე საიმედო მეთოდი)
+// ჩვენ ვეძებთ `pages`-ში ფილტრით { name: "shop" }, რაც თავს არიდებს URI-ს პრობლემებს.
 export async function getPageBySlugReal(slug: string) {
-  const uri = slug.startsWith('/') ? slug : `/${slug}/`;
-  const data = await fetchAPI(GET_PAGE_QUERY, { variables: { id: uri } }, 3600);
-  return data?.page || null;
+  const data = await fetchAPI(GET_PAGE_BY_SLUG_NAME_QUERY, { variables: { slug: slug } }, 3600);
+  // pages აბრუნებს მასივს, ვიღებთ პირველ ელემენტს
+  return data?.pages?.nodes?.[0] || null;
 }
 
+// ალიასი
 export const getPageBySlug = getPageByUri;
 
 // 4. ტაქსონომიის SEO
