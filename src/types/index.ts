@@ -19,12 +19,31 @@ export interface Attribute {
   };
 }
 
+// ✅ განახლებული: SEO ინტერფეისი სრული ველებით
+export interface SEO {
+  title: string;
+  metaDesc: string;
+  opengraphTitle?: string;
+  opengraphDescription?: string;
+  opengraphImage?: {
+    sourceUrl: string;
+  };
+  twitterTitle?: string;
+  twitterDescription?: string;
+  twitterImage?: {
+    sourceUrl: string;
+  };
+  canonical?: string;
+}
+
 export interface FilterTerm {
   id: string;
   name: string;
   slug: string;
   count?: number;
   safeLanguage?: string;
+  description?: string; // ✅ დაემატა description
+  seo?: SEO; // ✅ დაემატა SEO ფილტრებისთვის (კატეგორია/ატრიბუტი)
 }
 
 export interface Variation {
@@ -53,10 +72,7 @@ export interface Product {
   stockStatus?: string;
   stockQuantity?: number;
   galleryImages?: { nodes: ProductImage[] };
-  seo?: {
-    title: string;
-    metaDesc: string;
-  };
+  seo?: SEO; // ✅ განახლებული SEO ტიპი
   language?: { code: string };
   attributes?: { nodes: Attribute[] };
   variations?: { nodes: Variation[] };
