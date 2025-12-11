@@ -1,7 +1,8 @@
+// src/app/[locale]/[...slug]/page.tsx
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import CatalogClient from '@/components/catalog/CatalogClient';
-import { getProducts, getFilters, getPageBySlug } from '@/lib/api';
+import { getProducts, getFilters, getPageBySlug, getTaxonomySeo } from '@/lib/api';
 
 type Props = {
   params: Promise<{ locale: string; slug: string[] }>;
@@ -11,7 +12,7 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   
-  // ვარიანტი 1: სტატიკური გვერდი (მაგ: /about-us) - 1 სეგმენტი
+  // 1. სტატიკური გვერდი (მაგ: /about-us)
   if (slug.length === 1) {
     const page = await getPageBySlug(slug[0]);
     if (page) {
@@ -22,26 +23,47 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
   }
 
-  // ვარიანტი 2: ატრიბუტი (მაგ: /color/red) - 2 სეგმენტი
+  // 2. ატრიბუტის გვერდი (მაგ: /color/shavi ან /material/tyavi)
   if (slug.length === 2) {
-     const [attr, value] = slug;
-     if (['color', 'fer', 'pa_color', 'material', 'masala'].includes(attr)) {
+     const [attrType, attrSlug] = slug;
+     let seoData = null;
+
+     // ვამოწმებთ ფერია თუ მასალა
+     if (['color', 'fer', 'pa_color'].includes(attrType)) {
+        seoData = await getTaxonomySeo('color', attrSlug);
+     } else if (['material', 'masala', 'pa_masala'].includes(attrType)) {
+        seoData = await getTaxonomySeo('material', attrSlug);
+     }
+
+     // თუ მონაცემები მოვიდა, ვაბრუნებთ ქართულ სათაურს
+     if (seoData) {
+        const title = seoData.seo?.title || `${seoData.name} | ChantaShop`;
+        const desc = seoData.seo?.metaDesc || `შეარჩიეთ ${seoData.name} ფერის/მასალის ჩანთები.`;
+        
         return { 
-           title: `${attr === 'color' ? 'ფერი' : 'მასალა'}: ${value} | ChantaShop`,
-           description: `შეიძინეთ ${value} კოლექცია.`,
-           robots: { index: true, follow: true }
+           title: title,
+           description: desc,
+           openGraph: {
+             title: seoData.seo?.opengraphTitle || title,
+             description: seoData.seo?.opengraphDescription || desc,
+             images: seoData.seo?.opengraphImage?.sourceUrl ? [seoData.seo.opengraphImage.sourceUrl] : [],
+           },
+           alternates: {
+             canonical: seoData.seo?.canonical
+           }
         };
      }
   }
 
-  return { title: 'ChantaShop', robots: { index: false, follow: false } };
+  // თუ ვერაფერი ვიპოვეთ
+  return { title: 'ChantaShop', robots: { index: false } };
 }
 
 export default async function CatchAllPage({ params, searchParams }: Props) {
   const { locale, slug } = await params;
   const resolvedSearchParams = await searchParams;
 
-  // --- ლოგიკა 1: სტატიკური გვერდი (მაგ: about-us) ---
+  // --- ლოგიკა 1: სტატიკური გვერდი ---
   if (slug.length === 1) {
     const page = await getPageBySlug(slug[0]);
     if (page) {
@@ -55,7 +77,6 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
   }
 
   // --- ლოგიკა 2: კატალოგი (ფილტრი ან კატეგორია) ---
-  
   const minPrice = typeof resolvedSearchParams.minPrice === 'string' ? Number(resolvedSearchParams.minPrice) : undefined;
   const maxPrice = typeof resolvedSearchParams.maxPrice === 'string' ? Number(resolvedSearchParams.maxPrice) : undefined;
   const sort = typeof resolvedSearchParams.sort === 'string' ? resolvedSearchParams.sort : 'DATE_DESC';
@@ -69,7 +90,6 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
 
   let isAttributePage = false;
 
-  // თუ URL არის 2 ნაწილიანი (მაგ: /color/shavi)
   if (slug.length === 2) {
      const [attr, value] = slug;
      if (['color', 'fer', 'pa_color'].includes(attr)) {
@@ -81,8 +101,8 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
      }
   }
 
-  // თუ არ არის ატრიბუტი, ვცადოთ როგორც კატეგორია (ბოლო სეგმენტი)
-  if (!isAttributePage) {
+  // თუ არ არის ატრიბუტი და 1 სეგმენტია, ვცადოთ როგორც კატეგორია
+  if (!isAttributePage && slug.length === 1) {
      apiFilters.category = slug[slug.length - 1]; 
   }
 
@@ -90,11 +110,6 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
     getProducts(apiFilters, locale),
     getFilters()
   ]);
-
-  // თუ არც გვერდია და არც პროდუქტები
-  if ((!products || products.length === 0) && !isAttributePage && slug.length === 1) {
-     // აქ შეგიძლიათ notFound() დააბრუნოთ, ან უბრალოდ ცარიელი კატალოგი აჩვენოთ
-  }
 
   const safeFilters = filters || { categories: [], colors: [], sizes: [] };
 

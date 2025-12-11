@@ -1,3 +1,4 @@
+// src/app/[locale]/product/[slug]/page.tsx
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getProductBySlug, getProducts } from '@/lib/api';
@@ -6,29 +7,39 @@ import { ChevronRight } from 'lucide-react';
 import ProductInfo from '../_components/ProductInfo'; 
 import FeaturedCarousel from '@/components/home/FeaturedCarousel';
 import { getTranslations } from 'next-intl/server';
-import Script from 'next/script';
+import Script from 'next/script'; // ✅ აუცილებელია JSON-LD-სთვის
 
 type Props = {
   params: Promise<{ slug: string; locale: string }>;
 };
 
-// 1. SEO
+// 1. SEO Metadata
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolvedParams = await params;
   const product = await getProductBySlug(resolvedParams.slug);
   
   if (!product) return { title: 'პროდუქტი არ მოიძებნა' };
 
+  // Yoast-ის მონაცემები
+  const title = product.seo?.title || `${product.name} | ChantaShop`;
+  const desc = product.seo?.metaDesc || product.shortDescription?.replace(/<[^>]*>?/gm, '').slice(0, 160);
+
   return {
-    title: product.seo?.title || product.name,
-    description: product.seo?.metaDesc || product.shortDescription?.replace(/<[^>]*>?/gm, '').slice(0, 160),
+    title: title,
+    description: desc,
     openGraph: {
-      images: [product.image?.sourceUrl || '/placeholder.jpg'],
+      title: product.seo?.opengraphTitle || title,
+      description: product.seo?.opengraphDescription || desc,
+      images: [product.seo?.opengraphImage?.sourceUrl || product.image?.sourceUrl || '/placeholder.jpg'],
+      type: 'website',
     },
+    alternates: {
+      canonical: product.seo?.canonical || `${process.env.NEXT_PUBLIC_SITE_URL}/${resolvedParams.locale}/product/${product.slug}`,
+    }
   };
 }
 
-// 2. გვერდი
+// 2. გვერდის რენდერი
 export default async function ProductPage({ params }: Props) {
   const resolvedParams = await params;
   const { slug, locale } = resolvedParams;
@@ -55,25 +66,31 @@ export default async function ProductPage({ params }: Props) {
       stockStatus: p.stockStatus
     }));
 
-  // ✅ JSON-LD სქემა (მარაგის გარეშე)
+  // ✅ 100% Valid Schema.org (Google Merchant Center-ისთვის)
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.name,
     image: product.image?.sourceUrl ? [product.image.sourceUrl] : [],
-    description: product.shortDescription?.replace(/<[^>]*>?/gm, '') || product.name,
+    description: product.seo?.metaDesc || product.shortDescription?.replace(/<[^>]*>?/gm, '') || product.name,
     sku: product.databaseId,
+    brand: {
+      '@type': 'Brand',
+      name: 'ChantaShop'
+    },
     offers: {
       '@type': 'Offer',
       url: `${process.env.NEXT_PUBLIC_SITE_URL}/${locale}/product/${slug}`,
       priceCurrency: 'GEL',
       price: parseFloat(product.price?.replace(/[^0-9.]/g, '') || '0'),
-      // availability ველი წაშლილია განზრახ
+      availability: product.stockStatus === 'IN_STOCK' ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      itemCondition: 'https://schema.org/NewCondition',
     },
   };
 
   return (
     <div className="md:pt-32 pt-24 pb-24 bg-white min-h-screen">
+      {/* Schema Script */}
       <Script
         id="product-schema"
         type="application/ld+json"

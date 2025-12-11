@@ -1,5 +1,6 @@
+// src/app/[locale]/product-category/[slug]/page.tsx
 import { Metadata } from 'next';
-import { getProducts, getFilters } from '@/lib/api';
+import { getProducts, getFilters, getTaxonomySeo } from '@/lib/api';
 import CatalogClient from '@/components/catalog/CatalogClient';
 import { notFound } from 'next/navigation';
 
@@ -8,10 +9,34 @@ type Props = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
+// ✅ დინამიური SEO - Yoast მონაცემებით
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug, locale } = await params;
+  
+  // მონაცემების წამოღება
+  const categoryData = await getTaxonomySeo('category', slug);
+
+  if (!categoryData) {
+    return { title: 'კატეგორია ვერ მოიძებნა | ChantaShop' };
+  }
+
+  // პრიორიტეტი: Yoast Title > Category Name
+  const seoTitle = categoryData.seo?.title || `${categoryData.name} | ChantaShop`;
+  const seoDesc = categoryData.seo?.metaDesc || categoryData.description || `შეიძინეთ ${categoryData.name} საუკეთესო ფასად.`;
+
   return {
-    title: `კატეგორია: ${slug} | ChantaShop`,
+    title: seoTitle,
+    description: seoDesc,
+    openGraph: {
+      title: categoryData.seo?.opengraphTitle || seoTitle,
+      description: categoryData.seo?.opengraphDescription || seoDesc,
+      images: categoryData.seo?.opengraphImage?.sourceUrl ? [categoryData.seo.opengraphImage.sourceUrl] : [],
+      locale: locale,
+      type: 'website',
+    },
+    alternates: {
+      canonical: categoryData.seo?.canonical || `${process.env.NEXT_PUBLIC_SITE_URL}/${locale}/product-category/${slug}`,
+    }
   };
 }
 
@@ -38,7 +63,6 @@ export default async function CategoryPage({ params, searchParams }: Props) {
      notFound();
   }
 
-  // ✅ FIX: უსაფრთხო ფილტრები
   const safeFilters = filters || { categories: [], colors: [], sizes: [] };
 
   return (
