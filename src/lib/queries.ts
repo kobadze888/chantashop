@@ -1,6 +1,5 @@
 // src/lib/queries.ts
 
-// --- SEO FRAGMENTS ---
 export const SEO_FRAGMENT = `
   fragment SeoFragment on PostTypeSEO {
     title
@@ -156,7 +155,10 @@ export const GET_SHOP_PAGE_WITH_TRANSLATIONS = `
   }
 `;
 
-// ✅ შესწორებული: products ითხოვს "PUBLISH" (String), pages ითხოვს PUBLISH (Enum)
+// ✅ შესწორებული (ჰიბრიდული):
+// products -> "PUBLISH" (String)
+// pages -> PUBLISH (Enum)
+// terms -> seo ველი ამოღებულია (რადგან ერორს იწვევდა)
 export const GET_SITEMAP_DATA_QUERY = `
   query GetSitemapData {
     products(first: 2000, where: { status: "PUBLISH" }) { 
