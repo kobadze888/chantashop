@@ -9,13 +9,25 @@ type Props = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
-// ✅ Shop გვერდის SEO (ისევ ვიყენებთ სლაგს, რადგან უფრო საიმედოა)
+// ⚠️ აქ გაწერეთ ზუსტად ის სლაგები, რაც WordPress-მა მიანიჭა გვერდებს
+const wpSlugs: Record<string, string> = {
+  ka: 'shop',      // ქართული გვერდის სლაგი
+  en: 'shop-2',    // ინგლისურის სლაგი (შეამოწმეთ WP-ში, შეიძლება იყოს full-catalog)
+  ru: 'shop-3'     // რუსულის სლაგი (შეამოწმეთ WP-ში)
+};
+
+// ✅ Shop გვერდის SEO
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   
-  // ვეძებთ გვერდს სლაგით "shop"
-  const pageData = await getPageBySlugReal('shop');
+  // ვიღებთ შესაბამის სლაგს ენის მიხედვით
+  // თუ ვერ იპოვა, ვიყენებთ 'shop'-ს
+  const slugToFetch = wpSlugs[locale] || 'shop';
 
+  // ვეძებთ გვერდს ამ კონკრეტული სლაგით
+  const pageData = await getPageBySlugReal(slugToFetch);
+
+  // Yoast-ის მონაცემები
   if (pageData?.seo) {
     return {
       title: pageData.seo.title,
@@ -51,7 +63,7 @@ export default async function ShopPage({
   const maxPrice = typeof resolvedSearchParams.maxPrice === 'string' ? Number(resolvedSearchParams.maxPrice) : undefined;
   const sort = typeof resolvedSearchParams.sort === 'string' ? resolvedSearchParams.sort : 'DATE_DESC';
 
-  // API მოთხოვნა (დინამიური ენით)
+  // API მოთხოვნა (ენა დინამიურია - api.ts-ში გასწორდა)
   const [productsRaw, filters] = await Promise.all([
     getProducts({ 
       category: category !== 'all' ? category : undefined,
@@ -68,8 +80,8 @@ export default async function ShopPage({
   const products = productsRaw || [];
   const safeFilters = filters || { categories: [], colors: [], sizes: [] };
 
-  // ✅ დინამიური ფილტრაცია: მარცხენა მენიუში გამოჩნდება მხოლოდ იმ ენის კატეგორიები, რომელზეც ვართ
-  const targetLang = locale.toUpperCase(); 
+  // ფილტრები ვაჩვენოთ იმ ენაზე, რომელიც არჩეულია
+  const targetLang = locale.toUpperCase();
   
   const filterByLang = (item: FilterTerm) => 
     !item.safeLanguage || item.safeLanguage === "" || item.safeLanguage === targetLang;
