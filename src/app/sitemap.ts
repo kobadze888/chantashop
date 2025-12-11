@@ -5,7 +5,6 @@ import { getSitemapData } from '@/lib/api';
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://chantashop.ge';
 const locales = ['ka', 'en', 'ru'];
 
-// გვერდები, რომლებიც არ გვინდა საიტმაპში
 const excludePages = ['cart', 'checkout', 'my-account', 'order-received', 'success', 'track-order'];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -37,7 +36,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // 1. Pages
   pages.forEach((page: any) => {
-    // 🛑 Yoast Check
+    // 🛑 Yoast Check: თუ Noindex ჩართულია, გამოვტოვოთ
     if (page.seo?.metaRobotsNoindex === 'noindex') return;
     if (excludePages.includes(page.slug)) return;
 
@@ -58,15 +57,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     addEntry(`/product/${product.slug}`, product.modified, 0.9, 'weekly');
   });
 
-  // 3. Dynamic Terms (ატრიბუტები + კატეგორიები)
+  // 3. Dynamic Terms
   terms.forEach((term: any) => {
+    // თუ ტერმინს აქვს noindex (და ჩვენ მოგვაქვს seo ველი), გამოვტოვოთ
     if (term.seo?.metaRobotsNoindex === 'noindex') return;
 
     const tax = term.taxonomyName; 
 
+    // კატეგორიები
     if (tax === 'product_cat') {
       addEntry(`/product-category/${term.slug}`, undefined, 0.7, 'weekly');
-    } else if (tax.startsWith('pa_')) {
+    } 
+    // ატრიბუტები (pa_...)
+    else if (tax && tax.startsWith('pa_')) {
       const attrName = tax.replace('pa_', '');
       addEntry(`/${attrName}/${term.slug}`, undefined, 0.6, 'weekly');
     }

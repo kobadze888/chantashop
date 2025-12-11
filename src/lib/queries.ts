@@ -156,10 +156,10 @@ export const GET_SHOP_PAGE_WITH_TRANSLATIONS = `
   }
 `;
 
-// ✅ განახლებული: საიტმაპისთვის მომაქვს "terms" (ყველა ტერმინი ერთად) და მათი SEO
+// ✅ შესწორებული: products ითხოვს "PUBLISH" (String), pages ითხოვს PUBLISH (Enum)
 export const GET_SITEMAP_DATA_QUERY = `
   query GetSitemapData {
-    products(first: 2000, where: { status: PUBLISH }) {
+    products(first: 2000, where: { status: "PUBLISH" }) { 
       nodes { 
         slug 
         modified 
@@ -173,17 +173,22 @@ export const GET_SITEMAP_DATA_QUERY = `
         seo { metaRobotsNoindex }
       }
     }
+    productCategories(first: 1000, where: { hideEmpty: true }) {
+      nodes {
+        slug
+        taxonomyName
+        seo { metaRobotsNoindex }
+      }
+    }
     terms(first: 5000, where: { hideEmpty: true }) {
       nodes { 
         slug 
         taxonomyName 
-        seo { metaRobotsNoindex }
       }
     }
   }
 `;
 
-// ✅ აუცილებელი ექსპორტები
 export const GET_CATEGORY_SEO_QUERY = `
   ${TAXONOMY_SEO_FRAGMENT}
   query GetCategorySeo($id: ID!) {

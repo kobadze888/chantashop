@@ -136,13 +136,14 @@ export async function getShopSeo(locale: string) {
   return translation || mainShopPage;
 }
 
-// ✅ განახლებული: აბრუნებს 'terms'-ს
+// ✅ განახლებული: აბრუნებს კატეგორიებსაც და ტერმინებსაც
 export async function getSitemapData() {
   const data = await fetchAPI(GET_SITEMAP_DATA_QUERY, {}, 3600);
   return {
     products: data?.products?.nodes || [],
     pages: data?.pages?.nodes || [],
-    terms: data?.terms?.nodes || [] // ✅ ეს იყო გამორჩენილი
+    categories: data?.productCategories?.nodes || [], // SEO-თი
+    terms: data?.terms?.nodes || [] // სხვა ატრიბუტები (SEO-ს გარეშე)
   };
 }
 
