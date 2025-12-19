@@ -11,7 +11,6 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug, locale } = await params;
   
-  // 1. სტატიკური გვერდი (URI-ის აწყობა ენის მიხედვით)
   if (slug.length === 1) {
     const uri = locale === 'ka' ? `/${slug[0]}/` : `/${locale}/${slug[0]}/`;
     const page = await getPageByUri(uri);
@@ -24,7 +23,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
   }
 
-  // 2. ატრიბუტის SEO (ფერები/მასალები)
   if (slug.length === 2) {
      const [attrType, attrSlug] = slug;
      let seoData = null;
@@ -58,7 +56,6 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
   const { locale, slug } = await params;
   const resolvedSearchParams = await searchParams;
 
-  // --- გვერდის რენდერი ---
   if (slug.length === 1) {
     const uri = locale === 'ka' ? `/${slug[0]}/` : `/${locale}/${slug[0]}/`;
     const page = await getPageByUri(uri);
@@ -73,7 +70,6 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
     }
   }
 
-  // --- კატალოგი ---
   const minPrice = typeof resolvedSearchParams.minPrice === 'string' ? Number(resolvedSearchParams.minPrice) : undefined;
   const maxPrice = typeof resolvedSearchParams.maxPrice === 'string' ? Number(resolvedSearchParams.maxPrice) : undefined;
   const sort = typeof resolvedSearchParams.sort === 'string' ? resolvedSearchParams.sort : 'DATE_DESC';
@@ -98,18 +94,17 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
 
   const [products, filters] = await Promise.all([
     getProducts(apiFilters, locale),
-    getFilters()
+    getFilters(locale) // ✅ ვაწვდით ენას
   ]);
 
-  const safeFilters = filters || { categories: [], colors: [], sizes: [] };
+  const safeFilters = filters || { categories: [], attributes: [] };
 
   return (
     <main className="pt-28 md:pt-36 pb-24 min-h-screen bg-white">
       <CatalogClient 
         initialProducts={products || []} 
         categories={safeFilters.categories}
-        colors={safeFilters.colors}
-        sizes={safeFilters.sizes}
+        attributes={safeFilters.attributes}
         locale={locale} 
       />
     </main>

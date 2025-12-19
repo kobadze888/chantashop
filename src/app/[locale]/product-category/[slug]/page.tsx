@@ -9,18 +9,15 @@ type Props = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
-// ✅ დინამიური SEO - Yoast მონაცემებით
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug, locale } = await params;
   
-  // მონაცემების წამოღება
   const categoryData = await getTaxonomySeo('category', slug);
 
   if (!categoryData) {
     return { title: 'კატეგორია ვერ მოიძებნა | ChantaShop' };
   }
 
-  // პრიორიტეტი: Yoast Title > Category Name
   const seoTitle = categoryData.seo?.title || `${categoryData.name} | ChantaShop`;
   const seoDesc = categoryData.seo?.metaDesc || categoryData.description || `შეიძინეთ ${categoryData.name} საუკეთესო ფასად.`;
 
@@ -56,22 +53,21 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       limit: 100,
       sort: sort as any
     }, locale), 
-    getFilters()
+    getFilters(locale) // ✅ ვაწვდით ენას
   ]);
 
   if (!products) {
      notFound();
   }
 
-  const safeFilters = filters || { categories: [], colors: [], sizes: [] };
+  const safeFilters = filters || { categories: [], attributes: [] };
 
   return (
     <main className="pt-28 md:pt-36 pb-24 min-h-screen bg-white">
       <CatalogClient 
         initialProducts={products} 
         categories={safeFilters.categories}
-        colors={safeFilters.colors}
-        sizes={safeFilters.sizes}
+        attributes={safeFilters.attributes}
         locale={locale} 
       />
     </main>

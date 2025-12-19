@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, Suspense, useMemo, useTransition, useRef } from 'react'; 
-import { SlidersHorizontal, X, ChevronDown, ShoppingBag, RefreshCcw } from 'lucide-react';
+import { useState, useEffect, Suspense, useTransition, useRef } from 'react'; 
+import { SlidersHorizontal, X, ChevronDown, ShoppingBag, RefreshCcw, Check } from 'lucide-react';
 import ProductCard from '@/components/products/ProductCard';
 import type { Product, Category, FilterTerm } from '@/types';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
@@ -10,19 +10,96 @@ import Image from 'next/image';
 import { Link } from '@/navigation';
 import { useTranslations } from 'next-intl';
 
+interface AttributeGroup {
+  taxonomyName: string;
+  label: string;
+  terms: FilterTerm[];
+}
+
 interface CatalogClientProps {
   initialProducts: Product[];
   categories: Category[];
-  colors: FilterTerm[];
-  sizes: FilterTerm[];
+  attributes: AttributeGroup[]; 
+  maxPriceLimit?: number; 
   locale: string;
 }
 
+// ფასის ფილტრის ცალკე კომპონენტი (ინპუტიდან ფოკუსის დაკარგვის თავიდან ასაცილებლად)
+const PriceFilter = ({ 
+    minPrice, maxPrice, setMinPrice, setMaxPrice, applyFilter, maxLimit 
+}: { 
+    minPrice: number, maxPrice: number, setMinPrice: (v: number) => void, setMaxPrice: (v: number) => void, applyFilter: () => void, maxLimit: number 
+}) => {
+    return (
+        <div className="px-2 animate-fade-in">
+            <div className="flex items-center gap-2 mb-4">
+                <div className="flex-1 relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">₾</span>
+                    <input 
+                      type="number" 
+                      value={minPrice === 0 ? '' : minPrice} 
+                      onChange={(e) => setMinPrice(Number(e.target.value))} 
+                      className="w-full border border-gray-200 bg-gray-50 rounded-lg pl-6 pr-2 py-2 text-sm font-bold text-brand-dark focus:border-brand-DEFAULT focus:ring-1 focus:ring-brand-DEFAULT outline-none transition" 
+                      placeholder="0"
+                      min="0"
+                    />
+                </div>
+                <span className="text-gray-400">-</span>
+                <div className="flex-1 relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">₾</span>
+                    <input 
+                      type="number" 
+                      value={maxPrice === maxLimit ? '' : maxPrice} 
+                      onChange={(e) => setMaxPrice(Number(e.target.value))} 
+                      className="w-full border border-gray-200 bg-gray-50 rounded-lg pl-6 pr-2 py-2 text-sm font-bold text-brand-dark focus:border-brand-DEFAULT focus:ring-1 focus:ring-brand-DEFAULT outline-none transition" 
+                      placeholder={String(maxLimit)}
+                      max={maxLimit}
+                    />
+                </div>
+            </div>
+            
+            <input 
+                type="range" 
+                className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand-DEFAULT" 
+                min="0" 
+                max={maxLimit} 
+                step="10" 
+                value={maxPrice} 
+                onChange={(e) => setMaxPrice(Number(e.target.value))} 
+            />
+            
+            <div className="flex justify-between mt-2 text-[10px] font-bold text-gray-400 mb-4">
+                <span>0 ₾</span>
+                <span>{maxLimit} ₾</span>
+            </div>
+
+            <button 
+                onClick={applyFilter}
+                className="w-full bg-brand-dark text-white py-2.5 rounded-lg text-sm font-bold hover:bg-brand-DEFAULT transition shadow-sm active:scale-95 flex items-center justify-center gap-2"
+            >
+                <Check className="w-4 h-4" /> გაფილტვრა
+            </button>
+        </div>
+    );
+};
+
 const colorMap: Record<string, string> = {
-  'shavi': '#000000', 'tetri': '#FFFFFF', 'lurji': '#2563EB', 'muqi_lurji': '#1E3A8A',
-  'cisferi': '#60A5FA', 'beji': '#F5F5DC', 'yavisferi': '#8B4513', 'vardisferi': '#DB2777',
-  'witeli': '#DC2626', 'mwvane': '#16A34A', 'stafilosferi': '#F97316', 'nacrisferi': '#9CA3AF',
-  'vercxlisferi': '#C0C0C0', 'oqrosferi': '#FFD700', 'iasamnisferi': '#A855F7', 'kanisferi': '#FFE4C4'
+  'shavi': '#000000', 'black': '#000000',
+  'tetri': '#FFFFFF', 'white': '#FFFFFF',
+  'lurji': '#2563EB', 'blue': '#2563EB',
+  'muqi_lurji': '#1E3A8A', 'dark-blue': '#1E3A8A',
+  'cisferi': '#60A5FA', 'light-blue': '#60A5FA', 'sky-blue': '#60A5FA',
+  'beji': '#F5F5DC', 'beige': '#F5F5DC',
+  'yavisferi': '#8B4513', 'brown': '#8B4513',
+  'vardisferi': '#DB2777', 'pink': '#DB2777',
+  'witeli': '#DC2626', 'red': '#DC2626',
+  'mwvane': '#16A34A', 'green': '#16A34A',
+  'stafilosferi': '#F97316', 'orange': '#F97316',
+  'nacrisferi': '#9CA3AF', 'grey': '#9CA3AF', 'gray': '#9CA3AF',
+  'vercxlisferi': '#C0C0C0', 'silver': '#C0C0C0',
+  'oqrosferi': '#FFD700', 'gold': '#FFD700',
+  'iasamnisferi': '#A855F7', 'purple': '#A855F7',
+  'kanisferi': '#FFE4C4', 'nude': '#FFE4C4'
 };
 
 const parsePrice = (priceString: string | undefined | null): number => {
@@ -41,7 +118,7 @@ export default function CatalogClient(props: CatalogClientProps) {
   );
 }
 
-function CatalogContent({ initialProducts, categories, colors, sizes, locale }: CatalogClientProps) {
+function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit = 5000, locale }: CatalogClientProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -51,33 +128,39 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
   
   const sortDropdownRef = useRef<HTMLDivElement>(null); 
 
-  const [maxPrice, setMaxPrice] = useState(Number(searchParams.get('maxPrice')) || 5000);
+  const urlMinPrice = Number(searchParams.get('minPrice')) || 0;
+  const urlMaxPrice = Number(searchParams.get('maxPrice')) || maxPriceLimit;
+
+  // ლოკალური სტეიტი (არ იწვევს რენდერს მშობელში, სანამ არ გაიგზავნება)
+  const [tempMinPrice, setTempMinPrice] = useState(urlMinPrice);
+  const [tempMaxPrice, setTempMaxPrice] = useState(urlMaxPrice);
+  
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [isPending, startTransition] = useTransition(); 
 
   const activeSort = searchParams.get('sort') || 'DATE_DESC'; 
-  
   const activeCategory = searchParams.get('category') || 'all';
-  const activeColor = searchParams.get('color') || 'all';
-  const activeSize = searchParams.get('material') || 'all';
-  
+
+  const getActiveAttr = (taxName: string) => searchParams.get(taxName) || 'all';
+
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const addItem = useCartStore((state) => state.addItem);
   
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(true); 
-  const [isPriceOpen, setIsPriceOpen] = useState(false);
-  const [isColorsOpen, setIsColorsOpen] = useState(false); 
-  const [isMaterialsOpen, setIsMaterialsOpen] = useState(false);
-
+  const [isPriceOpen, setIsPriceOpen] = useState(true);
+  
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   const [isSortOpen, setIsSortOpen] = useState(false);
 
+  // URL-ის ცვლილებაზე განვაახლოთ ინპუტებიც (მაგ. Clear Filters-ის დროს)
   useEffect(() => {
-    if (modalVisible || mobileFiltersOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
-    }
+    setTempMinPrice(urlMinPrice);
+    setTempMaxPrice(urlMaxPrice);
+  }, [urlMinPrice, urlMaxPrice]);
+
+  useEffect(() => {
+    document.body.style.overflow = (modalVisible || mobileFiltersOpen) ? 'hidden' : 'auto';
     return () => { document.body.style.overflow = 'auto'; };
   }, [modalVisible, mobileFiltersOpen]);
   
@@ -87,13 +170,19 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
         setIsSortOpen(false);
       }
     }
-    if (isSortOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    if (isSortOpen) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isSortOpen]); 
+
+  useEffect(() => {
+      const defaults: Record<string, boolean> = {};
+      attributes?.forEach(attr => { defaults[attr.taxonomyName] = true; });
+      setOpenSections(defaults);
+  }, [attributes]);
+
+  const toggleSection = (taxName: string) => {
+      setOpenSections(prev => ({ ...prev, [taxName]: !prev[taxName] }));
+  };
 
   const updateFilter = (key: string, value: string | number) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -104,32 +193,49 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
       params.set(key, String(value));
     }
     
-    if (key === 'category') {
-        params.delete('color');
-        params.delete('material');
-    }
-
     startTransition(() => {
         router.push(`${pathname}?${params.toString()}`, { scroll: false });
     });
+  };
+
+  // ✅ ფასის გაფილტვრა (ღილაკზე დაჭერისას)
+  const applyPriceFilter = () => {
+      const params = new URLSearchParams(searchParams.toString());
+      
+      let finalMin = tempMinPrice < 0 ? 0 : tempMinPrice;
+      let finalMax = tempMaxPrice > maxPriceLimit ? maxPriceLimit : tempMaxPrice;
+      
+      // თუ მინიმუმი მეტია მაქსიმუმზე, ვასწორებთ
+      if (finalMin > finalMax) {
+          finalMin = 0;
+          finalMax = maxPriceLimit;
+          setTempMinPrice(0);
+          setTempMaxPrice(maxPriceLimit);
+      }
+
+      if (finalMin > 0) params.set('minPrice', String(finalMin)); else params.delete('minPrice');
+      if (finalMax < maxPriceLimit) params.set('maxPrice', String(finalMax)); else params.delete('maxPrice');
+      
+      startTransition(() => {
+          router.push(`${pathname}?${params.toString()}`, { scroll: false });
+      });
   };
   
   const handleClearFilters = () => {
     const params = new URLSearchParams();
-    if (activeSort !== 'DATE_DESC') {
-        params.set('sort', activeSort);
-    }
+    if (activeSort !== 'DATE_DESC') params.set('sort', activeSort);
+    
+    setTempMinPrice(0);
+    setTempMaxPrice(maxPriceLimit);
+
     startTransition(() => {
         router.push(`${pathname}?${params.toString()}`, { scroll: false });
         setMobileFiltersOpen(false); 
-        setMaxPrice(5000); 
     });
   };
 
   const handleCategoryChange = (slug: string) => updateFilter('category', activeCategory === slug ? 'all' : slug);
-  const handleColorChange = (slug: string) => updateFilter('color', activeColor === slug ? 'all' : slug);
-  const handleSizeChange = (slug: string) => updateFilter('material', activeSize === slug ? 'all' : slug);
-  const handlePriceChangeFinal = (value: number) => updateFilter('maxPrice', value);
+  const handleAttrChange = (taxName: string, slug: string) => updateFilter(taxName, getActiveAttr(taxName) === slug ? 'all' : slug);
   const handleSortChange = (sortValue: string) => updateFilter('sort', sortValue); 
 
   const openQuickView = (product: Product) => { setSelectedProduct(product); setTimeout(() => setModalVisible(true), 10); };
@@ -149,75 +255,15 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
       } 
   };
   
-  const filtersActive = activeCategory !== 'all' || activeColor !== 'all' || activeSize !== 'all' || maxPrice < 5000;
+  const filtersActive = activeCategory !== 'all' || urlMinPrice > 0 || urlMaxPrice < maxPriceLimit || attributes?.some(attr => getActiveAttr(attr.taxonomyName) !== 'all');
 
-  const getAttrCounts = (products: Product[], attrName: 'pa_color' | 'pa_masala' | 'category') => {
-    const counts: Record<string, number> = {};
-    
-    products.forEach(p => {
-        let terms: { slug: string }[] = [];
-        
-        if (attrName === 'category') {
-            terms = p.productCategories?.nodes || [];
-        } else {
-            const attr = p.attributes?.nodes.find(a => a.name === attrName);
-            if (attr?.terms?.nodes?.length) {
-                terms = attr.terms.nodes;
-            } else if (attr?.options?.length) {
-                terms = attr.options.map(opt => ({ slug: opt })); 
-            }
-        }
+  const availableCategories = categories.filter(c => c.count && c.count > 0);
 
-        terms.forEach(term => {
-            if (term.slug) {
-                counts[term.slug.toLowerCase()] = (counts[term.slug.toLowerCase()] || 0) + 1;
-            }
-        });
-    });
-    
-    return counts;
+  const isColorAttribute = (taxName: string) => {
+      const lower = taxName.toLowerCase();
+      return lower.includes('color') || lower.includes('feri') || lower.includes('colour');
   };
 
-  const productsForCategories = useMemo(() => {
-    const priceMax = Number(searchParams.get('maxPrice')) || 5000;
-    return initialProducts.filter(p => parsePrice(p.price) <= priceMax);
-  }, [initialProducts, searchParams]);
-
-  const categoryCounts = useMemo(() => getAttrCounts(productsForCategories, 'category' as 'pa_color'), [productsForCategories]);
-  
-  const availableCategories = useMemo(() => {
-    return categories
-      .map(c => ({ 
-          ...c, 
-          count: categoryCounts[c.slug.toLowerCase()] || c.count || 0 
-      }))
-      .filter(c => c.count > 0 || c.slug === activeCategory);
-  }, [categories, categoryCounts, activeCategory]);
-
-  const productsForAttrs = useMemo(() => {
-    const priceMax = Number(searchParams.get('maxPrice')) || 5000;
-    
-    return initialProducts.filter(p => {
-        const priceMatch = parsePrice(p.price) <= priceMax;
-        const categoryMatch = activeCategory === 'all' || p.productCategories?.nodes.some(c => c.slug === activeCategory);
-        return priceMatch && categoryMatch;
-    });
-  }, [initialProducts, activeCategory, searchParams]);
-
-  const colorCounts = useMemo(() => getAttrCounts(productsForAttrs, 'pa_color'), [productsForAttrs]);
-  const availableColors = useMemo(() => {
-    return colors
-      .map(c => ({ ...c, count: colorCounts[c.slug.toLowerCase()] || 0 }))
-      .filter(c => c.count > 0 || c.slug === activeColor);
-  }, [colors, colorCounts, activeColor]);
-
-  const sizeCounts = useMemo(() => getAttrCounts(productsForAttrs, 'pa_masala'), [productsForAttrs]);
-  const availableSizes = useMemo(() => {
-    return sizes
-      .map(s => ({ ...s, count: sizeCounts[s.slug.toLowerCase()] || 0 }))
-      .filter(c => c.count > 0 || c.slug === activeSize);
-  }, [sizes, sizeCounts, activeSize]);
-  
   const sortOptions = [
     { value: 'DATE_DESC', label: t('Sort.newest') },
     { value: 'POPULARITY_DESC', label: t('Sort.popularity') },
@@ -225,9 +271,7 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
     { value: 'PRICE_DESC', label: t('Sort.priceHighLow') },
   ];
   
-  // FIX: Use !! to explicitly convert the value to a boolean to satisfy the 'disabled' prop type.
-  const isSelectedProductOutOfStock: boolean = !!(selectedProduct && (selectedProduct.stockQuantity === 0 || selectedProduct.stockStatus !== 'IN_STOCK'));
-
+  const isSelectedProductOutOfStock = !!(selectedProduct && (selectedProduct.stockQuantity === 0 || selectedProduct.stockStatus !== 'IN_STOCK'));
 
   return (
     <>
@@ -248,8 +292,11 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
                         <div className="mb-6">
                             <span className="text-xs font-bold text-brand-dark uppercase mb-2 block">{t('filters.color')}</span>
                             <div className="flex gap-3">
-                                {selectedProduct.attributes?.nodes.find(a => a.name === 'pa_color')?.options?.map((opt, i) => (
-                                    <div key={i} className="w-8 h-8 rounded-full border border-gray-200" style={{ backgroundColor: colorMap[opt.toLowerCase()] || '#eee' }} title={opt} />
+                                {selectedProduct.attributes?.nodes
+                                  .filter(a => ['pa_color', 'color', 'feri'].some(key => a.name.toLowerCase().includes(key)))
+                                  .flatMap(a => a.options || [])
+                                  .map((opt, i) => (
+                                    <div key={i} className="w-8 h-8 rounded-full border border-gray-200 shadow-sm" style={{ backgroundColor: colorMap[opt.toLowerCase()] || '#eee' }} title={opt} />
                                 ))}
                             </div>
                         </div>
@@ -270,13 +317,14 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
         </div>
       )}
 
+      {/* --- MOBILE FILTERS --- */}
       <div 
         id="filter-overlay" 
         className={`fixed inset-0 bg-black/60 z-[80] transition-opacity duration-300 md:hidden ${mobileFiltersOpen ? 'opacity-100 visible' : 'invisible'}`}
         onClick={() => setMobileFiltersOpen(false)} 
       >
         <div 
-          className={`absolute right-0 top-0 bottom-0 w-[80%] bg-white p-6 overflow-y-auto hide-scrollbar transform transition-transform duration-300 ${mobileFiltersOpen ? 'translate-x-0' : 'translate-x-full'}`} 
+          className={`absolute right-0 top-0 bottom-0 w-[85%] bg-white p-6 overflow-y-auto hide-scrollbar transform transition-transform duration-300 ${mobileFiltersOpen ? 'translate-x-0' : 'translate-x-full'}`} 
           id="filter-content"
           onClick={(e) => e.stopPropagation()} 
         >
@@ -286,6 +334,7 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
             </div>
             
             <div className="space-y-8">
+                {/* Categories */}
                 <div>
                     <h4 className="font-bold mb-4 uppercase text-xs tracking-widest text-brand-dark">{t('filters.categories')}</h4>
                     <div className="space-y-3"> 
@@ -305,45 +354,50 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
                     </div>
                 </div>
 
+                {/* Price */}
                 <div>
                   <h4 className="font-bold mb-4 uppercase text-xs tracking-widest text-brand-dark">{t('filters.price')}</h4>
-                  <div className="px-2">
-                      <input type="range" className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand-DEFAULT" min="0" max="5000" step="50" value={maxPrice} onMouseUp={(e) => handlePriceChangeFinal(Number((e.target as HTMLInputElement).value))} onChange={(e) => setMaxPrice(Number(e.target.value))} />
-                      <div className="flex justify-between mt-3 text-sm font-bold text-gray-500">
-                          <span>0 ₾</span>
-                          <span>{maxPrice} ₾</span>
-                      </div>
-                  </div>
+                  <PriceFilter 
+                    minPrice={tempMinPrice} 
+                    maxPrice={tempMaxPrice} 
+                    setMinPrice={setTempMinPrice} 
+                    setMaxPrice={setTempMaxPrice} 
+                    applyFilter={applyPriceFilter}
+                    maxLimit={maxPriceLimit}
+                  />
                 </div>
 
-                {availableColors.length > 0 && (
-                    <div>
-                        <h4 className="font-bold mb-4 uppercase text-xs tracking-widest text-brand-dark">{t('filters.color')}</h4>
-                        <div className="flex flex-wrap gap-4">
-                            <button onClick={() => handleColorChange('all')} className={`px-3 py-1 text-xs border rounded-full transition cursor-pointer ${activeColor === 'all' ? 'bg-brand-dark text-white' : 'bg-white hover:border-brand-dark'}`}>{t('filters.all')}</button>
-                            {availableColors.map((color) => (
-                                <button key={color.id} onClick={() => handleColorChange(color.slug)} className={`w-8 h-8 rounded-full border-2 border-gray-200 transition duration-150 transform hover:scale-110 cursor-pointer ${activeColor === color.slug ? 'color-swatch-selected' : ''}`} style={{ backgroundColor: colorMap[color.slug] || '#e5e7eb' }} title={color.name} />
-                            ))}
-                        </div>
+                {attributes?.map((attr) => (
+                    <div key={attr.taxonomyName}>
+                        <h4 className="font-bold mb-4 uppercase text-xs tracking-widest text-brand-dark">{attr.label}</h4>
+                        {isColorAttribute(attr.taxonomyName) ? (
+                            <div className="flex flex-wrap gap-3">
+                                <button onClick={() => handleAttrChange(attr.taxonomyName, 'all')} className={`px-3 py-1 text-xs border rounded-full transition cursor-pointer ${getActiveAttr(attr.taxonomyName) === 'all' ? 'bg-brand-dark text-white' : 'bg-white hover:border-brand-dark'}`}>{t('filters.all')}</button>
+                                {attr.terms.map((term) => (
+                                    <button 
+                                      key={term.id} 
+                                      onClick={() => handleAttrChange(attr.taxonomyName, term.slug)} 
+                                      className={`w-8 h-8 rounded-full border-2 border-gray-200 transition duration-150 transform hover:scale-110 cursor-pointer ${getActiveAttr(attr.taxonomyName) === term.slug ? 'ring-2 ring-brand-DEFAULT scale-110' : ''}`} 
+                                      style={{ backgroundColor: colorMap[term.slug.toLowerCase()] || '#e5e7eb' }} 
+                                      title={term.name} 
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {attr.terms.map((term) => (
+                                    <label key={term.id} className="flex items-center gap-3 cursor-pointer group">
+                                        <input type="checkbox" checked={getActiveAttr(attr.taxonomyName) === term.slug} onChange={() => handleAttrChange(attr.taxonomyName, term.slug)} className="w-5 h-5 rounded border-gray-300 text-brand-DEFAULT focus:ring-brand-DEFAULT shadow-sm flex-shrink-0" />
+                                        <div className="flex items-center justify-between w-full overflow-hidden">
+                                            <span className="text-gray-600 group-hover:text-brand-dark transition font-medium text-sm truncate mr-1" title={term.name}>{term.name}</span>
+                                            <span className="ml-auto text-xs text-gray-400 font-bold">{term.count}</span>
+                                        </div>
+                                    </label>
+                                ))}
+                            </div>
+                        )}
                     </div>
-                )}
-                
-                {availableSizes.length > 0 && (
-                  <div>
-                      <h4 className="font-bold mb-4 uppercase text-xs tracking-widest text-brand-dark">{t('filters.material')}</h4>
-                      <div className="space-y-3">
-                          {availableSizes.map((size) => (
-                              <label key={size.id} className="flex items-center gap-3 cursor-pointer group">
-                                  <input type="checkbox" checked={activeSize === size.slug} onChange={() => handleSizeChange(size.slug)} className="w-5 h-5 rounded border-gray-300 text-brand-DEFAULT focus:ring-brand-DEFAULT shadow-sm flex-shrink-0" />
-                                  <div className="flex items-center justify-between w-full overflow-hidden">
-                                      <span className="text-gray-600 group-hover:text-brand-dark transition font-medium text-sm truncate mr-1" title={size.name}>{size.name}</span>
-                                      <span className="ml-auto text-xs text-gray-400 font-bold">{size.count}</span>
-                                    </div>
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-                )}
+                ))}
                 
                 <button onClick={handleClearFilters} disabled={!filtersActive} className={`w-full py-3 rounded-xl font-bold mt-8 transition flex items-center justify-center gap-2 ${filtersActive ? 'bg-brand-DEFAULT text-white hover:bg-brand-dark' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}>
                     <RefreshCcw className="w-4 h-4" /> {tCommon('clearFilters')}
@@ -397,7 +451,7 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
           </div>
       </div>
 
-      <div className="container mx-auto px-4 flex gap-12 relative">
+      <div className="container mx-auto px-4 flex gap-12 relative mt-8">
         <div className="hidden md:block w-1/4 sticky top-28 h-[calc(100vh-8rem)] relative"> 
             
             <div className="sticky top-0 z-10 bg-white pt-4 pb-4 border-b border-gray-100 -mx-4 px-4">
@@ -444,58 +498,60 @@ function CatalogContent({ initialProducts, categories, colors, sizes, locale }: 
                         <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isPriceOpen ? 'rotate-180' : ''}`} />
                     </button>
                     {isPriceOpen && (
-                        <div className="px-2 animate-fade-in">
-                            <input type="range" className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand-DEFAULT" min="0" max="5000" step="50" value={maxPrice} onMouseUp={(e) => handlePriceChangeFinal(Number((e.target as HTMLInputElement).value))} onChange={(e) => setMaxPrice(Number(e.target.value))} />
-                            <div className="flex justify-between mt-3 text-sm font-bold text-gray-500"><span>0 ₾</span><span>{maxPrice} ₾</span></div>
-                        </div>
+                        <PriceFilter 
+                            minPrice={tempMinPrice} 
+                            maxPrice={tempMaxPrice} 
+                            setMinPrice={setTempMinPrice} 
+                            setMaxPrice={setTempMaxPrice} 
+                            applyFilter={applyPriceFilter}
+                            maxLimit={maxPriceLimit}
+                        />
                     )}
                 </div>
 
-                {availableColors.length > 0 && (
-                    <div>
+                {attributes?.map((attr) => (
+                    <div key={attr.taxonomyName}>
                         <button 
                             className="flex justify-between items-center w-full font-bold uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2 mb-6 cursor-pointer"
-                            onClick={() => setIsColorsOpen(!isColorsOpen)}
+                            onClick={() => toggleSection(attr.taxonomyName)}
                         >
-                            {t('filters.color')}
-                            <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isColorsOpen ? 'rotate-180' : ''}`} />
+                            {attr.label}
+                            <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${openSections[attr.taxonomyName] ? 'rotate-180' : ''}`} />
                         </button>
-                        {isColorsOpen && (
-                            <div className="flex flex-wrap gap-4 animate-fade-in">
-                                <button onClick={() => handleColorChange('all')} className={`px-3 py-1 text-xs border rounded-full transition cursor-pointer ${activeColor === 'all' ? 'bg-brand-dark text-white' : 'bg-white hover:border-brand-dark'}`}>{t('filters.all')}</button>
-                                {availableColors.map((color) => (
-                                    <button key={color.id} onClick={() => handleColorChange(color.slug)} className={`w-8 h-8 rounded-full border-2 border-gray-200 transition duration-150 transform hover:scale-110 cursor-pointer ${activeColor === color.slug ? 'color-swatch-selected' : ''}`} style={{ backgroundColor: colorMap[color.slug] || '#e5e7eb' }} title={color.name} />
-                                ))}
+                        
+                        {openSections[attr.taxonomyName] && (
+                            <div className="animate-fade-in mb-8">
+                                {isColorAttribute(attr.taxonomyName) ? (
+                                    <div className="flex flex-wrap gap-3">
+                                        <button onClick={() => handleAttrChange(attr.taxonomyName, 'all')} className={`px-3 py-1 text-xs border rounded-full transition cursor-pointer ${getActiveAttr(attr.taxonomyName) === 'all' ? 'bg-brand-dark text-white' : 'bg-white hover:border-brand-dark'}`}>{t('filters.all')}</button>
+                                        {attr.terms.map((term) => (
+                                            <button 
+                                                key={term.id} 
+                                                onClick={() => handleAttrChange(attr.taxonomyName, term.slug)} 
+                                                className={`w-8 h-8 rounded-full border-2 border-gray-200 transition duration-150 transform hover:scale-110 cursor-pointer ${getActiveAttr(attr.taxonomyName) === term.slug ? 'ring-2 ring-brand-DEFAULT scale-110' : ''}`} 
+                                                style={{ backgroundColor: colorMap[term.slug.toLowerCase()] || '#e5e7eb' }} 
+                                                title={term.name} 
+                                            />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {attr.terms.map((term) => (
+                                            <label key={term.id} className="flex items-center gap-3 cursor-pointer group">
+                                                <input type="checkbox" checked={getActiveAttr(attr.taxonomyName) === term.slug} onChange={() => handleAttrChange(attr.taxonomyName, term.slug)} className="w-5 h-5 rounded border-gray-300 text-brand-DEFAULT focus:ring-brand-DEFAULT shadow-sm flex-shrink-0" />
+                                                <div className="flex items-center justify-between w-full overflow-hidden">
+                                                    <span className="text-gray-600 group-hover:text-brand-dark transition font-medium text-sm truncate mr-1" title={term.name}>{term.name}</span>
+                                                    <span className="text-[10px] text-gray-400 font-bold bg-gray-50 px-1.5 py-0.5 rounded flex-shrink-0">{term.count}</span>
+                                                </div>
+                                            </label>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
-                )}
+                ))}
 
-                {availableSizes.length > 0 && (
-                    <div className="pb-4"> 
-                        <button 
-                            className="flex justify-between items-center w-full font-bold uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2 mb-6 cursor-pointer"
-                            onClick={() => setIsMaterialsOpen(!isMaterialsOpen)}
-                        >
-                            {t('filters.material')}
-                            <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isMaterialsOpen ? 'rotate-180' : ''}`} />
-                        </button>
-                        {isMaterialsOpen && (
-                            <div className="grid grid-cols-2 gap-3 animate-fade-in">
-                                {availableSizes.map((size) => (
-                                    <label key={size.id} className="flex items-center gap-3 cursor-pointer group">
-                                        <input type="checkbox" checked={activeSize === size.slug} onChange={() => handleSizeChange(size.slug)} className="w-5 h-5 rounded border-gray-300 text-brand-DEFAULT focus:ring-brand-DEFAULT shadow-sm flex-shrink-0" />
-                                        <div className="flex items-center justify-between w-full overflow-hidden">
-                                            <span className="text-gray-600 group-hover:text-brand-dark transition font-medium text-sm truncate mr-1" title={size.name}>{size.name}</span>
-                                            <span className="text-[10px] text-gray-400 font-bold bg-gray-50 px-1.5 py-0.5 rounded flex-shrink-0">{size.count}</span>
-                                        </div>
-                                    </label>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                )}
-                
             </aside>
             
         </div>

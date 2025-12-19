@@ -2,32 +2,23 @@
 import { Metadata } from 'next';
 import { getProducts, getFilters, getPageBySlugReal } from '@/lib/api';
 import CatalogClient from '@/components/catalog/CatalogClient';
-import { FilterTerm } from '@/types';
 
 type Props = {
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
-// ⚠️ აქ გაწერეთ ზუსტად ის სლაგები, რაც WordPress-მა მიანიჭა გვერდებს
 const wpSlugs: Record<string, string> = {
-  ka: 'shop',      // ქართული გვერდის სლაგი
-  en: 'shop-3',    // ინგლისურის სლაგი (შეამოწმეთ WP-ში, შეიძლება იყოს full-catalog)
-  ru: 'shop-2'     // რუსულის სლაგი (შეამოწმეთ WP-ში)
+  ka: 'shop',
+  en: 'shop-3',
+  ru: 'shop-2'
 };
 
-// ✅ Shop გვერდის SEO
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
-  
-  // ვიღებთ შესაბამის სლაგს ენის მიხედვით
-  // თუ ვერ იპოვა, ვიყენებთ 'shop'-ს
   const slugToFetch = wpSlugs[locale] || 'shop';
-
-  // ვეძებთ გვერდს ამ კონკრეტული სლაგით
   const pageData = await getPageBySlugReal(slugToFetch);
 
-  // Yoast-ის მონაცემები
   if (pageData?.seo) {
     return {
       title: pageData.seo.title,
@@ -56,43 +47,43 @@ export default async function ShopPage({
   const resolvedSearchParams = await searchParams;
 
   const category = typeof resolvedSearchParams.category === 'string' ? resolvedSearchParams.category : 'all';
-  const color = typeof resolvedSearchParams.color === 'string' ? resolvedSearchParams.color : 'all';
-  const material = typeof resolvedSearchParams.material === 'string' ? resolvedSearchParams.material : 'all';
-  
   const minPrice = typeof resolvedSearchParams.minPrice === 'string' ? Number(resolvedSearchParams.minPrice) : undefined;
   const maxPrice = typeof resolvedSearchParams.maxPrice === 'string' ? Number(resolvedSearchParams.maxPrice) : undefined;
   const sort = typeof resolvedSearchParams.sort === 'string' ? resolvedSearchParams.sort : 'DATE_DESC';
 
-  // API მოთხოვნა (ენა დინამიურია - api.ts-ში გასწორდა)
+  const dynamicAttributes: Record<string, string> = {};
+  
+  Object.keys(resolvedSearchParams).forEach(key => {
+      if (key.startsWith('pa_') || key === 'color' || key === 'material') {
+          const val = resolvedSearchParams[key];
+          if (typeof val === 'string' && val !== 'all') {
+              const taxName = key === 'color' ? 'pa_color' : (key === 'material' ? 'pa_masala' : key);
+              dynamicAttributes[taxName] = val;
+          }
+      }
+  });
+
   const [productsRaw, filters] = await Promise.all([
     getProducts({ 
       category: category !== 'all' ? category : undefined,
-      color: color !== 'all' ? color : undefined,
-      material: material !== 'all' ? material : undefined,
       minPrice,
       maxPrice,
       limit: 100,
-      sort: sort as any 
+      sort: sort as any,
+      dynamicAttributes 
     }, locale), 
-    getFilters()
+    getFilters(locale) // ✅ ვაწვდით ენას
   ]);
 
   const products = productsRaw || [];
-  const safeFilters = filters || { categories: [], colors: [], sizes: [] };
-
-  // ფილტრები ვაჩვენოთ იმ ენაზე, რომელიც არჩეულია
-  const targetLang = locale.toUpperCase();
-  
-  const filterByLang = (item: FilterTerm) => 
-    !item.safeLanguage || item.safeLanguage === "" || item.safeLanguage === targetLang;
+  const attributes = filters?.attributes || []; 
 
   return (
     <main className="pt-28 md:pt-36 pb-24 min-h-screen bg-white">
       <CatalogClient 
         initialProducts={products} 
-        categories={safeFilters.categories.filter(filterByLang)}
-        colors={safeFilters.colors.filter(filterByLang)}
-        sizes={safeFilters.sizes.filter(filterByLang)}
+        categories={filters?.categories || []}
+        attributes={attributes}
         locale={locale} 
       />
     </main>

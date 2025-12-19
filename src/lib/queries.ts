@@ -1,5 +1,7 @@
 // src/lib/queries.ts
 
+// --- FRAGMENTS ---
+
 export const SEO_FRAGMENT = `
   fragment SeoFragment on PostTypeSEO {
     title
@@ -74,7 +76,7 @@ const PRODUCT_FRAGMENT = `
   }
 `;
 
-// --- QUERIES ---
+// --- QUERIES (GET DATA) ---
 
 export const GET_PRODUCTS_QUERY = `
   ${PRODUCT_FRAGMENT}
@@ -87,12 +89,19 @@ export const GET_PRODUCTS_QUERY = `
 `;
 
 export const GET_FILTERS_QUERY = `
-  query GetFilters {
-    productCategories(first: 1000, where: { hideEmpty: false }) {
-      nodes { id name slug count safeLanguage }
+  query GetFilters($language: LanguageCodeFilterEnum!) {
+    productCategories(first: 1000, where: { hideEmpty: true, language: $language }) {
+      nodes { id name slug count language { code } }
     }
-    terms(first: 2000, where: { hideEmpty: true }) {
+    terms(first: 3000, where: { hideEmpty: true, language: $language }) {
       nodes { id name slug taxonomyName count }
+    }
+    # ✅ ვიღებთ 1 ყველაზე ძვირიან პროდუქტს, რომ გავიგოთ მაქსიმალური ფასი
+    products(first: 1, where: { orderby: { field: PRICE, order: DESC } }) {
+      nodes {
+        ... on SimpleProduct { price(format: RAW) }
+        ... on VariableProduct { price(format: RAW) }
+      }
     }
   }
 `;
@@ -155,10 +164,6 @@ export const GET_SHOP_PAGE_WITH_TRANSLATIONS = `
   }
 `;
 
-// ✅ შესწორებული (ჰიბრიდული):
-// products -> "PUBLISH" (String)
-// pages -> PUBLISH (Enum)
-// terms -> seo ველი ამოღებულია (რადგან ერორს იწვევდა)
 export const GET_SITEMAP_DATA_QUERY = `
   query GetSitemapData {
     products(first: 2000, where: { status: "PUBLISH" }) { 
@@ -228,9 +233,107 @@ export const GET_MATERIAL_SEO_QUERY = `
   }
 `;
 
-export const CHECKOUT_MUTATION = ` mutation Checkout($input: CheckoutInput!) { checkout(input: $input) { order { databaseId orderNumber status total(format: RAW) } result redirect } } `;
-export const ADD_TO_CART_MUTATION = ` mutation AddToCart($input: AddToCartInput!) { addToCart(input: $input) { cart { contents { itemCount } } } } `;
-export const APPLY_COUPON_MUTATION = ` mutation ApplyCoupon($input: ApplyCouponInput!) { applyCoupon(input: $input) { cart { total(format: RAW) } } } `;
-export const UPDATE_CUSTOMER_MUTATION = ` mutation UpdateCustomer($input: UpdateCustomerInput!) { updateCustomer(input: $input) { customer { shipping { city country } } } } `;
-export const GET_CART_TOTALS_QUERY = ` query GetCartTotals { cart { total(format: RAW) subtotal(format: RAW) shippingTotal(format: RAW) discountTotal(format: RAW) appliedCoupons { code discountAmount(format: RAW) } } } `;
-export const GET_ORDER_QUERY = ` query GetOrder($id: ID!) { order(id: $id, idType: DATABASE_ID) { databaseId orderNumber status date total(format: RAW) currency billing { firstName lastName city address1 email } lineItems { nodes { product { node { name image { sourceUrl } } } quantity total } } } } `;
+// --- MUTATIONS ---
+
+export const ADD_TO_CART_MUTATION = `
+  mutation AddToCart($input: AddToCartInput!) {
+    addToCart(input: $input) {
+      cart {
+        contents {
+          itemCount
+        }
+      }
+    }
+  }
+`;
+
+export const CHECKOUT_MUTATION = `
+  mutation Checkout($input: CheckoutInput!) {
+    checkout(input: $input) {
+      order {
+        databaseId
+        orderNumber
+        status
+        total(format: RAW)
+      }
+      result
+      redirect
+    }
+  }
+`;
+
+export const APPLY_COUPON_MUTATION = `
+  mutation ApplyCoupon($input: ApplyCouponInput!) {
+    applyCoupon(input: $input) {
+      cart {
+        total(format: RAW)
+        appliedCoupons {
+          code
+          discountAmount(format: RAW)
+        }
+      }
+    }
+  }
+`;
+
+export const UPDATE_CUSTOMER_MUTATION = `
+  mutation UpdateCustomer($input: UpdateCustomerInput!) {
+    updateCustomer(input: $input) {
+      customer {
+        shipping {
+          city
+          country
+        }
+      }
+    }
+  }
+`;
+
+export const GET_CART_TOTALS_QUERY = `
+  query GetCartTotals {
+    cart {
+      total(format: RAW)
+      subtotal(format: RAW)
+      shippingTotal(format: RAW)
+      discountTotal(format: RAW)
+      appliedCoupons {
+        code
+        discountAmount(format: RAW)
+      }
+    }
+  }
+`;
+
+export const GET_ORDER_QUERY = `
+  query GetOrder($id: ID!) {
+    order(id: $id, idType: DATABASE_ID) {
+      databaseId
+      orderNumber
+      status
+      date
+      total(format: RAW)
+      currency
+      billing {
+        firstName
+        lastName
+        city
+        address1
+        email
+      }
+      lineItems {
+        nodes {
+          product {
+            node {
+              name
+              image {
+                sourceUrl
+              }
+            }
+          }
+          quantity
+          total
+        }
+      }
+    }
+  }
+`;
