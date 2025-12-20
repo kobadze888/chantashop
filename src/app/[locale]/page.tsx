@@ -1,6 +1,5 @@
 // src/app/[locale]/page.tsx
 import { Metadata } from 'next';
-import { Suspense } from 'react';
 import Hero from '@/components/home/Hero';
 import Brands from '@/components/home/Brands';
 import Categories from '@/components/home/Categories';
@@ -15,38 +14,15 @@ function getSecondImage(product: Product): string | null {
   return galleryNodes[0]?.sourceUrl || null;
 }
 
-// ✅ პროდუქტების სექცია გამოტანილია ცალკე სტრიმინგისთვის
-async function FeaturedProducts({ locale }: { locale: string }) {
-  const t = await getTranslations('Home.Featured');
-  const products = await getProducts({ limit: 8 }, locale) || [];
-
-  const formattedProducts = products.map((p: any) => ({
-    id: p.databaseId,
-    name: p.name,
-    price: p.salePrice || p.price,
-    salePrice: p.salePrice,
-    regularPrice: p.regularPrice,
-    image: p.image?.sourceUrl || '/placeholder.jpg',
-    secondImage: getSecondImage(p),
-    slug: p.slug,
-    stockQuantity: p.stockQuantity,
-    stockStatus: p.stockStatus,
-  }));
-
-  return (
-    <FeaturedCarousel 
-      title={t('title')}
-      subtitle={t('subtitle')}
-      products={formattedProducts}
-      locale={locale}
-    />
-  );
-}
-
-// ✅ მთავარი გვერდის დინამიური SEO (იყენებს api.ts-ის ქეშირებულ fetch-ს)
+// ✅ მთავარი გვერდის დინამიური SEO
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
+  
+  // განსაზღვრეთ URI
+  // ქართულისთვის (ka) - '/', ინგლისურისთვის (en) - '/en/'
   const uri = locale === 'ka' ? '/' : `/${locale}/`;
+  
+  // მონაცემების წამოღება
   const pageData = await getPageByUri(uri);
 
   if (pageData?.seo) {
@@ -63,23 +39,40 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     };
   }
 
+  // Fallback (თუ WP-ში მთავარი გვერდი ვერ იპოვა)
   return { title: 'ChantaShop - Iconic Luxury' };
 }
 
 export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
+  const t = await getTranslations('Home.Featured');
+  
+  const products = await getProducts({ limit: 8 }, locale) || [];
+
+  const formattedProducts = products.map((p: any) => ({
+    id: p.databaseId,
+    name: p.name,
+    price: p.salePrice || p.price,
+    salePrice: p.salePrice,
+    regularPrice: p.regularPrice,
+    image: p.image?.sourceUrl || '/placeholder.jpg',
+    secondImage: getSecondImage(p),
+    slug: p.slug,
+    stockQuantity: p.stockQuantity,
+    stockStatus: p.stockStatus,
+  }));
 
   return (
     <div className="min-h-screen bg-white">
-      {/* ეს კომპონენტები ჩაიტვირთება მყისიერად */}
       <Hero /> 
       <Brands />
       <Categories /> 
-
-      {/* პროდუქტები ჩაიტვირთება ფონურად, რაც ლოადერს გააქრობს */}
-      <Suspense fallback={<div className="h-[500px] w-full flex items-center justify-center">Loading...</div>}>
-        <FeaturedProducts locale={locale} />
-      </Suspense>
+      <FeaturedCarousel 
+        title={t('title')}
+        subtitle={t('subtitle')}
+        products={formattedProducts}
+        locale={locale}
+      />
     </div>
   );
 }

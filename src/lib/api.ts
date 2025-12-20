@@ -11,7 +11,7 @@ import {
   TAXONOMY_SEO_FRAGMENT,
 } from './queries';
 import { Product, FilterTerm } from '@/types';
-import { cache } from 'react'; // ✅ მოთხოვნების დე-დუბლიკაციისთვის
+import { cache } from 'react'; // ✅ მონაცემთა დე-დუბლიკაცია
 
 export interface AttributeGroup {
   taxonomyName: string;
@@ -25,7 +25,7 @@ interface FiltersData {
   highestPrice: number;
 }
 
-// ✅ ოპტიმიზირებული fetchAPI ქეშირებით
+// ✅ ოპტიმიზირებული fetchAPI ქეშირების მხარდაჭერით
 export const fetchAPI = cache(async (query: string, { variables }: { variables?: any } = {}, revalidateTime: number = 3600, tags: string[] = []) => {
   const headers = { 'Content-Type': 'application/json' };
   
@@ -97,14 +97,10 @@ export async function getProducts(filters: any = {}, locale: string = 'ka'): Pro
       whereArgs.maxPrice = maxPrice !== undefined ? Number(maxPrice) : 999999;
   }
 
-  if (sort) {
-      if (sort === 'POPULARITY_DESC') whereArgs.orderby = [{ field: 'POPULARITY', order: 'DESC' }]; 
-      else if (sort === 'PRICE_ASC') whereArgs.orderby = [{ field: 'PRICE', order: 'ASC' }];
-      else if (sort === 'PRICE_DESC') whereArgs.orderby = [{ field: 'PRICE', order: 'DESC' }];
-      else whereArgs.orderby = [{ field: 'DATE', order: 'DESC' }];
-  } else {
-      whereArgs.orderby = [{ field: 'DATE', order: 'DESC' }];
-  }
+  if (sort === 'POPULARITY_DESC') whereArgs.orderby = [{ field: 'POPULARITY', order: 'DESC' }]; 
+  else if (sort === 'PRICE_ASC') whereArgs.orderby = [{ field: 'PRICE', order: 'ASC' }];
+  else if (sort === 'PRICE_DESC') whereArgs.orderby = [{ field: 'PRICE', order: 'DESC' }];
+  else whereArgs.orderby = [{ field: 'DATE', order: 'DESC' }];
 
   const data = await fetchAPI(GET_PRODUCTS_QUERY, { variables: { first: limit, where: whereArgs } }, 3600, ['products']);
   return data?.products?.nodes || [];
