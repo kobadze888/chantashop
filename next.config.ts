@@ -6,19 +6,21 @@ const withNextIntl = createNextIntlPlugin('./src/i18n.ts');
 
 const nextConfig: NextConfig = {
   images: {
-    // ✅ ჩართულია AVIF და WebP მხარდაჭერა სუპერ სისწრაფისთვის
-    formats: ['image/avif', 'image/webp'],
+    // ✅ AVIF ამოღებულია CPU-ს დაზოგვისთვის, დატოვებულია WebP
+    formats: ['image/webp'],
+    // ✅ სურათების ქეშირება 1 წლით
+    minimumCacheTTL: 31536000, 
     remotePatterns: [
+      { protocol: 'https', hostname: 'api.chantashop.ge' },
       { protocol: 'https', hostname: 'chantashop.ge' },
       { protocol: 'https', hostname: 'secure.gravatar.com' },
-      { protocol: 'https', hostname: 'images.unsplash.com' },
     ],
   },
-  // ✅ პროდაქშენზე აშორებს ზედმეტ ლოგებს (Console log)
+  // ✅ Console log-ების წაშლა პროდაქშენზე
   compiler: {
     removeConsole: process.env.NODE_ENV === "production",
   },
-  // ✅ აჩქარებს ლოდინის დროს მძიმე ბიბლიოთეკებისთვის
+  // ✅ მძიმე ბიბლიოთეკების ოპტიმიზაცია
   experimental: {
     optimizePackageImports: ['lucide-react'],
   }
