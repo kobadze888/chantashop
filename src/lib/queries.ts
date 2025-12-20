@@ -27,6 +27,7 @@ export const TAXONOMY_SEO_FRAGMENT = `
   }
 `;
 
+// ✅ პროდუქტის ფრაგმენტი ოპტიმიზირებულია: სიებში ვიღებთ მხოლოდ 1 სურათს გალერეიდან
 const PRODUCT_FRAGMENT = `
   fragment ProductFragment on Product {
     id
@@ -38,7 +39,7 @@ const PRODUCT_FRAGMENT = `
     image { sourceUrl altText }
     language { code }
     productCategories { nodes { id name slug } }
-    galleryImages { nodes { sourceUrl altText } }
+    galleryImages(first: 1) { nodes { sourceUrl altText } }
     ... on SimpleProduct {
       price(format: RAW)
       regularPrice(format: RAW)
@@ -94,10 +95,10 @@ export const GET_FILTERS_QUERY = `
       nodes { id name slug count language { code } }
     }
     terms(first: 3000, where: { hideEmpty: true, language: $language }) {
-      nodes { id name slug taxonomyName count }
+      nodes { id name slug taxonomyName count language { code } }
     }
-    # ✅ ვიღებთ 1 ყველაზე ძვირიან პროდუქტს, რომ გავიგოთ მაქსიმალური ფასი
-    products(first: 1, where: { orderby: { field: PRICE, order: DESC } }) {
+    # ✅ ვიღებთ 1 ყველაზე ძვირიან პროდუქტს მაქსიმალური ფასისთვის
+    products(first: 1, where: { orderby: [{ field: PRICE, order: DESC }] }) {
       nodes {
         ... on SimpleProduct { price(format: RAW) }
         ... on VariableProduct { price(format: RAW) }
@@ -106,13 +107,56 @@ export const GET_FILTERS_QUERY = `
   }
 `;
 
+// ✅ ცალკე ქუერი პროდუქტის გვერდისთვის, სადაც ყველა სურათი გვჭირდება
 export const GET_PRODUCT_BY_SLUG_QUERY = `
-  ${PRODUCT_FRAGMENT} 
   ${SEO_FRAGMENT}
   query GetProductBySlug($id: ID!) {
     product(id: $id, idType: SLUG) {
-      ...ProductFragment
+      id
+      databaseId
+      name
+      slug
+      shortDescription
+      description
+      image { sourceUrl altText }
+      language { code }
+      productCategories { nodes { id name slug } }
+      galleryImages(first: 20) { nodes { sourceUrl altText } }
       seo { ...SeoFragment }
+      ... on SimpleProduct {
+        price(format: RAW)
+        regularPrice(format: RAW)
+        salePrice(format: RAW)
+        stockStatus
+        stockQuantity
+        attributes { 
+          nodes { name label options ... on GlobalProductAttribute { terms { nodes { id name slug } } } } 
+        }
+      }
+      ... on VariableProduct {
+        price(format: RAW)
+        regularPrice(format: RAW)
+        salePrice(format: RAW)
+        stockStatus
+        stockQuantity
+        image { sourceUrl altText }
+        attributes { 
+          nodes { name label options ... on GlobalProductAttribute { terms { nodes { id name slug } } } } 
+        }
+        variations {
+          nodes {
+            databaseId
+            name
+            price(format: RAW)
+            regularPrice(format: RAW)
+            salePrice(format: RAW)
+            stockStatus
+            stockQuantity
+            image { sourceUrl altText }
+            attributes { nodes { name value } }
+          }
+        }
+      }
     }
   }
 `;

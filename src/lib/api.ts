@@ -11,6 +11,7 @@ import {
   TAXONOMY_SEO_FRAGMENT,
 } from './queries';
 import { Product, FilterTerm } from '@/types';
+import { cache } from 'react'; // ✅ მოთხოვნების დე-დუბლიკაციისთვის
 
 export interface AttributeGroup {
   taxonomyName: string;
@@ -24,7 +25,8 @@ interface FiltersData {
   highestPrice: number;
 }
 
-async function fetchAPI(query: string, { variables }: { variables?: any } = {}, revalidateTime: number, tags: string[] = []) {
+// ✅ ოპტიმიზირებული fetchAPI ქეშირებით
+export const fetchAPI = cache(async (query: string, { variables }: { variables?: any } = {}, revalidateTime: number = 3600, tags: string[] = []) => {
   const headers = { 'Content-Type': 'application/json' };
   
   const fetchOptions: RequestInit = {
@@ -53,7 +55,7 @@ async function fetchAPI(query: string, { variables }: { variables?: any } = {}, 
     console.error('❌ API Network Error:', error);
     return null;
   }
-}
+});
 
 function snakeToCamel(str: string) {
   return str.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
@@ -151,7 +153,6 @@ export async function getFilters(locale: string = 'ka'): Promise<FiltersData | n
       return { taxonomyName: taxName, label: label, terms: terms };
   });
 
-  // ✅ მაქსიმალური ფასის გამოანგარიშება
   let highestPrice = 5000;
   if (data.products?.nodes?.[0]?.price) {
       const priceRaw = data.products.nodes[0].price;
