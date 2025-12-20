@@ -7,6 +7,7 @@ import { useCartStore } from '@/store/cartStore';
 import { useTranslations } from 'next-intl';
 import { formatPrice } from '@/lib/utils';
 
+// სრული ფერების რუკა
 const colorMap: Record<string, string> = {
   'shavi': '#000000', 'tetri': '#FFFFFF', 'lurji': '#2563EB', 'muqi_lurji': '#1E3A8A',
   'cisferi': '#60A5FA', 'beji': '#F5F5DC', 'yavisferi': '#8B4513', 'vardisferi': '#DB2777',
@@ -28,12 +29,14 @@ interface ProductCardProps {
   stockQuantity?: number;
   stockStatus?: string;
   className?: string;
+  index?: number; // სისწრაფის ოპტიმიზაციისთვის (LCP)
   onQuickView?: (e: React.MouseEvent) => void;
 }
 
+// დამხმარე ფუნქციები
 function isValidImageUrl(url: string | undefined | null): boolean {
   if (!url) return false;
-  const validUrlRegex = /\.(jpe?g|png|gif|webp|svg)$/i;
+  const validUrlRegex = /\.(jpe?g|png|gif|webp|avif|svg)$/i;
   return url.length > 5 && validUrlRegex.test(url);
 }
 
@@ -45,10 +48,18 @@ function calculateDiscount(regular: string, sale: string): number | null {
     return Math.round(((reg - sal) / reg) * 100);
 }
 
-export default function ProductCard({ id, name, price, salePrice, regularPrice, image, secondImage, slug, attributes, stockQuantity, stockStatus, className, onQuickView }: ProductCardProps) {
+export default function ProductCard({ 
+    id, name, price, salePrice, regularPrice, image, secondImage, 
+    slug, attributes, stockQuantity, stockStatus, className, 
+    index = 0, onQuickView 
+}: ProductCardProps) {
+  
   const addItem = useCartStore((state) => state.addItem);
   const router = useRouter();
   const t = useTranslations('Product');
+
+  // პირველი 4 პროდუქტი (პირველი რიგი) იტვირთება პრიორიტეტულად სისწრაფისთვის
+  const isPriority = index < 4;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -63,7 +74,6 @@ export default function ProductCard({ id, name, price, salePrice, regularPrice, 
       router.push('/checkout');
   };
 
-  // ✅ FIX: router.push-ის განახლება ობიექტურ სინტაქსზე
   const handleFullView = (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
@@ -86,7 +96,7 @@ export default function ProductCard({ id, name, price, salePrice, regularPrice, 
       {/* --- Image Section --- */}
       <div className="relative mb-3 md:mb-4 aspect-[4/5] rounded-[1.2rem] md:rounded-[1.5rem] overflow-hidden bg-gray-50 product-card-image-wrapper isolate">
           
-          {/* Main Link (Absolute Cover) - Object Syntax */}
+          {/* Main Link (Absolute Cover) */}
           <Link 
             href={{ pathname: '/product/[slug]', params: { slug } }} 
             className={`absolute inset-0 z-10 ${isOutOfStock ? 'cursor-not-allowed' : ''}`} 
@@ -103,11 +113,26 @@ export default function ProductCard({ id, name, price, salePrice, regularPrice, 
             </div>
           )}
 
-          {/* Images */}
+          {/* ოპტიმიზირებული Hover Image */}
           {isValidImageUrl(hoverImageSource) && (
-            <img src={hoverImageSource} alt={`${name} hover`} className="hover-image" loading="lazy" />
+            <Image 
+                src={hoverImageSource!} 
+                alt={`${name} hover`} 
+                fill 
+                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                className="hover-image object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-500" 
+            />
           )}
-          <Image src={image || '/placeholder.jpg'} alt={name} fill className="main-image object-cover" priority={true} />
+
+          {/* მთავარი სურათი - სრული ოპტიმიზაციით */}
+          <Image 
+            src={image || '/placeholder.jpg'} 
+            alt={name} 
+            fill 
+            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+            className="main-image object-cover" 
+            priority={isPriority} 
+          />
 
           {/* Top Left: Badges */}
           <div className="absolute top-3 left-3 md:top-4 md:left-4 flex flex-col gap-1.5 z-20 pointer-events-none">
@@ -161,7 +186,7 @@ export default function ProductCard({ id, name, price, salePrice, regularPrice, 
 
       {/* --- Content Section --- */}
       <div className="flex-1 flex flex-col px-0.5 md:px-1">
-          {/* Title - Object Syntax */}
+          {/* Title */}
           <Link 
             href={{ pathname: '/product/[slug]', params: { slug } }} 
             className={`font-bold text-brand-dark text-sm md:text-[15px] leading-tight mb-2 md:mb-3 hover:text-brand-DEFAULT transition-colors line-clamp-2 min-h-[2.5em] ${isOutOfStock ? 'pointer-events-none text-gray-400' : ''}`}
@@ -206,13 +231,12 @@ export default function ProductCard({ id, name, price, salePrice, regularPrice, 
               {/* Right: Actions Group */}
               <div className="flex items-center gap-2">
                   {isOutOfStock ? (
-                      // Out of Stock Label
                       <div className="h-10 md:h-11 px-4 bg-gray-100 text-gray-400 border border-gray-200 rounded-full flex items-center justify-center text-[10px] md:text-xs font-bold uppercase w-full cursor-not-allowed">
                           {t('outOfStock')}
                       </div>
                   ) : (
                       <>
-                          {/* MOBILE: Compact Icons (Shopping Bag & Credit Card) */}
+                          {/* MOBILE: Compact Icons */}
                           <div className="flex md:hidden gap-2">
                               <button 
                                 onClick={handleAddToCart}
@@ -228,9 +252,8 @@ export default function ProductCard({ id, name, price, salePrice, regularPrice, 
                               </button>
                           </div>
 
-                          {/* DESKTOP: Expanded Text Button + Circle Button */}
+                          {/* DESKTOP: Expanded Buttons */}
                           <div className="hidden md:flex gap-2">
-                              {/* Add to Cart (Pill with Text) */}
                               <button 
                                 onClick={handleAddToCart}
                                 className="h-11 px-5 rounded-full bg-brand-DEFAULT text-white flex items-center justify-center gap-2 shadow-lg shadow-brand-DEFAULT/20 transition-all active:scale-95 hover:bg-brand-dark hover:shadow-xl"
@@ -239,7 +262,6 @@ export default function ProductCard({ id, name, price, salePrice, regularPrice, 
                                 <span className="text-[11px] font-bold uppercase tracking-wider">{t('addToCart')}</span>
                               </button>
 
-                              {/* Buy Now (Circle Icon with Border) */}
                               <button 
                                 onClick={handleBuyNow}
                                 className="w-11 h-11 rounded-full border-2 border-gray-200 text-brand-dark bg-white hover:border-brand-DEFAULT hover:bg-brand-DEFAULT hover:text-white shadow-sm flex items-center justify-center transition-all active:scale-90"
@@ -251,7 +273,6 @@ export default function ProductCard({ id, name, price, salePrice, regularPrice, 
                       </>
                   )}
               </div>
-
           </div>
       </div>
     </div>
