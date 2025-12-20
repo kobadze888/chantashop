@@ -11,7 +11,6 @@ import {
   TAXONOMY_SEO_FRAGMENT,
 } from './queries';
 import { Product, FilterTerm } from '@/types';
-import { cache } from 'react'; // ✅ მონაცემთა დე-დუბლიკაცია
 
 export interface AttributeGroup {
   taxonomyName: string;
@@ -25,8 +24,7 @@ interface FiltersData {
   highestPrice: number;
 }
 
-// ✅ ოპტიმიზირებული fetchAPI ქეშირების მხარდაჭერით
-export const fetchAPI = cache(async (query: string, { variables }: { variables?: any } = {}, revalidateTime: number = 3600, tags: string[] = []) => {
+async function fetchAPI(query: string, { variables }: { variables?: any } = {}, revalidateTime: number, tags: string[] = []) {
   const headers = { 'Content-Type': 'application/json' };
   
   const fetchOptions: RequestInit = {
@@ -55,7 +53,7 @@ export const fetchAPI = cache(async (query: string, { variables }: { variables?:
     console.error('❌ API Network Error:', error);
     return null;
   }
-});
+}
 
 function snakeToCamel(str: string) {
   return str.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
@@ -97,10 +95,14 @@ export async function getProducts(filters: any = {}, locale: string = 'ka'): Pro
       whereArgs.maxPrice = maxPrice !== undefined ? Number(maxPrice) : 999999;
   }
 
-  if (sort === 'POPULARITY_DESC') whereArgs.orderby = [{ field: 'POPULARITY', order: 'DESC' }]; 
-  else if (sort === 'PRICE_ASC') whereArgs.orderby = [{ field: 'PRICE', order: 'ASC' }];
-  else if (sort === 'PRICE_DESC') whereArgs.orderby = [{ field: 'PRICE', order: 'DESC' }];
-  else whereArgs.orderby = [{ field: 'DATE', order: 'DESC' }];
+  if (sort) {
+      if (sort === 'POPULARITY_DESC') whereArgs.orderby = [{ field: 'POPULARITY', order: 'DESC' }]; 
+      else if (sort === 'PRICE_ASC') whereArgs.orderby = [{ field: 'PRICE', order: 'ASC' }];
+      else if (sort === 'PRICE_DESC') whereArgs.orderby = [{ field: 'PRICE', order: 'DESC' }];
+      else whereArgs.orderby = [{ field: 'DATE', order: 'DESC' }];
+  } else {
+      whereArgs.orderby = [{ field: 'DATE', order: 'DESC' }];
+  }
 
   const data = await fetchAPI(GET_PRODUCTS_QUERY, { variables: { first: limit, where: whereArgs } }, 3600, ['products']);
   return data?.products?.nodes || [];
@@ -149,6 +151,7 @@ export async function getFilters(locale: string = 'ka'): Promise<FiltersData | n
       return { taxonomyName: taxName, label: label, terms: terms };
   });
 
+  // ✅ მაქსიმალური ფასის გამოანგარიშება
   let highestPrice = 5000;
   if (data.products?.nodes?.[0]?.price) {
       const priceRaw = data.products.nodes[0].price;
