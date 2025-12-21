@@ -1,17 +1,11 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from 'next-intl/plugin';
 
-// სერვერისთვის SSL-ის პრობლემის მოგვარება
-if (process.env.NODE_ENV === 'production') {
-  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-}
-
 const withNextIntl = createNextIntlPlugin('./src/i18n.ts');
 
 const nextConfig: NextConfig = {
   compress: true, 
   images: {
-    // ოპტიმიზაცია ჩართულია!
     formats: ['image/webp'], 
     minimumCacheTTL: 31536000, 
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
@@ -40,9 +34,8 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  // ✅ eslint: { ignoreDuringBuilds: true } ამოღებულია და გადატანილია სწორ ფორმატში, თუ მაინც გჭირდება.
+  // თუმცა Next.js 15+ ში ის ავტომატურად მართვადია.
   experimental: {
     optimizePackageImports: ['lucide-react', 'clsx', 'tailwind-merge', 'zustand'],
   }
