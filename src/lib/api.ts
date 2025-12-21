@@ -63,8 +63,12 @@ export async function getProducts(filters: any = {}, locale: string = 'ka'): Pro
   const { category, minPrice, maxPrice, limit = 50, sort = 'DATE_DESC', dynamicAttributes } = filters;
   const whereArgs: any = {};
   
-  if (locale && locale !== 'all') {
+  // ✅ FIX: ენის ვალიდაცია
+  const validLocales = ['ka', 'en', 'ru'];
+  if (locale && validLocales.includes(locale) && locale !== 'all') {
     whereArgs.language = locale.toUpperCase(); 
+  } else {
+    whereArgs.language = 'KA'; // უსაფრთხო დეფოლტი
   }
 
   const taxonomyFilter: any = { relation: 'AND', filters: [] };

@@ -1,11 +1,12 @@
-// src/store/cartStore.ts
-
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { CartItem } from '@/types';
+import { useToastStore } from './toastStore';
 
 interface CartStore {
   items: CartItem[];
+  _hasHydrated: boolean;
+  setHasHydrated: (state: boolean) => void;
   addItem: (item: Omit<CartItem, 'quantity'>) => void;
   removeItem: (id: number) => void;
   updateQuantity: (id: number, action: 'inc' | 'dec') => void;
@@ -17,54 +18,62 @@ export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
-      
+      _hasHydrated: false,
+      setHasHydrated: (state) => set({ _hasHydrated: state }),
+
       addItem: (item) => set((state) => {
-        const maxStock = (item as CartItem).stockQuantity || Infinity;
+        const items = [...state.items];
+        const existing = items.find((i) => i.id === item.id);
+        const maxStock = (item as CartItem).stockQuantity ?? 999;
         
-        if (!state.items.find((i) => i.id === item.id) && maxStock <= 0) {
+        // თუ მარაგში საერთოდ არ არის
+        if (!existing && maxStock <= 0) {
+            useToastStore.getState().showToast('პროდუქტი მარაგში არ არის', 'error');
             return state;
         }
 
-        const existing = state.items.find((i) => i.id === item.id);
-        
+        // თუ უკვე არის კალათაში და ვზრდით რაოდენობას
         if (existing) {
           const newQuantity = existing.quantity + 1;
-
           if (newQuantity <= maxStock) { 
+            // წარმატებული დამატება (რაოდენობის ზრდა)
+            useToastStore.getState().showToast(`რაოდენობა გაიზარდა: ${item.name}`, 'success');
             return {
-              items: state.items.map((i) => 
+              items: items.map((i) => 
                 i.id === item.id ? { ...i, quantity: newQuantity } : i
               ),
             };
           }
+          // მარაგის ლიმიტი
+          useToastStore.getState().showToast(`მარაგში მხოლოდ ${maxStock} ცალია`, 'error');
           return state;
         }
         
+        // ახალი პროდუქტის დამატება
+        useToastStore.getState().showToast(`${item.name} დაემატა კალათაში`, 'success');
         return { 
-          items: [...state.items, { 
-            ...item, 
-            quantity: 1,
-            stockQuantity: maxStock
-          }] 
+          items: [...items, { ...item, quantity: 1, stockQuantity: maxStock }] 
         };
       }),
 
-      removeItem: (id) => set((state) => ({
-        items: state.items.filter((i) => i.id !== id),
-      })),
+      removeItem: (id) => set((state) => {
+        useToastStore.getState().showToast('პროდუქტი ამოღებულია', 'info');
+        return { items: state.items.filter((i) => i.id !== id) };
+      }),
 
       updateQuantity: (id, action) => set((state) => ({
-        items: state.items.map((i) => {
-          if (i.id === id) {
-            const newQuantity = action === 'inc' ? i.quantity + 1 : Math.max(1, i.quantity - 1);
-            const maxStock = i.stockQuantity || Infinity;
+        items: state.items.map((item) => {
+          if (item.id === id) {
+            const newQuantity = action === 'inc' ? item.quantity + 1 : Math.max(1, item.quantity - 1);
+            const maxStock = item.stockQuantity ?? 999;
             
-            if (newQuantity <= maxStock) {
-                return { ...i, quantity: newQuantity };
+            if (action === 'inc' && newQuantity > maxStock) {
+                useToastStore.getState().showToast(`მაქსიმალური რაოდენობა: ${maxStock}`, 'error');
+                return item;
             }
-            return i;
+            return { ...item, quantity: newQuantity };
           }
-          return i;
+          return item;
         })
       })),
 
@@ -73,15 +82,18 @@ export const useCartStore = create<CartStore>()(
       totalPrice: () => {
         const items = get().items;
         return items.reduce((total, item) => {
-            if (!item.price) return total;
-            const numericPrice = parseFloat(item.price.replace(/[^0-9.]/g, '')); 
+            const priceStr = String(item.price || "0");
+            const numericPrice = parseFloat(priceStr.replace(/[^0-9.]/g, '')); 
             return total + (isNaN(numericPrice) ? 0 : numericPrice * item.quantity);
         }, 0);
       }
     }),
     { 
       name: 'chantashop-cart',
-      storage: createJSONStorage(() => localStorage)
+      storage: createJSONStorage(() => localStorage),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      }
     }
   )
 );

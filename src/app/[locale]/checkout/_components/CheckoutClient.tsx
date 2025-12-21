@@ -8,6 +8,8 @@ import { CreditCard, Banknote, ArrowLeft, Loader2, Tag, MapPin, ChevronDown, XCi
 import { placeOrder, calculateCartTotals } from '@/lib/actions'; 
 import { useTranslations } from 'next-intl';
 import { getCitiesList, getDefaultCity, isTbilisi } from '@/lib/ge-cities'; 
+// 👇 BOG-ის სერვერული ექშენის იმპორტი
+import { processBogPayment } from '@/lib/bog';
 
 const formatPrice = (price: string | number) => {
   if (price === null || price === undefined) return '0 ₾';
@@ -27,7 +29,9 @@ export default function CheckoutClient({ locale }: { locale: string }) {
   const [mounted, setMounted] = useState(false);
   
   const [globalError, setGlobalError] = useState<string | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'bacs'>('cod');
+  // 👇 დაემატა 'bog' ტიპი
+  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'bacs' | 'bog'>('bog');
+  
   const [isLoading, setIsLoading] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
   const router = useRouter();
@@ -152,6 +156,36 @@ export default function CheckoutClient({ locale }: { locale: string }) {
       setIsLoading(true);
 
       try {
+        // 👇 ნაბიჯი 1: BOG გადახდის ლოგიკა
+        if (paymentMethod === 'bog') {
+            console.log("🚀 BOG Payment Initiated...");
+
+            // მონაცემების გასუფთავება (Serialization fix)
+            // მხოლოდ id და quantity იგზავნება, ზედმეტი ველების გარეშე
+            const cleanItems = items.map(item => ({
+                id: item.id,
+                quantity: item.quantity
+            }));
+            
+            console.log("📦 Sending clean items to server:", cleanItems);
+
+            // სერვერული ექშენის გამოძახება
+            const result = await processBogPayment(formData, cleanItems);
+            
+            console.log("✅ Server Response:", result);
+
+            if (result.success && result.redirectUrl) {
+                // კალათას ვასუფთავებთ და გადავდივართ ბანკში
+                clearCart();
+                window.location.href = result.redirectUrl; 
+                return;
+            } else {
+                console.error("❌ BOG Error Details:", result.error);
+                throw new Error('ბანკთან დაკავშირება ვერ მოხერხდა. სცადეთ მოგვიანებით.');
+            }
+        }
+
+        // 👇 ნაბიჯი 2: სხვა მეთოდები (COD / BACS)
         const cartItemsData = items.map(item => ({ productId: item.id, quantity: item.quantity }));
         const billingData = {
             firstName: formData.firstName, lastName: formData.lastName, address1: formData.address,
@@ -184,6 +218,7 @@ export default function CheckoutClient({ locale }: { locale: string }) {
         }
       } catch (error) {
           const msg = error instanceof Error ? error.message : t('errorGeneric');
+          console.error("Checkout Error:", error);
           setGlobalError(msg);
           setIsLoading(false);
           window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -196,7 +231,6 @@ export default function CheckoutClient({ locale }: { locale: string }) {
     return (
       <div className="text-center py-24 animate-fade-in">
         <h2 className="text-3xl font-serif font-bold mb-4">{cartT('empty')}</h2>
-        {/* ✅ შეცვლილია: გადადის /shop-ზე */}
         <Link href="/shop" className="text-brand-DEFAULT font-bold underline">{t('backToCart')}</Link>
       </div>
     );
@@ -316,6 +350,16 @@ export default function CheckoutClient({ locale }: { locale: string }) {
                     {t('paymentMethod')}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* 👇 BOG Payment Option (განახლებული) */}
+                    <div onClick={() => setPaymentMethod('bog')} className={`cursor-pointer border-2 rounded-2xl p-5 flex items-center gap-4 transition-all ${paymentMethod === 'bog' ? 'border-[#FF5000] bg-[#FF5000]/5 shadow-sm' : 'border-gray-100'}`}>
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'bog' ? 'border-[#FF5000]' : 'border-gray-300'}`}>
+                            {paymentMethod === 'bog' && <div className="w-2.5 h-2.5 rounded-full bg-[#FF5000]"></div>}
+                        </div>
+                        <CreditCard className="w-6 h-6 text-[#FF5000]" />
+                        <span className="font-bold text-sm text-[#FF5000]">ბარათით გადახდა (BOG)</span>
+                    </div>
+
+                    {/* არსებული მეთოდები */}
                     <div onClick={() => setPaymentMethod('bacs')} className={`cursor-pointer border-2 rounded-2xl p-5 flex items-center gap-4 transition-all ${paymentMethod === 'bacs' ? 'border-brand-DEFAULT bg-brand-light/10 shadow-sm' : 'border-gray-100'}`}>
                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'bacs' ? 'border-brand-DEFAULT' : 'border-gray-300'}`}>{paymentMethod === 'bacs' && <div className="w-2.5 h-2.5 rounded-full bg-brand-DEFAULT"></div>}</div>
                         <CreditCard className="w-6 h-6 text-brand-dark" /><span className="font-bold text-sm text-brand-dark">{t('bacs')}</span>

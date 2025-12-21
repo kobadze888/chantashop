@@ -120,7 +120,7 @@ export default function ProductCard({
                 alt={`${name} hover`} 
                 fill 
                 sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                className="hover-image object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-500" 
+                className="hover-image object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-500 hidden md:block" 
             />
           )}
 
