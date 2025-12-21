@@ -1,23 +1,27 @@
-// src/navigation.ts
 import {createNavigation} from 'next-intl/navigation';
 import {defineRouting} from 'next-intl/routing';
 
 export const routing = defineRouting({
   locales: ['ka', 'en', 'ru'],
   defaultLocale: 'ka',
-  localePrefix: 'as-needed', // ✅ ეს უზრუნველყოფს, რომ 'ka' პრეფიქსი არ ჩანს
+  localePrefix: 'as-needed', 
   localeDetection: false, 
 
   pathnames: {
     '/': '/',
     '/cart': '/cart',
+    '/wishlist': { // ✅ ეს აუცილებელია, რომ 404 არ მოხდეს გადართვისას
+      ka: '/wishlist',
+      en: '/wishlist',
+      ru: '/wishlist',
+    },
     '/checkout': '/checkout',
     '/checkout/success': '/checkout/success',
     '/track-order': '/track-order',
     '/track-order/[id]': '/track-order/[id]',
     '/brands': '/brands',
     '/sale': '/sale',
-    '/shop': { // ✅ აქ /shop უნდა იყოს ყველა ენისთვის (ან თარგმნილი სლაგები)
+    '/shop': {
       ka: '/shop',
       en: '/shop',
       ru: '/shop',

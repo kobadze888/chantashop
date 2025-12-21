@@ -88,7 +88,7 @@
     },
     "Services": {
       "deliveryTitle": "Delivery & Terms",
-      "deliveryDesc": "Tbilisi: 5₾ (1-2 days) | Regions: 10₾ (2-3 days).",
+      "deliveryDesc": "Tbilisi: 6₾ (1-2 days) | Regions: 10₾ (2-3 days).",
       "freeShipping": "Free over 200₾.",
       "checkTitle": "Inspect on Spot",
       "checkDesc": "Open and check parcel on spot. You can return immediately if defective."
@@ -109,7 +109,9 @@
     "checkout": "Checkout",
     "secure": "Secure Transaction",
     "item": "item",
-    "items": "items"
+    "items": "items",
+    "title": "Shopping Cart",
+    "empty": "Your cart is empty"
   },
   "Checkout": {
     "title": "Checkout",
@@ -167,5 +169,26 @@
     "notFound": "Order not found",
     "notFoundDesc": "Please check your order number and email.",
     "back": "Go Back"
+  },
+  
+  "Navigation": {
+    "home": "Home",
+    "shop": "Catalog",
+    "about": "About",
+    "contact": "Contact",
+    "trackOrder": "Track Order",
+    "wishlist": "Wishlist"
+  },
+  "Header": {
+    "promo": "Free delivery on orders over 200 GEL",
+    "selectLanguage": "Select Language"
+  },
+
+
+  "Wishlist": {
+    "title": "Wishlist",
+    "empty": "Your wishlist is empty",
+    "emptyDescription": "You haven't added any items to your wishlist yet.",
+    "goShop": "Go to Catalog"
   }
 }

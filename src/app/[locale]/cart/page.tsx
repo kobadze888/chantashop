@@ -1,10 +1,12 @@
-import { Metadata } from 'next';
 import CartContent from './_components/CartContent';
+import { getTranslations } from 'next-intl/server';
 
-export const metadata: Metadata = {
-  title: 'ჩემი კალათა | ChantaShop.ge',
-  description: 'თქვენი არჩეული პროდუქტები',
-};
+export async function generateMetadata({ params: { locale } }: { params: { locale: string } }) {
+  const t = await getTranslations({ locale, namespace: 'Cart' });
+  return {
+    title: t('title'),
+  };
+}
 
 export default function CartPage() {
   return (

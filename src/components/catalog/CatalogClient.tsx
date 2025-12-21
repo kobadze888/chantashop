@@ -9,6 +9,8 @@ import { useCartStore } from '@/store/cartStore';
 import Image from 'next/image';
 import { Link } from '@/navigation';
 import { useTranslations } from 'next-intl';
+// ✅ შემოტანილია საერთო კომპონენტი
+import QuickView from '@/components/products/QuickView'; 
 
 interface AttributeGroup {
   taxonomyName: string;
@@ -24,7 +26,6 @@ interface CatalogClientProps {
   locale: string;
 }
 
-// ფასის ფილტრის ცალკე კომპონენტი (ინპუტიდან ფოკუსის დაკარგვის თავიდან ასაცილებლად)
 const PriceFilter = ({ 
     minPrice, maxPrice, setMinPrice, setMaxPrice, applyFilter, maxLimit 
 }: { 
@@ -75,7 +76,7 @@ const PriceFilter = ({
 
             <button 
                 onClick={applyFilter}
-                className="w-full bg-brand-dark text-white py-2.5 rounded-lg text-sm font-bold hover:bg-brand-DEFAULT transition shadow-sm active:scale-95 flex items-center justify-center gap-2"
+                className="w-full bg-brand-dark text-white py-2.5 rounded-lg text-sm font-bold hover:bg-brand-DEFAULT transition shadow-sm active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
             >
                 <Check className="w-4 h-4" /> გაფილტვრა
             </button>
@@ -123,7 +124,6 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const t = useTranslations('Catalog');
-  const tProduct = useTranslations('Product');
   const tCommon = useTranslations('Common');
   
   const sortDropdownRef = useRef<HTMLDivElement>(null); 
@@ -131,10 +131,8 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
   const urlMinPrice = Number(searchParams.get('minPrice')) || 0;
   const urlMaxPrice = Number(searchParams.get('maxPrice')) || maxPriceLimit;
 
-  // ლოკალური სტეიტი (არ იწვევს რენდერს მშობელში, სანამ არ გაიგზავნება)
   const [tempMinPrice, setTempMinPrice] = useState(urlMinPrice);
   const [tempMaxPrice, setTempMaxPrice] = useState(urlMaxPrice);
-  
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [isPending, startTransition] = useTransition(); 
 
@@ -143,26 +141,23 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
 
   const getActiveAttr = (taxName: string) => searchParams.get(taxName) || 'all';
 
+  // ✅ გამარტივებული სტეიტი QuickView-სთვის
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [modalVisible, setModalVisible] = useState(false);
-  const addItem = useCartStore((state) => state.addItem);
   
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(true); 
   const [isPriceOpen, setIsPriceOpen] = useState(true);
-  
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   const [isSortOpen, setIsSortOpen] = useState(false);
 
-  // URL-ის ცვლილებაზე განვაახლოთ ინპუტებიც (მაგ. Clear Filters-ის დროს)
   useEffect(() => {
     setTempMinPrice(urlMinPrice);
     setTempMaxPrice(urlMaxPrice);
   }, [urlMinPrice, urlMaxPrice]);
 
   useEffect(() => {
-    document.body.style.overflow = (modalVisible || mobileFiltersOpen) ? 'hidden' : 'auto';
+    document.body.style.overflow = (selectedProduct || mobileFiltersOpen) ? 'hidden' : 'auto';
     return () => { document.body.style.overflow = 'auto'; };
-  }, [modalVisible, mobileFiltersOpen]);
+  }, [selectedProduct, mobileFiltersOpen]);
   
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -186,36 +181,28 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
 
   const updateFilter = (key: string, value: string | number) => {
     const params = new URLSearchParams(searchParams.toString());
-    
     if (value === 'all' || value === 0 || (key === 'sort' && value === 'DATE_DESC')) { 
       params.delete(key);
     } else {
       params.set(key, String(value));
     }
-    
     startTransition(() => {
         router.push(`${pathname}?${params.toString()}`, { scroll: false });
     });
   };
 
-  // ✅ ფასის გაფილტვრა (ღილაკზე დაჭერისას)
   const applyPriceFilter = () => {
       const params = new URLSearchParams(searchParams.toString());
-      
       let finalMin = tempMinPrice < 0 ? 0 : tempMinPrice;
       let finalMax = tempMaxPrice > maxPriceLimit ? maxPriceLimit : tempMaxPrice;
-      
-      // თუ მინიმუმი მეტია მაქსიმუმზე, ვასწორებთ
       if (finalMin > finalMax) {
           finalMin = 0;
           finalMax = maxPriceLimit;
           setTempMinPrice(0);
           setTempMaxPrice(maxPriceLimit);
       }
-
       if (finalMin > 0) params.set('minPrice', String(finalMin)); else params.delete('minPrice');
       if (finalMax < maxPriceLimit) params.set('maxPrice', String(finalMax)); else params.delete('maxPrice');
-      
       startTransition(() => {
           router.push(`${pathname}?${params.toString()}`, { scroll: false });
       });
@@ -224,10 +211,8 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
   const handleClearFilters = () => {
     const params = new URLSearchParams();
     if (activeSort !== 'DATE_DESC') params.set('sort', activeSort);
-    
     setTempMinPrice(0);
     setTempMaxPrice(maxPriceLimit);
-
     startTransition(() => {
         router.push(`${pathname}?${params.toString()}`, { scroll: false });
         setMobileFiltersOpen(false); 
@@ -238,27 +223,8 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
   const handleAttrChange = (taxName: string, slug: string) => updateFilter(taxName, getActiveAttr(taxName) === slug ? 'all' : slug);
   const handleSortChange = (sortValue: string) => updateFilter('sort', sortValue); 
 
-  const openQuickView = (product: Product) => { setSelectedProduct(product); setTimeout(() => setModalVisible(true), 10); };
-  const closeQuickView = () => { setModalVisible(false); setTimeout(() => { setSelectedProduct(null); }, 200); };
-  
-  const handleAddToCartFromModal = () => { 
-      if (selectedProduct) { 
-          addItem({ 
-              id: selectedProduct.databaseId, 
-              name: selectedProduct.name, 
-              price: selectedProduct.salePrice || selectedProduct.price, 
-              image: selectedProduct.image?.sourceUrl || '/placeholder.jpg', 
-              slug: selectedProduct.slug,
-              stockQuantity: selectedProduct.stockQuantity
-          }); 
-          closeQuickView(); 
-      } 
-  };
-  
   const filtersActive = activeCategory !== 'all' || urlMinPrice > 0 || urlMaxPrice < maxPriceLimit || attributes?.some(attr => getActiveAttr(attr.taxonomyName) !== 'all');
-
   const availableCategories = categories.filter(c => c.count && c.count > 0);
-
   const isColorAttribute = (taxName: string) => {
       const lower = taxName.toLowerCase();
       return lower.includes('color') || lower.includes('feri') || lower.includes('colour');
@@ -271,70 +237,16 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
     { value: 'PRICE_DESC', label: t('Sort.priceHighLow') },
   ];
   
-  const isSelectedProductOutOfStock = !!(selectedProduct && (selectedProduct.stockQuantity === 0 || selectedProduct.stockStatus !== 'IN_STOCK'));
-
   return (
     <>
-      {selectedProduct && (
-        <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 transition-opacity duration-300 ${modalVisible ? 'visible' : 'invisible'}`}>
-            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity" onClick={closeQuickView}></div>
-            <div className={`relative bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col md:flex-row max-h-[90vh] md:max-h-[600px] transition-all duration-300 ${modalVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-                <button onClick={closeQuickView} className="absolute top-4 right-4 z-10 p-2 bg-white/80 backdrop-blur rounded-full hover:bg-brand-light transition shadow-sm"><X className="w-6 h-6 h-dark" /></button>
-                <div className="w-full md:w-1/2 bg-gray-50 relative min-h-[300px]">
-                    <Image src={selectedProduct.image?.sourceUrl || '/placeholder.jpg'} alt={selectedProduct.name} fill className="object-cover"/>
-                </div>
-                <div className="w-full md:w-1/2 p-8 flex flex-col overflow-y-auto">
-                    <div className="mb-auto">
-                        <span className="text-xs font-bold text-brand-DEFAULT uppercase tracking-wider mb-2 block">{selectedProduct.productCategories?.nodes[0]?.name || 'Collection'}</span>
-                        <h2 className="text-3xl font-black text-brand-dark mb-2 leading-tight">{selectedProduct.name}</h2>
-                        <p className="text-2xl font-black text-brand-dark mb-4">{selectedProduct.salePrice || selectedProduct.price}</p>
-                        <div className="text-gray-600 text-sm leading-relaxed mb-6 line-clamp-4" dangerouslySetInnerHTML={{ __html: selectedProduct.shortDescription || selectedProduct.description || 'No description.' }} />
-                        <div className="mb-6">
-                            <span className="text-xs font-bold text-brand-dark uppercase mb-2 block">{t('filters.color')}</span>
-                            <div className="flex gap-3">
-                                {selectedProduct.attributes?.nodes
-                                  .filter(a => ['pa_color', 'color', 'feri'].some(key => a.name.toLowerCase().includes(key)))
-                                  .flatMap(a => a.options || [])
-                                  .map((opt, i) => (
-                                    <div key={i} className="w-8 h-8 rounded-full border border-gray-200 shadow-sm" style={{ backgroundColor: colorMap[opt.toLowerCase()] || '#eee' }} title={opt} />
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                    <div className="pt-6 border-t border-gray-100 mt-6">
-                        <button 
-                            onClick={handleAddToCartFromModal}
-                            disabled={isSelectedProductOutOfStock}
-                            className="w-full bg-brand-dark text-white py-4 rounded-xl font-bold hover:bg-brand-DEFAULT transition active:scale-95 shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            <ShoppingBag className="w-5 h-5" /> 
-                            {isSelectedProductOutOfStock ? tProduct('outOfStock') : tProduct('addToCart')}
-                        </button>
-                        <Link href={{ pathname: '/product/[slug]', params: { slug: selectedProduct.slug } }} className="w-full block text-center text-xs font-bold text-brand-dark mt-4 hover:underline uppercase tracking-wide">მთლიანი პროდუქტის ნახვა</Link>
-                    </div>
-                </div>
-            </div>
-        </div>
-      )}
-
       {/* --- MOBILE FILTERS --- */}
-      <div 
-        id="filter-overlay" 
-        className={`fixed inset-0 bg-black/60 z-[80] transition-opacity duration-300 md:hidden ${mobileFiltersOpen ? 'opacity-100 visible' : 'invisible'}`}
-        onClick={() => setMobileFiltersOpen(false)} 
-      >
-        <div 
-          className={`absolute right-0 top-0 bottom-0 w-[85%] bg-white p-6 overflow-y-auto hide-scrollbar transform transition-transform duration-300 ${mobileFiltersOpen ? 'translate-x-0' : 'translate-x-full'}`} 
-          id="filter-content"
-          onClick={(e) => e.stopPropagation()} 
-        >
+      <div className={`fixed inset-0 bg-black/60 z-[80] transition-opacity duration-300 md:hidden ${mobileFiltersOpen ? 'opacity-100 visible' : 'invisible'}`} onClick={() => setMobileFiltersOpen(false)}>
+        <div className={`absolute right-0 top-0 bottom-0 w-[85%] bg-white p-6 overflow-y-auto transform transition-transform duration-300 ${mobileFiltersOpen ? 'translate-x-0' : 'translate-x-full'}`} onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-8">
                 <h3 className="font-serif font-bold text-2xl">{t('filters.title')}</h3>
-                <button onClick={() => setMobileFiltersOpen(false)} className="p-2 hover:bg-gray-100 rounded-full"><X className="w-6 h-6" /></button>
+                <button onClick={() => setMobileFiltersOpen(false)} className="p-2 hover:bg-gray-100 rounded-full cursor-pointer"><X className="w-6 h-6" /></button>
             </div>
-            
             <div className="space-y-8">
-                {/* Categories */}
                 <div>
                     <h4 className="font-bold mb-4 uppercase text-xs tracking-widest text-brand-dark">{t('filters.categories')}</h4>
                     <div className="space-y-3"> 
@@ -353,20 +265,10 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
                         ))}
                     </div>
                 </div>
-
-                {/* Price */}
                 <div>
                   <h4 className="font-bold mb-4 uppercase text-xs tracking-widest text-brand-dark">{t('filters.price')}</h4>
-                  <PriceFilter 
-                    minPrice={tempMinPrice} 
-                    maxPrice={tempMaxPrice} 
-                    setMinPrice={setTempMinPrice} 
-                    setMaxPrice={setTempMaxPrice} 
-                    applyFilter={applyPriceFilter}
-                    maxLimit={maxPriceLimit}
-                  />
+                  <PriceFilter minPrice={tempMinPrice} maxPrice={tempMaxPrice} setMinPrice={setTempMinPrice} setMaxPrice={setTempMaxPrice} applyFilter={applyPriceFilter} maxLimit={maxPriceLimit} />
                 </div>
-
                 {attributes?.map((attr) => (
                     <div key={attr.taxonomyName}>
                         <h4 className="font-bold mb-4 uppercase text-xs tracking-widest text-brand-dark">{attr.label}</h4>
@@ -374,13 +276,7 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
                             <div className="flex flex-wrap gap-3">
                                 <button onClick={() => handleAttrChange(attr.taxonomyName, 'all')} className={`px-3 py-1 text-xs border rounded-full transition cursor-pointer ${getActiveAttr(attr.taxonomyName) === 'all' ? 'bg-brand-dark text-white' : 'bg-white hover:border-brand-dark'}`}>{t('filters.all')}</button>
                                 {attr.terms.map((term) => (
-                                    <button 
-                                      key={term.id} 
-                                      onClick={() => handleAttrChange(attr.taxonomyName, term.slug)} 
-                                      className={`w-8 h-8 rounded-full border-2 border-gray-200 transition duration-150 transform hover:scale-110 cursor-pointer ${getActiveAttr(attr.taxonomyName) === term.slug ? 'ring-2 ring-brand-DEFAULT scale-110' : ''}`} 
-                                      style={{ backgroundColor: colorMap[term.slug.toLowerCase()] || '#e5e7eb' }} 
-                                      title={term.name} 
-                                    />
+                                    <button key={term.id} onClick={() => handleAttrChange(attr.taxonomyName, term.slug)} className={`w-8 h-8 rounded-full border-2 border-gray-200 transition transform hover:scale-110 cursor-pointer ${getActiveAttr(attr.taxonomyName) === term.slug ? 'ring-2 ring-brand-DEFAULT scale-110' : ''}`} style={{ backgroundColor: colorMap[term.slug.toLowerCase()] || '#e5e7eb' }} title={term.name} />
                                 ))}
                             </div>
                         ) : (
@@ -398,12 +294,8 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
                         )}
                     </div>
                 ))}
-                
-                <button onClick={handleClearFilters} disabled={!filtersActive} className={`w-full py-3 rounded-xl font-bold mt-8 transition flex items-center justify-center gap-2 ${filtersActive ? 'bg-brand-DEFAULT text-white hover:bg-brand-dark' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}>
-                    <RefreshCcw className="w-4 h-4" /> {tCommon('clearFilters')}
-                </button>
-                
-                <button onClick={() => setMobileFiltersOpen(false)} className="w-full bg-brand-dark text-white py-4 rounded-xl font-bold mt-4">{tCommon('showResults')}</button>
+                <button onClick={handleClearFilters} disabled={!filtersActive} className={`w-full py-3 rounded-xl font-bold mt-8 transition flex items-center justify-center gap-2 ${filtersActive ? 'bg-brand-DEFAULT text-white hover:bg-brand-dark' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}><RefreshCcw className="w-4 h-4" /> {tCommon('clearFilters')}</button>
+                <button onClick={() => setMobileFiltersOpen(false)} className="w-full bg-brand-dark text-white py-4 rounded-xl font-bold mt-4 cursor-pointer">{tCommon('showResults')}</button>
             </div>
         </div>
       </div>
@@ -419,30 +311,16 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
                   </p>
               </div>
               <div className="flex gap-4 w-full md:w-auto">
-                  <button onClick={() => setMobileFiltersOpen(true)} className="md:hidden flex-1 bg-gray-100 text-brand-dark py-3 px-6 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm active:scale-95 transition"><SlidersHorizontal className="w-5 h-5" /> {t('filters.title')}</button>
-                  
+                  <button onClick={() => setMobileFiltersOpen(true)} className="md:hidden flex-1 bg-gray-100 text-brand-dark py-3 px-6 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm active:scale-95 transition cursor-pointer"><SlidersHorizontal className="w-5 h-5" /> {t('filters.title')}</button>
                   <div className="relative flex-1 md:flex-none" ref={sortDropdownRef}> 
-                      <button
-                          onClick={() => setIsSortOpen(prev => !prev)}
-                          className="w-full md:w-auto appearance-none bg-white border border-gray-200 text-brand-dark py-3 px-6 pr-10 rounded-xl font-bold outline-none focus:border-brand-DEFAULT cursor-pointer shadow-sm flex items-center justify-between"
-                      >
+                      <button onClick={() => setIsSortOpen(prev => !prev)} className="w-full md:w-auto bg-white border border-gray-200 text-brand-dark py-3 px-6 pr-10 rounded-xl font-bold outline-none focus:border-brand-DEFAULT cursor-pointer shadow-sm flex items-center justify-between">
                           {sortOptions.find(o => o.value === activeSort)?.label || sortOptions[0].label}
                           <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${isSortOpen ? 'rotate-180' : ''} ml-2`} />
                       </button>
-
                       {isSortOpen && (
                           <div className="absolute right-0 mt-2 w-full bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-30 animate-fade-in"> 
                               {sortOptions.map(option => (
-                                  <button
-                                      key={option.value}
-                                      onClick={() => {
-                                          handleSortChange(option.value);
-                                          setIsSortOpen(false);
-                                      }}
-                                      className={`w-full px-5 py-3 text-sm text-left transition text-brand-dark cursor-pointer ${option.value === activeSort ? 'bg-brand-light font-bold text-brand-DEFAULT' : 'hover:bg-gray-50'}`}
-                                  >
-                                      {option.label}
-                                  </button>
+                                  <button key={option.value} onClick={() => { handleSortChange(option.value); setIsSortOpen(false); }} className={`w-full px-5 py-3 text-sm text-left transition text-brand-dark cursor-pointer ${option.value === activeSort ? 'bg-brand-light font-bold text-brand-DEFAULT' : 'hover:bg-gray-50'}`}>{option.label}</button>
                               ))}
                           </div>
                       )}
@@ -452,21 +330,13 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
       </div>
 
       <div className="container mx-auto px-4 flex gap-12 relative mt-8">
-        <div className="hidden md:block w-1/4 sticky top-28 h-[calc(100vh-8rem)] relative"> 
-            
-            <div className="sticky top-0 z-10 bg-white pt-4 pb-4 border-b border-gray-100 -mx-4 px-4">
-                <button onClick={handleClearFilters} disabled={!filtersActive} className={`w-full py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 ${filtersActive ? 'bg-brand-DEFAULT text-white hover:bg-brand-dark' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}>
-                    <RefreshCcw className="w-4 h-4" /> {tCommon('clearFilters')}
-                </button>
+        <div className="hidden md:block w-1/4 sticky top-28 h-[calc(100vh-8rem)]"> 
+            <div className="bg-white pt-4 pb-4 border-b border-gray-100 px-4">
+                <button onClick={handleClearFilters} disabled={!filtersActive} className={`w-full py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 ${filtersActive ? 'bg-brand-DEFAULT text-white hover:bg-brand-dark' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}><RefreshCcw className="w-4 h-4" /> {tCommon('clearFilters')}</button>
             </div>
-
             <aside className="space-y-10 overflow-y-auto pr-4 pt-6 pb-24 h-full hide-scrollbar"> 
-                
                 <div>
-                    <button 
-                      className="flex justify-between items-center w-full font-bold uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2 mb-6 cursor-pointer"
-                      onClick={() => setIsCategoriesOpen(!isCategoriesOpen)}
-                    >
+                    <button className="flex justify-between items-center w-full font-bold uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2 mb-6 cursor-pointer" onClick={() => setIsCategoriesOpen(!isCategoriesOpen)}>
                         {t('filters.categories')}
                         <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isCategoriesOpen ? 'rotate-180' : ''}`} />
                     </button>
@@ -488,50 +358,26 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
                         </div>
                     )}
                 </div>
-
                 <div>
-                    <button 
-                      className="flex justify-between items-center w-full font-bold uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2 mb-6 cursor-pointer"
-                      onClick={() => setIsPriceOpen(!isPriceOpen)}
-                    >
+                    <button className="flex justify-between items-center w-full font-bold uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2 mb-6 cursor-pointer" onClick={() => setIsPriceOpen(!isPriceOpen)}>
                         {t('filters.price')}
                         <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isPriceOpen ? 'rotate-180' : ''}`} />
                     </button>
-                    {isPriceOpen && (
-                        <PriceFilter 
-                            minPrice={tempMinPrice} 
-                            maxPrice={tempMaxPrice} 
-                            setMinPrice={setTempMinPrice} 
-                            setMaxPrice={setTempMaxPrice} 
-                            applyFilter={applyPriceFilter}
-                            maxLimit={maxPriceLimit}
-                        />
-                    )}
+                    {isPriceOpen && <PriceFilter minPrice={tempMinPrice} maxPrice={tempMaxPrice} setMinPrice={setTempMinPrice} setMaxPrice={setTempMaxPrice} applyFilter={applyPriceFilter} maxLimit={maxPriceLimit} />}
                 </div>
-
                 {attributes?.map((attr) => (
                     <div key={attr.taxonomyName}>
-                        <button 
-                            className="flex justify-between items-center w-full font-bold uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2 mb-6 cursor-pointer"
-                            onClick={() => toggleSection(attr.taxonomyName)}
-                        >
+                        <button className="flex justify-between items-center w-full font-bold uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2 mb-6 cursor-pointer" onClick={() => toggleSection(attr.taxonomyName)}>
                             {attr.label}
                             <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${openSections[attr.taxonomyName] ? 'rotate-180' : ''}`} />
                         </button>
-                        
                         {openSections[attr.taxonomyName] && (
                             <div className="animate-fade-in mb-8">
                                 {isColorAttribute(attr.taxonomyName) ? (
                                     <div className="flex flex-wrap gap-3">
                                         <button onClick={() => handleAttrChange(attr.taxonomyName, 'all')} className={`px-3 py-1 text-xs border rounded-full transition cursor-pointer ${getActiveAttr(attr.taxonomyName) === 'all' ? 'bg-brand-dark text-white' : 'bg-white hover:border-brand-dark'}`}>{t('filters.all')}</button>
                                         {attr.terms.map((term) => (
-                                            <button 
-                                                key={term.id} 
-                                                onClick={() => handleAttrChange(attr.taxonomyName, term.slug)} 
-                                                className={`w-8 h-8 rounded-full border-2 border-gray-200 transition duration-150 transform hover:scale-110 cursor-pointer ${getActiveAttr(attr.taxonomyName) === term.slug ? 'ring-2 ring-brand-DEFAULT scale-110' : ''}`} 
-                                                style={{ backgroundColor: colorMap[term.slug.toLowerCase()] || '#e5e7eb' }} 
-                                                title={term.name} 
-                                            />
+                                            <button key={term.id} onClick={() => handleAttrChange(attr.taxonomyName, term.slug)} className={`w-8 h-8 rounded-full border-2 border-gray-200 transition transform hover:scale-110 cursor-pointer ${getActiveAttr(attr.taxonomyName) === term.slug ? 'ring-2 ring-brand-DEFAULT scale-110' : ''}`} style={{ backgroundColor: colorMap[term.slug.toLowerCase()] || '#e5e7eb' }} title={term.name} />
                                         ))}
                                     </div>
                                 ) : (
@@ -551,9 +397,7 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
                         )}
                     </div>
                 ))}
-
             </aside>
-            
         </div>
 
         <div className="flex-1">
@@ -573,18 +417,25 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
                         stockQuantity={product.stockQuantity}
                         stockStatus={product.stockStatus}
                         locale={locale}
-                        onQuickView={() => openQuickView(product)}
+                        onQuickView={() => setSelectedProduct(product)}
                     />
                 ))}
             </div>
             {initialProducts.length === 0 && (
                 <div className="text-center py-20 text-gray-400">
                     <p>{t('notFound')}</p>
-                    <button onClick={() => updateFilter('category', 'all')} className="mt-4 text-brand-DEFAULT underline text-sm">{tCommon('clearFilters')}</button>
+                    <button onClick={() => updateFilter('category', 'all')} className="mt-4 text-brand-DEFAULT underline text-sm cursor-pointer">{tCommon('clearFilters')}</button>
                 </div>
             )}
         </div>
       </div>
+
+      {/* ✅ გამოყენებულია საერთო კომპონენტი */}
+      <QuickView 
+        product={selectedProduct} 
+        isOpen={!!selectedProduct} 
+        onClose={() => setSelectedProduct(null)} 
+      />
     </>
   );
 }
