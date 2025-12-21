@@ -6,8 +6,8 @@ import { Eye, Heart, ShoppingBag, XCircle, CreditCard, Maximize } from 'lucide-r
 import { useCartStore } from '@/store/cartStore';
 import { useTranslations } from 'next-intl';
 import { formatPrice } from '@/lib/utils';
+import { useState } from 'react';
 
-// სრული ფერების რუკა
 const colorMap: Record<string, string> = {
   'shavi': '#000000', 'tetri': '#FFFFFF', 'lurji': '#2563EB', 'muqi_lurji': '#1E3A8A',
   'cisferi': '#60A5FA', 'beji': '#F5F5DC', 'yavisferi': '#8B4513', 'vardisferi': '#DB2777',
@@ -29,15 +29,14 @@ interface ProductCardProps {
   stockQuantity?: number;
   stockStatus?: string;
   className?: string;
-  index?: number; // სისწრაფის ოპტიმიზაციისთვის (LCP)
+  index?: number; 
   onQuickView?: (e: React.MouseEvent) => void;
 }
 
-// დამხმარე ფუნქციები
+// ✅ განახლებული ვალიდაცია: ნაკლებად მკაცრი, რომ პარამეტრებმა პრობლემა არ შექმნას
 function isValidImageUrl(url: string | undefined | null): boolean {
-  if (!url) return false;
-  const validUrlRegex = /\.(jpe?g|png|gif|webp|avif|svg)$/i;
-  return url.length > 5 && validUrlRegex.test(url);
+  if (!url || url.includes('placeholder')) return false;
+  return url.startsWith('http') && url.length > 10;
 }
 
 function calculateDiscount(regular: string, sale: string): number | null {
@@ -57,20 +56,23 @@ export default function ProductCard({
   const addItem = useCartStore((state) => state.addItem);
   const router = useRouter();
   const t = useTranslations('Product');
+  
+  // ✅ Image State ერორების დასამუშავებლად
+  const [imgSrc, setImgSrc] = useState(isValidImageUrl(image) ? image : '/placeholder.jpg');
+  const [hoverImgSrc, setHoverImgSrc] = useState(isValidImageUrl(secondImage) ? secondImage : null);
 
-  // პირველი 4 პროდუქტი (პირველი რიგი) იტვირთება პრიორიტეტულად სისწრაფისთვის
   const isPriority = index < 4;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    addItem({ id, name, price: salePrice || price, image, slug, stockQuantity });
+    addItem({ id, name, price: salePrice || price, image: imgSrc, slug, stockQuantity });
   };
   
   const handleBuyNow = (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      addItem({ id, name, price: salePrice || price, image, slug, stockQuantity });
+      addItem({ id, name, price: salePrice || price, image: imgSrc, slug, stockQuantity });
       router.push('/checkout');
   };
 
@@ -82,7 +84,6 @@ export default function ProductCard({
 
   const colorAttribute = attributes?.nodes?.find((attr: any) => attr.name === 'pa_color');
   const colorOptions = colorAttribute?.options || [];
-  const hoverImageSource = isValidImageUrl(secondImage) ? secondImage : undefined; 
   
   const isOutOfStock = stockQuantity === 0 || stockStatus !== 'IN_STOCK';
 
@@ -93,17 +94,14 @@ export default function ProductCard({
   return (
     <div className={`group relative flex flex-col bg-white rounded-[1.5rem] md:rounded-[1.8rem] p-3 md:p-4 transition-all duration-300 hover:shadow-2xl border border-gray-100 h-full ${isOutOfStock ? 'opacity-90' : ''} ${className || ''}`}>
       
-      {/* --- Image Section --- */}
       <div className="relative mb-3 md:mb-4 aspect-[4/5] rounded-[1.2rem] md:rounded-[1.5rem] overflow-hidden bg-gray-50 product-card-image-wrapper isolate">
           
-          {/* Main Link (Absolute Cover) */}
           <Link 
             href={{ pathname: '/product/[slug]', params: { slug } }} 
             className={`absolute inset-0 z-10 ${isOutOfStock ? 'cursor-not-allowed' : ''}`} 
             onClick={(e) => isOutOfStock && e.preventDefault()} 
           />
 
-          {/* Overlay: Out of Stock */}
           {isOutOfStock && (
             <div className="absolute inset-0 bg-white/60 z-20 flex items-center justify-center backdrop-blur-[1px]">
                 <div className="bg-black/80 text-white text-[10px] font-bold px-3 py-1.5 md:px-4 md:py-2 rounded-full uppercase tracking-widest shadow-xl flex items-center gap-2">
@@ -113,28 +111,29 @@ export default function ProductCard({
             </div>
           )}
 
-          {/* ოპტიმიზირებული Hover Image */}
-          {isValidImageUrl(hoverImageSource) && (
+          {/* Hover Image */}
+          {hoverImgSrc && (
             <Image 
-                src={hoverImageSource!} 
+                src={hoverImgSrc} 
                 alt={`${name} hover`} 
                 fill 
                 sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                 className="hover-image object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-500 hidden md:block" 
+                onError={() => setHoverImgSrc(null)} // თუ ვერ ჩაიტვირთა, გაქრეს
             />
           )}
 
-          {/* მთავარი სურათი - სრული ოპტიმიზაციით */}
+          {/* Main Image */}
           <Image 
-            src={image || '/placeholder.jpg'} 
+            src={imgSrc} 
             alt={name} 
             fill 
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
             className="main-image object-cover" 
             priority={isPriority} 
+            onError={() => setImgSrc('/placeholder.jpg')} // Fallback
           />
 
-          {/* Top Left: Badges */}
           <div className="absolute top-3 left-3 md:top-4 md:left-4 flex flex-col gap-1.5 z-20 pointer-events-none">
             {!isOutOfStock && discountPercent && (
                  <span className="bg-red-500 text-white text-[9px] md:text-[10px] font-bold px-2 py-0.5 md:px-2.5 md:py-1 rounded-lg uppercase tracking-wider shadow-sm animate-fade-in">
@@ -148,7 +147,6 @@ export default function ProductCard({
             )}
           </div>
 
-          {/* Top Right: Wishlist Button */}
           <button 
             className="absolute top-3 right-3 md:top-4 md:right-4 z-30 w-8 h-8 md:w-9 md:h-9 bg-white/90 backdrop-blur-md rounded-full text-brand-dark flex items-center justify-center shadow-sm hover:text-red-500 transition-colors active:scale-90 border border-gray-100"
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
@@ -156,7 +154,6 @@ export default function ProductCard({
             <Heart className="w-3.5 h-3.5 md:w-4 md:h-4" />
           </button>
 
-          {/* Center Overlay Buttons (DESKTOP ONLY - Hover) */}
           <div className={`hidden md:flex absolute inset-0 items-center justify-center gap-3 z-30 transition-opacity duration-300 opacity-0 ${!isOutOfStock && 'group-hover:opacity-100'}`}>
               <button 
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onQuickView?.(e); }} 
@@ -184,9 +181,7 @@ export default function ProductCard({
           </div>
       </div>
 
-      {/* --- Content Section --- */}
       <div className="flex-1 flex flex-col px-0.5 md:px-1">
-          {/* Title */}
           <Link 
             href={{ pathname: '/product/[slug]', params: { slug } }} 
             className={`font-bold text-brand-dark text-sm md:text-[15px] leading-tight mb-2 md:mb-3 hover:text-brand-DEFAULT transition-colors line-clamp-2 min-h-[2.5em] ${isOutOfStock ? 'pointer-events-none text-gray-400' : ''}`}
@@ -195,7 +190,6 @@ export default function ProductCard({
             {name}
           </Link>
           
-          {/* Colors */}
           <div className="flex gap-1 mb-3 md:mb-5 items-center min-h-[12px] md:min-h-[14px]">
               {colorOptions.length > 0 && !isOutOfStock ? (
                 <>
@@ -213,10 +207,7 @@ export default function ProductCard({
               ) : <div className="h-2.5 md:h-3"></div>}
           </div>
 
-          {/* --- Bottom Action Bar --- */}
           <div className="mt-auto pt-3 md:pt-4 border-t border-dashed border-gray-100 flex items-center justify-between gap-2">
-              
-              {/* Left: Price */}
               <div className="flex flex-col">
                 {oldPrice && (
                     <span className="text-[10px] md:text-[11px] text-gray-400 line-through font-medium mb-0.5">
@@ -228,7 +219,6 @@ export default function ProductCard({
                 </span>
               </div>
               
-              {/* Right: Actions Group */}
               <div className="flex items-center gap-2">
                   {isOutOfStock ? (
                       <div className="h-10 md:h-11 px-4 bg-gray-100 text-gray-400 border border-gray-200 rounded-full flex items-center justify-center text-[10px] md:text-xs font-bold uppercase w-full cursor-not-allowed">
@@ -236,7 +226,6 @@ export default function ProductCard({
                       </div>
                   ) : (
                       <>
-                          {/* MOBILE: Compact Icons */}
                           <div className="flex md:hidden gap-2">
                               <button 
                                 onClick={handleAddToCart}
@@ -252,7 +241,6 @@ export default function ProductCard({
                               </button>
                           </div>
 
-                          {/* DESKTOP: Expanded Buttons */}
                           <div className="hidden md:flex gap-2">
                               <button 
                                 onClick={handleAddToCart}

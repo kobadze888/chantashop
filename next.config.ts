@@ -11,16 +11,19 @@ const withNextIntl = createNextIntlPlugin('./src/i18n.ts');
 const nextConfig: NextConfig = {
   compress: true, 
   images: {
-    // 🛑 unoptimized: true - წაშლილია, რათა ოპტიმიზაციამ იმუშაოს!
     formats: ['image/avif', 'image/webp'], 
     minimumCacheTTL: 31536000, 
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     remotePatterns: [
-      { protocol: 'https', hostname: 'api.chantashop.ge' },
-      { protocol: 'https', hostname: 'chantashop.ge' },
-      { protocol: 'https', hostname: 'secure.gravatar.com' },
-      { protocol: 'https', hostname: 'images.unsplash.com' },
+      {
+        protocol: 'https',
+        hostname: '**', // ✅ დაუშვი ნებისმიერი დომენი
+      },
+      {
+        protocol: 'http',
+        hostname: '**', // ✅ http-ს დაშვებაც აუცილებელია
+      },
     ],
   },
   logging: {
