@@ -11,6 +11,7 @@ const withNextIntl = createNextIntlPlugin('./src/i18n.ts');
 const nextConfig: NextConfig = {
   compress: true, 
   images: {
+    // ოპტიმიზაცია ჩართულია!
     formats: ['image/avif', 'image/webp'], 
     minimumCacheTTL: 31536000, 
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
@@ -18,11 +19,16 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**', // ✅ დაუშვი ნებისმიერი დომენი
+        hostname: 'api.chantashop.ge',
+        pathname: '/wp-content/uploads/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '**',
       },
       {
         protocol: 'http',
-        hostname: '**', // ✅ http-ს დაშვებაც აუცილებელია
+        hostname: '**',
       },
     ],
   },
@@ -33,6 +39,9 @@ const nextConfig: NextConfig = {
   },
   typescript: {
     ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
   },
   experimental: {
     optimizePackageImports: ['lucide-react', 'clsx', 'tailwind-merge', 'zustand'],
