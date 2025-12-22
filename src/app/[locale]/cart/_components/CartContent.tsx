@@ -12,8 +12,8 @@ const FREE_SHIPPING_THRESHOLD = 200;
 const formatPrice = (price: number) => {
   return new Intl.NumberFormat('ka-GE', {
     style: 'decimal',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
   }).format(price) + ' ₾';
 };
 

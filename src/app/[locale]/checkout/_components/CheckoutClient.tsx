@@ -8,7 +8,6 @@ import { CreditCard, Banknote, ArrowLeft, Loader2, Tag, MapPin, ChevronDown, XCi
 import { placeOrder, calculateCartTotals } from '@/lib/actions'; 
 import { useTranslations } from 'next-intl';
 import { getCitiesList, getDefaultCity, isTbilisi } from '@/lib/ge-cities'; 
-// 👇 BOG-ის სერვერული ექშენის იმპორტი
 import { processBogPayment } from '@/lib/bog';
 
 const formatPrice = (price: string | number) => {
@@ -17,8 +16,8 @@ const formatPrice = (price: string | number) => {
   if (isNaN(num)) return '0 ₾';
   return new Intl.NumberFormat('ka-GE', {
     style: 'decimal',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
   }).format(num) + ' ₾';
 };
 
@@ -29,7 +28,6 @@ export default function CheckoutClient({ locale }: { locale: string }) {
   const [mounted, setMounted] = useState(false);
   
   const [globalError, setGlobalError] = useState<string | null>(null);
-  // 👇 დაემატა 'bog' ტიპი
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'bacs' | 'bog'>('bog');
   
   const [isLoading, setIsLoading] = useState(false);
@@ -160,8 +158,6 @@ export default function CheckoutClient({ locale }: { locale: string }) {
         if (paymentMethod === 'bog') {
             console.log("🚀 BOG Payment Initiated...");
 
-            // მონაცემების გასუფთავება (Serialization fix)
-            // მხოლოდ id და quantity იგზავნება, ზედმეტი ველების გარეშე
             const cleanItems = items.map(item => ({
                 id: item.id,
                 quantity: item.quantity
@@ -169,13 +165,12 @@ export default function CheckoutClient({ locale }: { locale: string }) {
             
             console.log("📦 Sending clean items to server:", cleanItems);
 
-            // სერვერული ექშენის გამოძახება
-            const result = await processBogPayment(formData, cleanItems);
+            // 🛑 აი აქ დაემატა appliedCoupon (კუპონის კოდი)
+            const result = await processBogPayment(formData, cleanItems, appliedCoupon || '');
             
             console.log("✅ Server Response:", result);
 
             if (result.success && result.redirectUrl) {
-                // კალათას ვასუფთავებთ და გადავდივართ ბანკში
                 clearCart();
                 window.location.href = result.redirectUrl; 
                 return;
@@ -350,7 +345,6 @@ export default function CheckoutClient({ locale }: { locale: string }) {
                     {t('paymentMethod')}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* 👇 BOG Payment Option (განახლებული) */}
                     <div onClick={() => setPaymentMethod('bog')} className={`cursor-pointer border-2 rounded-2xl p-5 flex items-center gap-4 transition-all ${paymentMethod === 'bog' ? 'border-[#FF5000] bg-[#FF5000]/5 shadow-sm' : 'border-gray-100'}`}>
                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'bog' ? 'border-[#FF5000]' : 'border-gray-300'}`}>
                             {paymentMethod === 'bog' && <div className="w-2.5 h-2.5 rounded-full bg-[#FF5000]"></div>}
@@ -359,7 +353,6 @@ export default function CheckoutClient({ locale }: { locale: string }) {
                         <span className="font-bold text-sm text-[#FF5000]">ბარათით გადახდა (BOG)</span>
                     </div>
 
-                    {/* არსებული მეთოდები */}
                     <div onClick={() => setPaymentMethod('bacs')} className={`cursor-pointer border-2 rounded-2xl p-5 flex items-center gap-4 transition-all ${paymentMethod === 'bacs' ? 'border-brand-DEFAULT bg-brand-light/10 shadow-sm' : 'border-gray-100'}`}>
                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'bacs' ? 'border-brand-DEFAULT' : 'border-gray-300'}`}>{paymentMethod === 'bacs' && <div className="w-2.5 h-2.5 rounded-full bg-brand-DEFAULT"></div>}</div>
                         <CreditCard className="w-6 h-6 text-brand-dark" /><span className="font-bold text-sm text-brand-dark">{t('bacs')}</span>
