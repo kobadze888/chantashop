@@ -9,7 +9,7 @@ import {
   GET_SHOP_PAGE_WITH_TRANSLATIONS,
   GET_SITEMAP_DATA_QUERY,
   TAXONOMY_SEO_FRAGMENT,
-  GET_PRODUCT_BY_SKU_QUERY // ✅ ეს დაემატა
+  GET_PRODUCT_BY_SKU_QUERY
 } from './queries';
 import { Product, FilterTerm } from '@/types';
 
@@ -60,17 +60,18 @@ function snakeToCamel(str: string) {
   return str.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
 }
 
-// ✅ ახალი ფუნქცია: SKU-ს მიხედვით პოულობს პროდუქტს კონკრეტულ ენაზე
+// ✅ განახლებული ფუნქცია: SKU-სთან ერთად აგზავნის ენის პარამეტრს
 export async function getProductSlugBySku(sku: string, targetLocale: string) {
   try {
+    // ენის კოდი გადაგვყავს დიდ ასოებში (მაგ: ru -> RU)
+    const langCode = targetLocale.toUpperCase();
+
     const data = await fetchAPI(GET_PRODUCT_BY_SKU_QUERY, {
-      variables: { sku }
-    }, 60); // 60 წამი ქეში
+      variables: { sku, language: langCode }
+    }, 60);
     
-    // ვეძებთ პროდუქტს, რომლის ენაც ემთხვევა ჩვენს სამიზნე ენას
-    const foundProduct = data?.products?.nodes?.find(
-      (node: any) => node.language?.code?.toLowerCase() === targetLocale.toLowerCase()
-    );
+    // რადგან პირდაპირ სწორ ენაზე ვითხოვთ, პირველივე შედეგი სწორი იქნება
+    const foundProduct = data?.products?.nodes?.[0];
 
     return foundProduct?.slug || null;
   } catch (error) {

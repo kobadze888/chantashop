@@ -39,7 +39,7 @@ const PRODUCT_FRAGMENT = `
     image { sourceUrl altText }
     language { code }
     
-    # ❌ translations ამოღებულია, რადგან სერვერს თიშავდა
+    # ❌ translations ამოღებულია სერვერის შეცდომის თავიდან ასაცილებლად
 
     productCategories { nodes { id name slug } }
     galleryImages { nodes { sourceUrl altText } }
@@ -233,10 +233,10 @@ export const GET_MATERIAL_SEO_QUERY = `
   }
 `;
 
-// ✅ ახალი ქუერი: პროდუქტის მოძებნა SKU-თი (გადამისამართებისთვის)
+// ✅ განახლებული ქუერი: იღებს SKU-ს და ენას (LanguageCodeFilterEnum)
 export const GET_PRODUCT_BY_SKU_QUERY = `
-  query GetProductBySku($sku: String!) {
-    products(where: { sku: $sku }, first: 10) {
+  query GetProductBySku($sku: String!, $language: LanguageCodeFilterEnum!) {
+    products(where: { sku: $sku, language: $language }, first: 1) {
       nodes {
         slug
         language {
@@ -247,7 +247,7 @@ export const GET_PRODUCT_BY_SKU_QUERY = `
   }
 `;
 
-// --- MUTATIONS (იგივე რჩება) ---
+// --- MUTATIONS ---
 export const ADD_TO_CART_MUTATION = `
   mutation AddToCart($input: AddToCartInput!) {
     addToCart(input: $input) {
