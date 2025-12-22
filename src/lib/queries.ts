@@ -39,7 +39,7 @@ const PRODUCT_FRAGMENT = `
     image { sourceUrl altText }
     language { code }
     
-    # ❌ translations ამოღებულია სერვერის შეცდომის თავიდან ასაცილებლად
+    # ❌ translations ამოღებულია
 
     productCategories { nodes { id name slug } }
     galleryImages { nodes { sourceUrl altText } }
@@ -233,10 +233,10 @@ export const GET_MATERIAL_SEO_QUERY = `
   }
 `;
 
-// ✅ განახლებული ქუერი: იღებს SKU-ს და ენას (LanguageCodeFilterEnum)
+// ✅ განახლებული: აქ აღარ არის $language პარამეტრი!
 export const GET_PRODUCT_BY_SKU_QUERY = `
-  query GetProductBySku($sku: String!, $language: LanguageCodeFilterEnum!) {
-    products(where: { sku: $sku, language: $language }, first: 1) {
+  query GetProductBySku($sku: String!) {
+    products(where: { sku: $sku }, first: 10) {
       nodes {
         slug
         language {

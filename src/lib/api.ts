@@ -60,18 +60,18 @@ function snakeToCamel(str: string) {
   return str.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
 }
 
-// ✅ განახლებული ფუნქცია: SKU-სთან ერთად აგზავნის ენის პარამეტრს
+// ✅ განახლებული ფუნქცია: ვიღებთ ყველა ვარიანტს და ვფილტრავთ JS-ით
 export async function getProductSlugBySku(sku: string, targetLocale: string) {
   try {
-    // ენის კოდი გადაგვყავს დიდ ასოებში (მაგ: ru -> RU)
-    const langCode = targetLocale.toUpperCase();
-
+    // 0 = ქეშის გარეშე, რომ შედეგი მაშინვე გამოჩნდეს
     const data = await fetchAPI(GET_PRODUCT_BY_SKU_QUERY, {
-      variables: { sku, language: langCode }
-    }, 60);
+      variables: { sku }
+    }, 0);
     
-    // რადგან პირდაპირ სწორ ენაზე ვითხოვთ, პირველივე შედეგი სწორი იქნება
-    const foundProduct = data?.products?.nodes?.[0];
+    // ვეძებთ პროდუქტს მიღებულ სიაში, რომლის ენა ემთხვევა targetLocale-ს
+    const foundProduct = data?.products?.nodes?.find(
+      (node: any) => node.language?.code?.toLowerCase() === targetLocale.toLowerCase()
+    );
 
     return foundProduct?.slug || null;
   } catch (error) {
