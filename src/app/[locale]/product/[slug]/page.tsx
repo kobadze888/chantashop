@@ -1,6 +1,4 @@
-// src/app/[locale]/product/[slug]/page.tsx
-// ... (Metadata და სხვა იმპორტები რჩება იგივე)
-import { getProductBySlug, getProducts } from '@/lib/api';
+import { getProductBySlug, getProducts, getProductSlugBySku } from '@/lib/api'; // ✅ ახალი ფუნქციის იმპორტი
 import { Link } from '@/navigation';
 import { ChevronRight } from 'lucide-react';
 import ProductInfo from '../_components/ProductInfo'; 
@@ -8,20 +6,18 @@ import FeaturedCarousel from '@/components/home/FeaturedCarousel';
 import { getTranslations } from 'next-intl/server';
 import Script from 'next/script';
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 
 type Props = {
   params: Promise<{ slug: string; locale: string }>;
 };
 
-// ... (Metadata ფუნქცია რჩება იგივე რაც წინა პასუხში მოგეცით) ...
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const resolvedParams = await params;
     const product = await getProductBySlug(resolvedParams.slug);
     
     if (!product) return { title: 'პროდუქტი არ მოიძებნა' };
   
-    // Yoast-ის მონაცემები
     const title = product.seo?.title || `${product.name} | ChantaShop`;
     const desc = product.seo?.metaDesc || product.shortDescription?.replace(/<[^>]*>?/gm, '').slice(0, 160);
   
@@ -38,16 +34,33 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         canonical: product.seo?.canonical || `${process.env.NEXT_PUBLIC_SITE_URL}/${resolvedParams.locale}/product/${product.slug}`,
       }
     };
-  }
+}
 
 export default async function ProductPage({ params }: Props) {
   const resolvedParams = await params;
   const { slug, locale } = resolvedParams;
   const t = await getTranslations('Common');
 
+  // 1. ვიღებთ პროდუქტს
   const product = await getProductBySlug(slug);
   if (!product) notFound();
 
+  // 🛑 2. ენის შემოწმება და SKU ლოგიკით გადამისამართება
+  const productLanguage = product.language?.code?.toLowerCase();
+  const currentLocale = locale.toLowerCase();
+
+  // თუ ენები არ ემთხვევა და პროდუქტს აქვს SKU
+  if (productLanguage && productLanguage !== currentLocale && product.sku) {
+      // ვეძებთ იგივე SKU-ს მქონე პროდუქტს სასურველ ენაზე
+      const targetSlug = await getProductSlugBySku(product.sku, currentLocale);
+      
+      // თუ ვიპოვეთ, გადავამისამართებთ
+      if (targetSlug) {
+          redirect(`/${currentLocale}/product/${targetSlug}`);
+      }
+  }
+
+  // 3. მსგავსი პროდუქტები
   const categorySlug = product.productCategories?.nodes[0]?.slug;
   const relatedProductsRaw = await getProducts({ limit: 8, category: categorySlug }, locale) || [];
 
@@ -65,14 +78,13 @@ export default async function ProductPage({ params }: Props) {
       stockStatus: p.stockStatus
     }));
 
-  // Schema LD (იგივე რჩება)
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.name,
     image: product.image?.sourceUrl ? [product.image.sourceUrl] : [],
     description: product.seo?.metaDesc || product.shortDescription?.replace(/<[^>]*>?/gm, '') || product.name,
-    sku: product.databaseId,
+    sku: product.sku || product.databaseId,
     brand: { '@type': 'Brand', name: 'ChantaShop' },
     offers: {
       '@type': 'Offer',
@@ -92,7 +104,6 @@ export default async function ProductPage({ params }: Props) {
         <nav className="text-xs font-bold text-gray-400 mb-10 uppercase tracking-widest flex items-center gap-2 overflow-x-auto whitespace-nowrap pb-2 hide-scrollbar">
             <Link href="/" className="hover:text-brand-dark transition">{t('home')}</Link>
             <ChevronRight className="w-3 h-3 flex-shrink-0" />
-            {/* ✅ შეცვლილია /shop-ზე */}
             <Link href="/shop" className="hover:text-brand-dark transition">{t('collection')}</Link>
             <ChevronRight className="w-3 h-3 flex-shrink-0" />
             <span className="text-brand-dark truncate">{product.name}</span>

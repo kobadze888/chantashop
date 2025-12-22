@@ -49,6 +49,7 @@ export interface FilterTerm {
 export interface Variation {
   databaseId: number;
   name: string;
+  sku?: string;
   price: string;
   regularPrice?: string;
   salePrice?: string;
@@ -63,6 +64,7 @@ export interface Product {
   databaseId: number;
   name: string;
   slug: string;
+  sku?: string;
   shortDescription?: string;
   description?: string;
   image: ProductImage;

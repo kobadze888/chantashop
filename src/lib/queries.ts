@@ -33,10 +33,14 @@ const PRODUCT_FRAGMENT = `
     databaseId
     name
     slug
+    sku
     shortDescription
     description
     image { sourceUrl altText }
     language { code }
+    
+    # ❌ translations ამოღებულია, რადგან სერვერს თიშავდა
+
     productCategories { nodes { id name slug } }
     galleryImages { nodes { sourceUrl altText } }
     ... on SimpleProduct {
@@ -68,6 +72,7 @@ const PRODUCT_FRAGMENT = `
           salePrice(format: RAW)
           stockStatus
           stockQuantity
+          sku
           image { sourceUrl altText }
           attributes { nodes { name value } }
         }
@@ -96,7 +101,6 @@ export const GET_FILTERS_QUERY = `
     terms(first: 3000, where: { hideEmpty: true, language: $language }) {
       nodes { id name slug taxonomyName count }
     }
-    # ✅ ვიღებთ 1 ყველაზე ძვირიან პროდუქტს, რომ გავიგოთ მაქსიმალური ფასი
     products(first: 1, where: { orderby: { field: PRICE, order: DESC } }) {
       nodes {
         ... on SimpleProduct { price(format: RAW) }
@@ -139,10 +143,6 @@ export const GET_PAGE_BY_SLUG_NAME_QUERY = `
         slug
         seo { ...SeoFragment }
         language { code }
-        translations {
-          language { code }
-          seo { ...SeoFragment }
-        }
       }
     }
   }
@@ -233,20 +233,30 @@ export const GET_MATERIAL_SEO_QUERY = `
   }
 `;
 
-// --- MUTATIONS ---
-
-export const ADD_TO_CART_MUTATION = `
-  mutation AddToCart($input: AddToCartInput!) {
-    addToCart(input: $input) {
-      cart {
-        contents {
-          itemCount
+// ✅ ახალი ქუერი: პროდუქტის მოძებნა SKU-თი (გადამისამართებისთვის)
+export const GET_PRODUCT_BY_SKU_QUERY = `
+  query GetProductBySku($sku: String!) {
+    products(where: { sku: $sku }, first: 10) {
+      nodes {
+        slug
+        language {
+          code
         }
       }
     }
   }
 `;
 
+// --- MUTATIONS (იგივე რჩება) ---
+export const ADD_TO_CART_MUTATION = `
+  mutation AddToCart($input: AddToCartInput!) {
+    addToCart(input: $input) {
+      cart {
+        contents { itemCount }
+      }
+    }
+  }
+`;
 export const CHECKOUT_MUTATION = `
   mutation Checkout($input: CheckoutInput!) {
     checkout(input: $input) {
@@ -261,34 +271,23 @@ export const CHECKOUT_MUTATION = `
     }
   }
 `;
-
 export const APPLY_COUPON_MUTATION = `
   mutation ApplyCoupon($input: ApplyCouponInput!) {
     applyCoupon(input: $input) {
       cart {
         total(format: RAW)
-        appliedCoupons {
-          code
-          discountAmount(format: RAW)
-        }
+        appliedCoupons { code discountAmount(format: RAW) }
       }
     }
   }
 `;
-
 export const UPDATE_CUSTOMER_MUTATION = `
   mutation UpdateCustomer($input: UpdateCustomerInput!) {
     updateCustomer(input: $input) {
-      customer {
-        shipping {
-          city
-          country
-        }
-      }
+      customer { shipping { city country } }
     }
   }
 `;
-
 export const GET_CART_TOTALS_QUERY = `
   query GetCartTotals {
     cart {
@@ -296,14 +295,10 @@ export const GET_CART_TOTALS_QUERY = `
       subtotal(format: RAW)
       shippingTotal(format: RAW)
       discountTotal(format: RAW)
-      appliedCoupons {
-        code
-        discountAmount(format: RAW)
-      }
+      appliedCoupons { code discountAmount(format: RAW) }
     }
   }
 `;
-
 export const GET_ORDER_QUERY = `
   query GetOrder($id: ID!) {
     order(id: $id, idType: DATABASE_ID) {
@@ -313,27 +308,8 @@ export const GET_ORDER_QUERY = `
       date
       total(format: RAW)
       currency
-      billing {
-        firstName
-        lastName
-        city
-        address1
-        email
-      }
-      lineItems {
-        nodes {
-          product {
-            node {
-              name
-              image {
-                sourceUrl
-              }
-            }
-          }
-          quantity
-          total
-        }
-      }
+      billing { firstName lastName city address1 email }
+      lineItems { nodes { product { node { name image { sourceUrl } } } quantity total } }
     }
   }
 `;
