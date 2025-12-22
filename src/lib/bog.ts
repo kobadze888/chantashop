@@ -3,80 +3,79 @@
 import axios from 'axios';
 import https from 'https';
 
-const WP_URL = process.env.NEXT_PUBLIC_WP_URL;
-const CK = process.env.WC_CONSUMER_KEY;
-const CS = process.env.WC_CONSUMER_SECRET;
+// შენი კოდები (პირდაპირ აქ, რომ შეცდომა არ მოხდეს)
+const CLIENT_ID = '46442';
+const CLIENT_SECRET = 'Rn1jknnySnQ3'; // შენი Secret Key
+const CALLBACK_URL = 'https://chantashop.ge/checkout/success'; // ან რაც გაქვს
+
+// ბანკის ახალი მისამართები (სადაც curl-მა იმუშავა)
+const AUTH_URL = 'https://oauth2.bog.ge/auth/realms/bog/protocol/openid-connect/token';
+const ORDER_URL = 'https://api.bog.ge/payments/v1/ecommerce/orders';
 
 export const processBogPayment = async (customerData: any, cartItems: any[]) => {
-  // SSL-ის გათიშვა ლოკალურად ამ ფუნქციისთვისაც
+  console.log("🔥 Starting Direct BOG Payment...");
+
+  // SSL-ის პრობლემების თავიდან აცილება
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-  
-  console.log("🔥 Payment Started: Force IPv4 (127.0.0.1)...");
-
-  // ეს აგენტი არის გადამწყვეტი!
-  const agent = new https.Agent({  
-    rejectUnauthorized: false,
-    family: 4 // <--- აიძულებს IPv4-ს (რადგან IPv6-ზე ერორს აგდებს)
-  });
-
-  const axiosConfig = {
-    timeout: 30000,
-    httpsAgent: agent,
-    headers: { 
-      'Content-Type': 'application/json',
-      'User-Agent': 'ChantaShop-Server/1.0',
-      'Authorization': 'Basic ' + Buffer.from(`${CK}:${CS}`).toString('base64')
-    }
-  };
+  const agent = new https.Agent({ rejectUnauthorized: false, family: 4 });
 
   try {
-    if (!CK || !CS) throw new Error("API Keys missing");
+    // 1. ტოკენის აღება (ის რაც curl-ით გააკეთე)
+    console.log("🔑 Getting Access Token...");
+    
+    const tokenParams = new URLSearchParams();
+    tokenParams.append('grant_type', 'client_credentials');
 
-    const orderData = {
-      payment_method: 'bog_headless',
-      payment_method_title: 'Bank of Georgia',
-      set_paid: false,
-      billing: {
-        first_name: customerData.firstName, last_name: customerData.lastName,
-        address_1: customerData.address, address_2: customerData.apt,
-        city: customerData.city, email: customerData.email, phone: customerData.phone, country: 'GE'
+    const authRes = await axios.post(AUTH_URL, tokenParams, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': 'Basic ' + Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64')
       },
-      shipping: {
-        first_name: customerData.firstName, last_name: customerData.lastName,
-        address_1: customerData.address, city: customerData.city, country: 'GE'
-      },
-      line_items: cartItems.map((item: any) => ({ product_id: item.id, quantity: item.quantity }))
+      httpsAgent: agent
+    });
+
+    const accessToken = authRes.data.access_token;
+    console.log("✅ Token Received!");
+
+    // 2. შეკვეთის შექმნა
+    console.log("📝 Creating Bank Order...");
+
+    const totalAmount = cartItems.reduce((acc: number, item: any) => acc + (item.price * item.quantity), 0).toFixed(2);
+
+    const orderBody = {
+      callback_url: CALLBACK_URL,
+      redirect_url: CALLBACK_URL, // მომხმარებელი აქ დაბრუნდება
+      order_amount: totalAmount,
+      currency: "GEL",
+      shop_order_id: `ORDER-${Date.now()}`, // უნიკალური ID
+      purchase_desc: "ChantaShop Order",
+      capture_method: "AUTOMATIC"
     };
 
-    console.log("📝 Sending Order to WP...");
+    const orderRes = await axios.post(ORDER_URL, orderBody, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      httpsAgent: agent
+    });
+
+    // 3. შედეგის დაბრუნება
+    console.log("🏦 Order Created:", orderRes.data);
     
-    // 1. შეკვეთა
-    const orderRes = await axios.post(`${WP_URL}/wp-json/wc/v3/orders`, orderData, axiosConfig);
-    const orderId = orderRes.data.id;
-    console.log(`✅ Order Created: ${orderId}`);
+    // ბანკი აბრუნებს `_links.redirect.href`-ს ან მსგავსს.
+    // ახალი API-ს სტრუქტურა:
+    const redirectUrl = orderRes.data._links?.redirect?.href || orderRes.data.redirect_url;
 
-    // 2. ლინკი
-    console.log(`🔗 Requesting Link for #${orderId}...`);
-    const initRes = await axios.post(
-      `${WP_URL}/wp-json/wc-bog/v1/initiate`,
-      { order_id: orderId },
-      axiosConfig
-    );
-
-    console.log("🏦 Plugin Response:", JSON.stringify(initRes.data));
-
-    if (initRes.data.status === 'success' && initRes.data.redirect_url) {
-      return { success: true, redirectUrl: initRes.data.redirect_url };
+    if (redirectUrl) {
+        return { success: true, redirectUrl: redirectUrl };
     } else {
-      return { success: false, error: `BOG Error: ${JSON.stringify(initRes.data)}` };
+        return { success: false, error: "Bank did not return redirect URL" };
     }
 
   } catch (error: any) {
-    console.error('🔥 FAILURE:', error.message);
-    if(error.response) {
-        console.error('Data:', JSON.stringify(error.response.data));
-        return { success: false, error: `Server Error (${error.response.status}): ${JSON.stringify(error.response.data)}` };
-    }
-    return { success: false, error: error.message };
+    console.error('🔥 ERROR:', error.message);
+    if(error.response) console.error('Data:', JSON.stringify(error.response.data));
+    return { success: false, error: `Payment Failed: ${error.message}` };
   }
 };
