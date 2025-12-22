@@ -9,7 +9,6 @@ import {
   GET_SHOP_PAGE_WITH_TRANSLATIONS,
   GET_SITEMAP_DATA_QUERY,
   TAXONOMY_SEO_FRAGMENT,
-  GET_PRODUCT_BY_SKU_QUERY
 } from './queries';
 import { Product, FilterTerm } from '@/types';
 
@@ -60,35 +59,16 @@ function snakeToCamel(str: string) {
   return str.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
 }
 
-// ✅ განახლებული ფუნქცია: ვიღებთ ყველა ვარიანტს და ვფილტრავთ JS-ით
-export async function getProductSlugBySku(sku: string, targetLocale: string) {
-  try {
-    // 0 = ქეშის გარეშე, რომ შედეგი მაშინვე გამოჩნდეს
-    const data = await fetchAPI(GET_PRODUCT_BY_SKU_QUERY, {
-      variables: { sku }
-    }, 0);
-    
-    // ვეძებთ პროდუქტს მიღებულ სიაში, რომლის ენა ემთხვევა targetLocale-ს
-    const foundProduct = data?.products?.nodes?.find(
-      (node: any) => node.language?.code?.toLowerCase() === targetLocale.toLowerCase()
-    );
-
-    return foundProduct?.slug || null;
-  } catch (error) {
-    console.error('Error fetching product by SKU:', error);
-    return null;
-  }
-}
-
 export async function getProducts(filters: any = {}, locale: string = 'ka'): Promise<Product[]> {
   const { category, minPrice, maxPrice, limit = 50, sort = 'DATE_DESC', dynamicAttributes } = filters;
   const whereArgs: any = {};
   
+  // ✅ FIX: ენის ვალიდაცია
   const validLocales = ['ka', 'en', 'ru'];
   if (locale && validLocales.includes(locale) && locale !== 'all') {
     whereArgs.language = locale.toUpperCase(); 
   } else {
-    whereArgs.language = 'KA';
+    whereArgs.language = 'KA'; // უსაფრთხო დეფოლტი
   }
 
   const taxonomyFilter: any = { relation: 'AND', filters: [] };
@@ -175,6 +155,7 @@ export async function getFilters(locale: string = 'ka'): Promise<FiltersData | n
       return { taxonomyName: taxName, label: label, terms: terms };
   });
 
+  // ✅ მაქსიმალური ფასის გამოანგარიშება
   let highestPrice = 5000;
   if (data.products?.nodes?.[0]?.price) {
       const priceRaw = data.products.nodes[0].price;

@@ -13,7 +13,6 @@ import AddToCartButton from './AddToCartButton';
 import ProductGallery from './ProductGallery';
 import { useTranslations } from 'next-intl';
 
-// ... Logo Components (LogoTBC, LogoBOG) დარჩა იგივე ...
 const LogoTBC = () => (
   <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 105.8 93.2" className="h-6 md:h-8 w-auto">
     <style type="text/css">
@@ -111,9 +110,6 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
   const displayImage = selectedVariation?.image?.sourceUrl || product.image?.sourceUrl || '/placeholder.jpg';
   const displayStock = selectedVariation?.stockStatus || product.stockStatus;
   const displayStockQuantity = selectedVariation?.stockQuantity || product.stockQuantity;
-  
-  // 🆕 SKU-ს განსაზღვრა (ვარიაციიდან ან მთავარი პროდუქტიდან)
-  const displaySku = selectedVariation?.sku || product.sku;
 
   useMemo(() => {
     if (displayStockQuantity !== undefined && quantity > displayStockQuantity) {
@@ -121,10 +117,12 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
     }
   }, [displayStockQuantity, quantity]);
 
+  // Ensure selectedOptions is Record<string, string> or undefined
   const finalSelectedOptions: Record<string, string> | undefined = safeSelectedColorName 
     ? { Color: safeSelectedColorName } 
     : undefined;
 
+  // Base data for CartItem (Omit<CartItem, 'quantity'>)
   const itemBase: Omit<CartItem, 'quantity'> = {
     id: selectedVariation ? selectedVariation.databaseId : product.databaseId,
     name: selectedVariation 
@@ -134,7 +132,7 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
     image: displayImage || '/placeholder.jpg',
     slug: product.slug,
     stockQuantity: displayStockQuantity,
-    selectedOptions: finalSelectedOptions,
+    selectedOptions: finalSelectedOptions, // This now matches the required type
   };
   
   const cartDataForButton = { ...itemBase, quantity };
@@ -185,17 +183,9 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
       <div className="lg:col-span-6 flex flex-col py-2">
         
         <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-3">
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest hover:text-brand-dark transition cursor-pointer cursor-pointer">
-                    {product.productCategories?.nodes[0]?.name || 'Collection'}
-                </span>
-                {/* 🆕 SKU-ს გამოჩენა აქ */}
-                {displaySku && (
-                    <span className="text-[10px] font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded uppercase tracking-wider">
-                        SKU: {displaySku}
-                    </span>
-                )}
-            </div>
+            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest hover:text-brand-dark transition cursor-pointer cursor-pointer">
+                {product.productCategories?.nodes[0]?.name || 'Collection'}
+            </span>
             
             {isProductOutOfStock ? (
                 <span className="flex items-center gap-1.5 text-red-500 text-[10px] font-bold uppercase bg-red-50 px-2 py-1 rounded-full">
@@ -212,12 +202,11 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
             {product.name}
         </h1>
 
-        {/* 🆕 განახლებული Reviews (მხოლოდ ვარსკვლავები) */}
         <div className="flex items-center gap-2 mb-6">
             <div className="flex text-yellow-400">
                 {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-current" />)}
             </div>
-            {/* ტექსტი წაშლილია */}
+            <span className="text-xs text-gray-400 font-medium">{t('reviews', {count: 12})}</span>
         </div>
 
         <div className="bg-gray-50/50 rounded-2xl p-4 border border-gray-100 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
