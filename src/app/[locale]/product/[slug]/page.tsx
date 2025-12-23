@@ -66,22 +66,33 @@ export default async function ProductPage({ params }: Props) {
   const product = await getProductBySlug(slug, locale);
   if (!product) notFound();
 
-  // ✅ SEO Redirect: თუ URL-ის ენა არ ემთხვევა პროდუქტის სლაგს (Duplicate content fix)
+  // ✅ უსაფრთხო SEO Redirect (Infinite Loop-ის საწინააღმდეგო მექანიზმი)
   const currentLang = locale.toUpperCase();
-  if (product.language?.code && product.language.code !== currentLang) {
-      const correctT = product.availableTranslations?.find(t => t.lang === currentLang);
-      if (correctT) redirect(`/${locale}/product/${correctT.slug}`);
+  const productLang = product.language?.code?.toUpperCase();
+
+  // ვამოწმებთ, რომ პროდუქტის ენა და URL-ის ენა განსხვავებულია
+  if (productLang && productLang !== currentLang) {
+      // ვეძებთ თარგმანს მიმდინარე ენისთვის
+      const translation = product.availableTranslations?.find(t => t.lang === currentLang);
+      
+      // 🛑 რედირექტს ვაკეთებთ მხოლოდ მაშინ, თუ:
+      // 1. თარგმანი ფიზიკურად არსებობს (translation !== undefined)
+      // 2. თარგმანის slug განსხვავებულია მიმდინარე slug-ისგან (ციკლის თავიდან ასაცილებლად)
+      if (translation && translation.slug !== slug) {
+          redirect(`/${locale}/product/${translation.slug}`);
+      }
+      
+      // თუ თარგმანი არ არსებობს, რედირექტი აღარ მოხდება და გვერდი უბრალოდ ჩაიტვირთება 
+      // იმ ენაზე, რომელიც ხელმისაწვდომია (რაც თავიდან აგაცილებს გაჭედვას/loading loop-ს).
   }
 
   const priceNumeric = parseFloat(product.price?.replace(/[^0-9.]/g, '') || '0');
 
-  // ✅ Google Search Console Fixes: სრული Schema მონაცემები
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.name,
     image: product.image?.sourceUrl ? [product.image.sourceUrl] : [],
-    // "description" fix
     description: product.seo?.metaDesc || product.shortDescription?.replace(/<[^>]*>?/gm, '') || product.name,
     sku: product.sku || `ART-${product.databaseId}`,
     brand: { '@type': 'Brand', name: 'ChantaShop' },
@@ -90,24 +101,17 @@ export default async function ProductPage({ params }: Props) {
       url: getLocalizedProductUrl(locale, product.slug),
       priceCurrency: 'GEL',
       price: priceNumeric,
-      // ✅ "availability" fix: ვიყენებთ stockStatusManual-ს, რომელიც ყოველთვის გვაქვს functions.php-დან
       availability: product.stockStatusManual === 'instock' ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       itemCondition: 'https://schema.org/NewCondition',
-      // "shippingDetails" fix
       shippingDetails: {
         '@type': 'OfferShippingDetails',
-        shippingRate: {
-          '@type': 'MonetaryAmount',
-          value: priceNumeric >= 200 ? 0 : 6,
-          currency: 'GEL',
-        },
+        shippingRate: { '@type': 'MonetaryAmount', value: priceNumeric >= 200 ? 0 : 6, currency: 'GEL' },
         deliveryTime: {
           '@type': 'ShippingDeliveryTime',
           handlingTime: { '@type': 'QuantitativeValue', minValue: 0, maxValue: 1, unitCode: 'DAY' },
           transitTime: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 2, unitCode: 'DAY' },
         },
       },
-      // "hasMerchantReturnPolicy" fix
       hasMerchantReturnPolicy: {
         '@type': 'MerchantReturnPolicy',
         applicableCountry: 'GE',
