@@ -76,6 +76,8 @@ export interface Product {
   galleryImages?: { nodes: ProductImage[] };
   seo?: SEO; // ✅ განახლებული SEO ტიპი
   language?: { code: string };
+  translations?: Array<{ language: { code: string }; slug: string; }>; // ძველი (შეიძლება დატოვოთ)
+  available_translations?: Array<{ slug: string; lang: string; }>; // ✅ ეს ახალი დაამატეთ
   attributes?: { nodes: Attribute[] };
   variations?: { nodes: Variation[] };
   productCategories?: { nodes: FilterTerm[] };
