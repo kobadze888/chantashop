@@ -1,44 +1,71 @@
 'use client';
 
-import { ArrowRight } from 'lucide-react';
-import ProductCard from '@/components/products/ProductCard';
-import { Link } from '@/navigation';
-import { useTranslations } from 'next-intl';
+import { useRef } from 'react';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Autoplay } from 'swiper/modules';
+import ProductCard from '../products/ProductCard';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import 'swiper/css';
 
 interface FeaturedCarouselProps {
-    title: string;
-    subtitle: string;
-    products: any[];
-    locale: string;
+  title: string;
+  products: any[];
+  locale: string;
 }
 
-export default function FeaturedCarousel({ title, subtitle, products, locale }: FeaturedCarouselProps) {
-  const t = useTranslations('Common');
+export default function FeaturedCarousel({ title, products, locale }: FeaturedCarouselProps) {
+  const prevRef = useRef<HTMLButtonElement>(null);
+  const nextRef = useRef<HTMLButtonElement>(null);
 
   return (
-    <div className="container mx-auto px-4 mt-20 md:mt-32 mb-20">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 md:mb-12 gap-4">
-            <div>
-                <span className="text-brand-DEFAULT text-xs font-bold tracking-widest uppercase mb-2 block">{subtitle}</span>
-                <h2 className="text-4xl md:text-5xl font-serif font-bold text-brand-dark">{title}</h2>
-            </div>
-            {/* ✅ შეცვლილია /shop-ზე */}
-            <Link href="/shop" className="px-8 py-3 rounded-full border border-gray-200 text-sm font-bold text-brand-dark hover:bg-brand-dark hover:text-white transition uppercase tracking-widest flex items-center gap-2 group">
-                {t('viewAll')} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
+    <section className="py-12">
+      <div className="flex items-center justify-between mb-8">
+        <h2 className="text-xl md:text-2xl font-serif font-bold text-brand-dark tracking-tight">{title}</h2>
+        <div className="flex gap-2">
+          <button ref={prevRef} className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-brand-dark hover:text-white transition-all active:scale-90">
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <button ref={nextRef} className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-brand-dark hover:text-white transition-all active:scale-90">
+            <ChevronRight className="w-5 h-5" />
+          </button>
         </div>
+      </div>
 
-        <div className="flex gap-4 md:gap-6 overflow-x-auto hide-scrollbar pb-12 snap-x snap-mandatory -mx-4 px-4 md:mx-0 md:px-0">
-            {products.map((product) => (
-                <div key={product.id} className="snap-start flex-shrink-0">
-                    <ProductCard 
-                        {...product} 
-                        locale={locale} 
-                        className="min-w-[44vw] w-[44vw] md:min-w-[340px] md:w-[340px]" 
-                    />
-                </div>
-            ))}
-        </div>
-    </div>
+      <Swiper
+        modules={[Navigation, Autoplay]}
+        spaceBetween={20}
+        slidesPerView={2}
+        navigation={{ prevEl: prevRef.current, nextEl: nextRef.current }}
+        onBeforeInit={(swiper) => {
+          // @ts-ignore
+          swiper.params.navigation.prevEl = prevRef.current;
+          // @ts-ignore
+          swiper.params.navigation.nextEl = nextRef.current;
+        }}
+        breakpoints={{
+          768: { slidesPerView: 3 },
+          1024: { slidesPerView: 4 }
+        }}
+        className="pb-4"
+      >
+        {products.map((product) => (
+          <SwiperSlide key={product.id}>
+            <ProductCard
+              id={product.id || product.databaseId}
+              name={product.name}
+              price={product.price}
+              salePrice={product.salePrice}
+              regularPrice={product.regularPrice}
+              image={product.image}
+              slug={product.slug}
+              locale={locale}
+              stockStatus={product.stockStatus}
+              stockStatusManual={product.stockStatusManual}
+              priority={false} // ✅ კარუსელში Preload არ გვჭირდება
+            />
+          </SwiperSlide>
+        ))}
+      </Swiper>
+    </section>
   );
 }

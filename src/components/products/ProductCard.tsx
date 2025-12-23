@@ -29,12 +29,14 @@ interface ProductCardProps {
   attributes?: any;
   stockQuantity?: number;
   stockStatus?: string;
+  stockStatusManual?: string; // ✅ დამატებულია ბექენდის ახალი ველი
   className?: string;
   index?: number;
   onQuickView?: (e: React.MouseEvent) => void;
   shortDescription?: string;
   description?: string;
   productCategories?: any;
+  priority?: boolean; // ✅ ახალი პროპი პრე-ლოადინგის სამართავად
 }
 
 function isValidImageUrl(url: string | undefined | null): boolean {
@@ -53,8 +55,9 @@ function calculateDiscount(regular: string, sale: string): number | null {
 export default function ProductCard(props: ProductCardProps) {
   const {
     id, name, price, salePrice, regularPrice, image, secondImage,
-    slug, attributes, stockQuantity, stockStatus, className,
-    index = 0, onQuickView, locale, shortDescription, description, productCategories
+    slug, attributes, stockQuantity, stockStatus, stockStatusManual, className,
+    index = 0, onQuickView, locale, shortDescription, description, productCategories,
+    priority = false // ✅ ნაგულისხმევად გამორთულია
   } = props;
 
   const addItem = useCartStore((state) => state.addItem);
@@ -67,16 +70,14 @@ export default function ProductCard(props: ProductCardProps) {
   const [imgSrc, setImgSrc] = useState(isValidImageUrl(image) ? image : '/placeholder.jpg');
   const [hoverImgSrc, setHoverImgSrc] = useState(isValidImageUrl(secondImage) ? secondImage : null);
 
-  const isPriority = index < 4;
-
   useEffect(() => {
     setMounted(true);
   }, []);
 
   const isLiked = mounted ? isInWishlist(id) : false;
 
-  // ✅ გასწორებული ლოგიკა: ამოწმებს ორივე ვარიანტს (დიდი ასოებით და პატარათი)
-  const isOutOfStock = stockStatus === 'OUT_OF_STOCK' || stockStatus === 'outofstock' || stockQuantity === 0;
+  // ✅ მარაგი მოწმდება როგორც სტანდარტული, ისე ჩვენი ხელით დამატებული ველით
+  const isOutOfStock = stockStatusManual === 'outofstock' || stockStatus === 'OUT_OF_STOCK' || stockQuantity === 0;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -137,7 +138,7 @@ export default function ProductCard(props: ProductCardProps) {
           </div>
         )}
 
-        {hoverImgSrc && (
+        {hoverImgSrc && !isOutOfStock && (
           <Image
             src={hoverImgSrc}
             alt={`${name} hover`}
@@ -154,7 +155,7 @@ export default function ProductCard(props: ProductCardProps) {
           fill
           sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
           className="main-image object-cover"
-          priority={isPriority}
+          priority={priority} // ✅ გამოყენებულია პროპი კონსოლის ერორის ასაცილებლად
           onError={() => setImgSrc('/placeholder.jpg')}
         />
 
@@ -182,7 +183,6 @@ export default function ProductCard(props: ProductCardProps) {
           <Heart className={`w-4 h-4 md:w-5 md:h-5 ${isLiked ? 'fill-current' : ''}`} />
         </button>
 
-        {/* Desktop Quick Actions */}
         <div className={`hidden md:flex absolute inset-0 items-center justify-center gap-3 z-30 transition-opacity duration-300 opacity-0 ${!isOutOfStock && 'group-hover:opacity-100'}`}>
           <button
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); onQuickView?.(e); }}
@@ -236,7 +236,6 @@ export default function ProductCard(props: ProductCardProps) {
           <div className="flex items-center gap-2">
             {!isOutOfStock ? (
               <>
-                {/* მობილური ღილაკები */}
                 <div className="flex md:hidden gap-2">
                   <button
                     onClick={handleAddToCart}
@@ -252,7 +251,6 @@ export default function ProductCard(props: ProductCardProps) {
                   </button>
                 </div>
 
-                {/* დესკტოპ ღილაკები */}
                 <div className="hidden md:flex gap-2">
                   <button
                     onClick={handleAddToCart}
