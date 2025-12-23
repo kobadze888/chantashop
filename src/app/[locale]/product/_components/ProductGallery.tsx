@@ -25,6 +25,16 @@ export default function ProductGallery({ mainImage, gallery, alt }: ProductGalle
   const [canScrollUp, setCanScrollUp] = useState(false);
   const [canScrollDown, setCanScrollDown] = useState(false);
 
+  // ✅ ახალი ლოგიკა: როდესაც მთავარი ფოტო (ვარიაცია) იცვლება, 
+  // გალერეა ავტომატურად ბრუნდება პირველ პოზიციაზე
+  useEffect(() => {
+    setSelectedIndex(0);
+    // ასევე ვასწორებთ სქროლის პოზიციას მინიატურებისთვის
+    if (scrollRef.current) {
+        scrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [mainImage]); // უსმენს mainImage-ის ცვლილებას
+
   // Client-side mount check
   useEffect(() => {
     setMounted(true);
@@ -66,17 +76,15 @@ export default function ProductGallery({ mainImage, gallery, alt }: ProductGalle
     setSelectedIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
   }, [allImages.length]);
 
-  // --- Modal Content Component (შიდა კომპონენტი) ---
+  // --- Modal Content Component ---
   const ModalContent = () => {
-    // Scroll Locking Effect
     useEffect(() => {
-      document.body.style.overflow = 'hidden'; // სქროლის დაბლოკვა
+      document.body.style.overflow = 'hidden';
       return () => {
-        document.body.style.overflow = ''; // სქროლის დაბრუნება
+        document.body.style.overflow = '';
       };
     }, []);
 
-    // Zoom Logic
     const [isZoomed, setIsZoomed] = useState(false);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const imageContainerRef = useRef<HTMLDivElement>(null);
@@ -96,11 +104,10 @@ export default function ProductGallery({ mainImage, gallery, alt }: ProductGalle
       setIsZoomed(!isZoomed);
     };
 
-    // Keyboard Navigation
     useEffect(() => {
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'Escape') setIsModalOpen(false);
-        if (!isZoomed) { // თუ ზუმი ჩართულია, ისრებით არ გადავრთოთ რომ ხელი არ შეეშალოს
+        if (!isZoomed) {
             if (e.key === 'ArrowRight') handleNext();
             if (e.key === 'ArrowLeft') handlePrev();
         }
@@ -111,8 +118,6 @@ export default function ProductGallery({ mainImage, gallery, alt }: ProductGalle
 
     return (
       <div className="fixed inset-0 z-[99999] bg-black/95 backdrop-blur-md flex items-center justify-center animate-fade-in overscroll-contain">
-          
-          {/* Close Button */}
           <button 
               onClick={() => setIsModalOpen(false)}
               className="absolute top-6 right-6 z-[100000] p-3 bg-white/10 text-white rounded-full hover:bg-white/20 transition-colors backdrop-blur-sm cursor-pointer"
@@ -120,7 +125,6 @@ export default function ProductGallery({ mainImage, gallery, alt }: ProductGalle
               <X className="w-8 h-8" />
           </button>
 
-          {/* Nav Buttons (Hidden when zoomed to avoid obstruction) */}
           {!isZoomed && (
             <>
               <button 
@@ -138,7 +142,6 @@ export default function ProductGallery({ mainImage, gallery, alt }: ProductGalle
             </>
           )}
 
-          {/* Image Container with Zoom Logic */}
           <div className="relative w-full h-full p-0 lg:p-10 flex items-center justify-center overflow-hidden">
               <div 
                 ref={imageContainerRef}
@@ -160,7 +163,7 @@ export default function ProductGallery({ mainImage, gallery, alt }: ProductGalle
                         src={allImages[selectedIndex]}
                         alt={alt}
                         fill
-                        className="object-contain drop-shadow-2xl pointer-events-none" // pointer-events-none რათა მაუსი კონტეინერმა წაიკითხოს
+                        className="object-contain drop-shadow-2xl pointer-events-none"
                         sizes="100vw"
                         priority
                         quality={100}
@@ -169,7 +172,6 @@ export default function ProductGallery({ mainImage, gallery, alt }: ProductGalle
               </div>
           </div>
 
-          {/* Thumbnails strip (Hidden when zoomed) */}
           {!isZoomed && (
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3 overflow-x-auto max-w-[90vw] p-2 hide-scrollbar z-[100000]">
                 {allImages.map((url, idx) => (
