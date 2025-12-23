@@ -67,7 +67,6 @@ export async function getProducts(filters: any = {}, locale: string = 'ka'): Pro
 }
 
 export async function getFilters(locale: string = 'ka'): Promise<FiltersData | null> {
-  // ✅ ვაწვდით wpLang-ს, რომ წამოიღოს შესაბამისი ენის კატეგორიები
   const data = await fetchAPI(GET_FILTERS_QUERY, { variables: { wpLang: locale.toUpperCase() } }, 3600, ['filters']); 
   if (!data) return null;
   
@@ -121,16 +120,25 @@ export async function getSitemapData() {
 }
 
 export async function getTaxonomySeo(taxonomy: string, slug: string) {
-  // ✅ მკაცრი მეპინგი color -> paColor შეცდომის თავიდან ასაცილებლად
   let graphQLField = '';
-  if (taxonomy === 'category' || taxonomy === 'product_cat') graphQLField = 'productCategory';
-  else if (taxonomy === 'pa_color' || taxonomy === 'color') graphQLField = 'paColor';
-  else if (taxonomy === 'pa_masala' || taxonomy === 'masala') graphQLField = 'paMasala';
-  else graphQLField = snakeToCamel(taxonomy); 
+  
+  // ✅ მკაცრი მეპინგი: ვამატებთ material-ის სწორ გადაყვანას paMasala-ზე
+  if (taxonomy === 'category' || taxonomy === 'product_cat') {
+    graphQLField = 'productCategory';
+  } else if (taxonomy === 'pa_color' || taxonomy === 'color') {
+    graphQLField = 'paColor';
+  } else if (taxonomy === 'pa_masala' || taxonomy === 'masala' || taxonomy === 'material') {
+    graphQLField = 'paMasala';
+  } else {
+    graphQLField = snakeToCamel(taxonomy); 
+  }
 
   const DYNAMIC_QUERY = `${TAXONOMY_SEO_FRAGMENT} query GetDynamicTaxonomy($id: ID!) { ${graphQLField}(id: $id, idType: SLUG) { id name slug description seo { ...TaxonomySeoFragment } } }`;
+  
   try {
     const data = await fetchAPI(DYNAMIC_QUERY, { variables: { id: slug } }, 3600, ['taxonomy']);
     return data?.[graphQLField];
-  } catch (e) { return null; }
+  } catch (e) { 
+    return null; 
+  }
 }

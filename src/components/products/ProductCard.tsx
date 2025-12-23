@@ -75,7 +75,8 @@ export default function ProductCard(props: ProductCardProps) {
 
   const isLiked = mounted ? isInWishlist(id) : false;
 
-  const isOutOfStock = stockStatus === 'OUT_OF_STOCK' || stockQuantity === 0;
+  // ✅ გასწორებული ლოგიკა: ამოწმებს ორივე ვარიანტს (დიდი ასოებით და პატარათი)
+  const isOutOfStock = stockStatus === 'OUT_OF_STOCK' || stockStatus === 'outofstock' || stockQuantity === 0;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -181,7 +182,7 @@ export default function ProductCard(props: ProductCardProps) {
           <Heart className={`w-4 h-4 md:w-5 md:h-5 ${isLiked ? 'fill-current' : ''}`} />
         </button>
 
-        {/* Desktop Quick Actions - კალათაში დამატების გარეშე */}
+        {/* Desktop Quick Actions */}
         <div className={`hidden md:flex absolute inset-0 items-center justify-center gap-3 z-30 transition-opacity duration-300 opacity-0 ${!isOutOfStock && 'group-hover:opacity-100'}`}>
           <button
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); onQuickView?.(e); }}
