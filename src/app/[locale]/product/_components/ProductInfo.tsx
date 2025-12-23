@@ -1,19 +1,19 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from '@/navigation';
 import { useCartStore } from '@/store/cartStore';
+import { useWishlistStore } from '@/store/wishlistStore'; // 🆕 იმპორტი
 import { 
     Heart, AlertCircle, Minus, Plus, 
     Ruler, Box, Layers, Tag, Info, 
-    Truck, Check, CreditCard, Star, Smartphone, Eye, Landmark 
+    Truck, Check, CreditCard, Smartphone, Eye, Landmark, Star 
 } from 'lucide-react';
 import { Product, CartItem } from '@/types';
 import AddToCartButton from './AddToCartButton';
 import ProductGallery from './ProductGallery';
 import { useTranslations } from 'next-intl';
 
-// ... Logo Components (LogoTBC, LogoBOG) დარჩა იგივე ...
 const LogoTBC = () => (
   <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 105.8 93.2" className="h-6 md:h-8 w-auto">
     <style type="text/css">
@@ -52,10 +52,17 @@ const getAttributeIcon = (name: string) => {
 export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps) {
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
+  const [mounted, setMounted] = useState(false); // 🆕 ჰიდრაციისთვის
   const t = useTranslations('Product');
   
   const router = useRouter();
   const addItem = useCartStore((state) => state.addItem);
+  const { toggleItem, isInWishlist } = useWishlistStore(); // 🆕 ვისლისტის სთორი
+
+  // 🆕 ჰიდრაციის ეფექტი
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const attributes = product.attributes?.nodes || [];
   
@@ -111,8 +118,6 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
   const displayImage = selectedVariation?.image?.sourceUrl || product.image?.sourceUrl || '/placeholder.jpg';
   const displayStock = selectedVariation?.stockStatus || product.stockStatus;
   const displayStockQuantity = selectedVariation?.stockQuantity || product.stockQuantity;
-  
-  // 🆕 SKU-ს განსაზღვრა (ვარიაციიდან ან მთავარი პროდუქტიდან)
   const displaySku = selectedVariation?.sku || product.sku;
 
   useMemo(() => {
@@ -143,7 +148,6 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
   const isValidSelection = !product.variations || !!selectedVariation;
   const isBuyNowDisabled = !isValidSelection || isProductOutOfStock || quantity === 0;
 
-
   const handleBuyNow = () => {
       if(!isBuyNowDisabled) {
           for(let i = 0; i < quantity; i++) {
@@ -152,6 +156,22 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
           router.push('/checkout');
       }
   };
+
+  // 🆕 ვისლისტის ფუნქცია
+  const handleWishlist = () => {
+    toggleItem({
+      id: product.databaseId,
+      name: product.name,
+      price: product.price || '0 ₾',
+      salePrice: product.salePrice,
+      regularPrice: product.regularPrice,
+      image: product.image?.sourceUrl || '/placeholder.jpg',
+      slug: product.slug,
+      stockQuantity: product.stockQuantity
+    });
+  };
+
+  const isLiked = mounted ? isInWishlist(product.databaseId) : false; // 🆕 სტატუსი
 
   const colorMap: Record<string, string> = { 
     'shavi': '#000000', 'შავი': '#000000',
@@ -186,10 +206,9 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
         
         <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-3">
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest hover:text-brand-dark transition cursor-pointer cursor-pointer">
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest hover:text-brand-dark transition cursor-pointer">
                     {product.productCategories?.nodes[0]?.name || 'Collection'}
                 </span>
-                {/* 🆕 SKU-ს გამოჩენა აქ */}
                 {displaySku && (
                     <span className="text-[10px] font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded uppercase tracking-wider">
                         SKU: {displaySku}
@@ -212,12 +231,10 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
             {product.name}
         </h1>
 
-        {/* 🆕 განახლებული Reviews (მხოლოდ ვარსკვლავები) */}
         <div className="flex items-center gap-2 mb-6">
             <div className="flex text-yellow-400">
                 {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-current" />)}
             </div>
-            {/* ტექსტი წაშლილია */}
         </div>
 
         <div className="bg-gray-50/50 rounded-2xl p-4 border border-gray-100 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -227,7 +244,7 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
                     <span className="text-2xl lg:text-3xl font-serif font-black text-brand-dark">
                         {displayPrice?.includes('₾') ? displayPrice : `${displayPrice} ₾`}
                     </span>
-                    {isSale && regularPrice && (
+                    {regularPrice && isSale && (
                         <span className="text-xs text-gray-400 line-through decoration-red-400 decoration-1">
                             {regularPrice}
                         </span>
@@ -244,8 +261,16 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
                     <CreditCard className="w-4 h-4" /> {t('buyNow')}
                 </button>
                 
-                <button className="h-12 w-12 flex items-center justify-center bg-white border border-gray-200 rounded-xl hover:border-red-200 hover:text-red-500 transition shadow-sm group active:scale-90 cursor-pointer">
-                    <Heart className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                {/* 🆕 განახლებული ვისლისტის ღილაკი */}
+                <button 
+                  onClick={handleWishlist}
+                  className={`h-12 w-12 flex items-center justify-center border rounded-xl transition shadow-sm group active:scale-90 cursor-pointer ${
+                    isLiked 
+                      ? 'bg-red-50 border-red-200 text-red-500' 
+                      : 'bg-white border-gray-200 hover:border-red-200 hover:text-red-500'
+                  }`}
+                >
+                    <Heart className={`w-5 h-5 group-hover:scale-110 transition-transform ${isLiked ? 'fill-current' : ''}`} />
                 </button>
             </div>
         </div>
@@ -311,8 +336,7 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
         </div>
 
         <div className="grid grid-cols-3 gap-2 md:gap-3 mb-8">
-            
-            <div className="border border-brand-light bg-brand-light/30 rounded-2xl p-2 md:p-3 flex flex-col items-center text-center justify-center transition-all hover:shadow-md hover:border-brand-medium cursor-default h-full min-h-[110px]">
+            <div className="border border-brand-light bg-brand-light/30 rounded-2xl p-2 md:p-3 flex flex-col items-center text-center justify-center transition-all hover:shadow-md hover:border-brand-medium h-full min-h-[110px]">
                 <span className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-2">{t('Payment.onlineTitle')}</span>
                 <div className="flex items-center justify-center gap-2 mb-2 scale-90">
                     <LogoTBC />
@@ -324,17 +348,17 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
                 </div>
             </div>
 
-            <div className="border border-gray-100 bg-gray-50 rounded-2xl p-2 md:p-3 flex flex-col items-center text-center justify-center transition-all hover:shadow-md hover:border-gray-200 cursor-default h-full min-h-[110px]">
+            <div className="border border-gray-100 bg-gray-50 rounded-2xl p-2 md:p-3 flex flex-col items-center text-center justify-center transition-all hover:shadow-md hover:border-gray-200 h-full min-h-[110px]">
                 <span className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-2">გადარიცხვა</span>
                 <div className="mb-2 text-gray-600">
                     <Landmark className="w-5 h-5 md:w-6 md:h-6" />
                 </div>
                 <div className="text-[8px] md:text-[9px] text-gray-500 font-medium leading-tight">
-                    გადახდა საბანკო<br/>გადარიცხვით / ინტერნეტ ბანკით
+                    გადახდა საბანკო<br/>გადარიცხვით
                 </div>
             </div>
 
-            <div className="border border-gray-100 bg-gray-50 rounded-2xl p-2 md:p-3 flex flex-col items-center text-center justify-center transition-all hover:shadow-md hover:border-gray-200 cursor-default h-full min-h-[110px]">
+            <div className="border border-gray-100 bg-gray-50 rounded-2xl p-2 md:p-3 flex flex-col items-center text-center justify-center transition-all hover:shadow-md hover:border-gray-200 h-full min-h-[110px]">
                 <span className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-2">{t('Payment.courierTitle')}</span>
                 <div className="mb-2 text-gray-600">
                     <Smartphone className="w-5 h-5 md:w-6 md:h-6" />
@@ -348,7 +372,6 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
         <div className="border-t border-gray-100 my-6"></div>
 
         <div className="space-y-6">
-            
             <div 
                 className="bg-gray-50 p-5 rounded-2xl text-gray-600 text-sm leading-relaxed border border-gray-100" 
                 dangerouslySetInnerHTML={{ __html: product.shortDescription || 'აღწერა არ არის.' }} 
@@ -402,7 +425,6 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
                     </div>
                 </div>
             </div>
-
         </div>
       </div>
     </div>
