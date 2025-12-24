@@ -3,19 +3,21 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from '@/navigation';
 import { useCartStore } from '@/store/cartStore';
-import { useWishlistStore } from '@/store/wishlistStore'; // 🆕 იმპორტი
+import { useWishlistStore } from '@/store/wishlistStore';
 import { 
     Heart, AlertCircle, Minus, Plus, 
     Ruler, Box, Layers, Tag, Info, 
-    Truck, Check, CreditCard, Smartphone, Eye, Landmark, Star 
+    Truck, Check, CreditCard, Smartphone, Eye, Landmark, Star, Camera,
+    ChevronDown, ChevronUp 
 } from 'lucide-react';
 import { Product, CartItem } from '@/types';
 import AddToCartButton from './AddToCartButton';
 import ProductGallery from './ProductGallery';
 import { useTranslations } from 'next-intl';
 
+// Logo Components (TBC, BOG, Visa, Mastercard)
 const LogoTBC = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 105.8 93.2" className="h-6 md:h-8 w-auto">
+  <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 105.8 93.2" className="h-6 md:h-8 w-auto">
     <style type="text/css">
         {`.st0{fill:#00A3E0;stroke:#FFFFFF;stroke-width:0.5;stroke-miterlimit:10;}`}
     </style>
@@ -26,12 +28,32 @@ const LogoTBC = () => (
 );
 
 const LogoBOG = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48.07 42.07" className="h-7 md:h-9 w-auto">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48.07 42.07" className="h-6 md:h-8 w-auto">
     <path fill="#e6e7e8" d="M33,0H13.64A11.4,11.4,0,0,0,2.26,11.38V30.69A11.4,11.4,0,0,0,13.64,42.07H33A11.39,11.39,0,0,0,44.32,30.69V11.38A11.39,11.39,0,0,0,33,0m7.67,30.69A7.68,7.68,0,0,1,33,38.36H13.64a7.68,7.68,0,0,1-7-4.63l.67-.59,1.41-4L6,24.55V11.38a7.68,7.68,0,0,1,7.67-7.67H33a7.68,7.68,0,0,1,7.67,7.67Z"/>
     <path fill="#ff671d" d="M36.23,30a4.28,4.28,0,0,0,1.36.2c2.06,0,3-.82,3-1.79,0-1.14-1.55-1.14-1.71-2.14-.2-1.25-.07-6.79,2.08-9.85l1.44.65a1.78,1.78,0,0,0,.9.2,1.36,1.36,0,0,0,1-.5,30.28,30.28,0,0,0,3.76-5.18c.18-.36-2.85-4.14-4.54-5.51A6.78,6.78,0,0,0,32.88,9.08a32.29,32.29,0,0,1-9.61,4.56c-4.64,1.22-9.44.08-12.7.25A6.56,6.56,0,0,0,4,20.73c.11,3.62,2.59,6.91,2.59,10.3a3.72,3.72,0,0,1-3.65,3.84c-1.79,0-1.9-.73-2.45-.73a.48.48,0,0,0-.47.47c0,.9,2.2,1.76,3.45,1.76A5.51,5.51,0,0,0,8.19,34a4.17,4.17,0,0,0,4.15,2.47c2.62,0,3.76-1.26,3.76-2.31,0-.85-.51-1.21-.89-1.71a2.86,2.86,0,0,1-.5-1.58,10.13,10.13,0,0,0,1.43.09c1.91,0,2.49-.77,2.49-1.53,0-1-1.14-.91-1.14-2.52,0-1.22.68-1.62,1.27-1.62s3.08.23,6,.53c1,.1,3.44,1.06,3.44,4.87V32c0,2.33.94,5.21,5.05,5.21,2.79,0,4.36-1.56,4.36-2.68,0-.74-.64-1.06-1-1.5A4.22,4.22,0,0,1,36.21,30"/>
     <g fill="#fff">
         <path d="M43,13.28a.49.49,0,1,0,.49.49.49.49,0,0,0-.49-.49"/><path d="M44.69,11.86a.44.44,0,0,0,0,.88.44.44,0,1,0,0-.88"/><path d="M45.48,10.23a.37.37,0,0,0,0,.73.37.37,0,1,0,0-.73"/><path d="M31.59,12.53a.52.52,0,0,0,.53-.52.53.53,0,0,0-.53-.53.52.52,0,0,0-.52.53.52.52,0,0,0,.52.52"/><path d="M33.61,25.22a.53.53,0,1,0,.52.52.52.52,0,0,0-.52-.52"/><path d="M36.73,25.74a.53.53,0,0,0,0,1.05.53.53,0,1,0,0-1.05"/><path d="M34,20.45a.53.53,0,0,0,0,1.05.53.53,0,1,0,0-1.05"/><path d="M35.83,16.9a.52.52,0,0,0,.53-.52.53.53,0,0,0-.53-.53.52.52,0,0,0-.52.53.52.52,0,0,0,.52.52"/><path d="M27.65,14.78a.53.53,0,1,0-.52-.52.53.53,0,0,0,.52.52"/><path d="M30.59,24.14a.53.53,0,0,0-.53.53.53.53,0,0,0,1.05,0,.53.53,0,0,0-.52-.53"/><path d="M29.14,17.36a.52.52,0,0,0,.52-.52.52.52,0,0,0-.52-.53.53.53,0,0,0-.52.53.52.52,0,0,0,.52.52"/><path d="M25.83,20.35a.52.52,0,0,0,.52.76.52.52,0,1,0-.52-.76"/><path d="M31.25,19.79a.53.53,0,0,0,.53-.53.52.52,0,0,0-.53-.52.52.52,0,0,0-.52.52.52.52,0,0,0,.52.53"/><path d="M23,15.09a.53.53,0,1,0,.52.53.52.52,0,0,0-.52-.53"/><path d="M24.11,17.81a.52.52,0,0,0-.52.52.52.52,0,1,0,1,0,.52.52,0,0,0-.52-.52"/><path d="M28,22.38a.52.52,0,0,0-.52.53.52.52,0,0,0,1,0,.52.52,0,0,0-.52-.53"/><path d="M33.34,15a.52.52,0,1,0-.53-.52.52.52,0,0,0,.53.52"/><path d="M37.19,21.45a.52.52,0,0,0-.52.53.52.52,0,1,0,1,0,.52.52,0,0,0-.52-.53"/><path d="M38.51,17.18a.52.52,0,1,0,.52.52.52.52,0,0,0-.52-.52"/><path d="M38.17,12.87a.52.52,0,0,0-.53.52.53.53,0,1,0,1,0,.52.52,0,0,0-.52-.52"/><path d="M40.66,13.67a.53.53,0,1,0,0,1.05.53.53,0,0,0,0-1.05"/><path d="M36.3,11.25a.52.52,0,1,0,.52.76.52.52,0,0,0-.52-.76"/><path d="M35.27,9.27a.53.53,0,1,0,0,1.05.53.53,0,0,0,0-1.05"/><path d="M37.44,9.27a.53.53,0,1,0,0,1.05.53.53,0,0,0,0-1.05"/><path d="M35,7.84a.44.44,0,1,1,.44.44A.44.44,0,0,1,35,7.84"/><path d="M36.26,6.25a.33.33,0,1,1,.33.33.33.33,0,0,1-.33-.33"/><path d="M38,5.49a.29.29,0,0,1,.58,0,.29.29,0,0,1-.58,0"/><path d="M45.15,9.11a.27.27,0,1,1,.27.26.26.26,0,0,1-.27-.26"/><path d="M44.78,14.35a.3.3,0,0,1,.28-.3.28.28,0,0,1,.29.28.27.27,0,0,1-.27.29.28.28,0,0,1-.3-.27"/><path d="M45.52,13.34a.29.29,0,0,1,.27-.3.28.28,0,0,1,.3.27.28.28,0,0,1-.27.3.28.28,0,0,1-.3-.27"/><path d="M44,15.35a.3.3,0,0,1,.28-.3.28.28,0,0,1,.29.28.27.27,0,0,1-.27.29.28.28,0,0,1-.3-.27"/><path d="M43.11,16.29a.28.28,0,0,1,.27-.3.3.3,0,0,1,.3.28.28.28,0,0,1-.28.29.27.27,0,0,1-.29-.27"/><path d="M46.2,12.33a.3.3,0,0,1,.28-.3.29.29,0,0,1,.29.28.28.28,0,0,1-.27.3.3.3,0,0,1-.3-.28"/><path d="M46.73,11.45a.28.28,0,0,1,.27-.3.28.28,0,0,1,.3.27.29.29,0,0,1-.28.3.27.27,0,0,1-.29-.27"/><path d="M14,33.59a8.48,8.48,0,0,1-.59-6.71c1.46-3.76,5.67-3.27,5.67-3.27a4.74,4.74,0,0,0-2.22-.43,5.53,5.53,0,0,0-5.07,6A5.91,5.91,0,0,0,14,33.59"/><path d="M6.93,23A4.54,4.54,0,0,1,5.6,19.81a4.64,4.64,0,0,1,4.55-4.55c2.59-.14,7.34.63,10.37.24,1.05,4.68,5.69,9.22,9.34,11.29-4.33-1.93-8.48-6.31-12.1-8.32-3.78-2.1-7.57-2.41-9.57-.58A5.18,5.18,0,0,0,6.93,23"/><path d="M17.64,27.75c.23,1.35-2.2,1.78-2.2,1.78,2.22.4,3-.79,3-.79Z"/><path d="M35.26,28.48v0s-1.44,2.05-.45,5.77a6.58,6.58,0,0,1-2.57,1.3s3.34.43,4.38-1.34c-2-1.57-1.41-5.45-1.37-5.71"/><path d="M41.92,7.15a2.22,2.22,0,0,0-2.71,1.53,2.43,2.43,0,0,0,4.71.86,2.22,2.22,0,0,0-2-2.39m1.63,2.3a1.73,1.73,0,0,1-3.34-.61,1.73,1.73,0,0,1,3.34.61"/><path d="M41.8,9.12a1,1,0,0,1,1.85.33,1,1,0,0,1-1.85-.33"/><path d="M39.09,26.63h0c.79,1.48-1.77,2-1.77,2,1.78.3,2.8-.85,2.8-1.32-.38-1.61-.8-.39-1-.72"/><path d="M44.44,8.33A3.77,3.77,0,0,0,38.1,8a.61.61,0,1,1-.94-.77A4.41,4.41,0,0,1,40.45,5.8a4.35,4.35,0,0,1,4,2.53"/><path d="M40.37,16.07a8.83,8.83,0,0,1-4.67-1.89,9.57,9.57,0,0,1-2.92-3.29.41.41,0,0,1,.15-.55.39.39,0,0,1,.55.14A10.75,10.75,0,0,0,36.24,14a9.41,9.41,0,0,0,4.13,2.05"/><path d="M38.59,19.73a11.66,11.66,0,0,1-7.33-3.6A11.93,11.93,0,0,1,29,12.89a.39.39,0,0,1,.16-.54.38.38,0,0,1,.54.16,13.69,13.69,0,0,0,2.7,4,10.77,10.77,0,0,0,6.21,3.19"/><path d="M25,14.24a.41.41,0,0,1,.51.25,14.74,14.74,0,0,0,3.56,5.71,13.21,13.21,0,0,0,8.67,3.88,13.19,13.19,0,0,1-9.41-3.91,15.41,15.41,0,0,1-3.58-5.42.4.4,0,0,1,.25-.51"/><path d="M39.19,11.13a4.45,4.45,0,0,0,2.33.73,2.85,2.85,0,0,0,3-2.34,3.24,3.24,0,0,1-3.3,2.92,4.45,4.45,0,0,1-2.4-.58.41.41,0,0,1,.36-.73"/>
     </g>
+  </svg>
+);
+
+const LogoMastercard = () => (
+  <svg viewBox="0 0 38 24" xmlns="http://www.w3.org/2000/svg" role="img" className="h-6 md:h-8 w-auto" aria-labelledby="pi-master">
+    <title id="pi-master">Mastercard</title>
+    <path opacity=".07" d="M35 0H3C1.3 0 0 1.3 0 3v18c0 1.7 1.4 3 3 3h32c1.7 0 3-1.3 3-3V3c0-1.7-1.4-3-3-3z"></path>
+    <path fill="#fff" d="M35 1c1.1 0 2 .9 2 2v18c0 1.1-.9 2-2 2H3c-1.1 0-2-.9-2-2V3c0-1.1.9-2 2-2h32"></path>
+    <circle fill="#EB001B" cx="15" cy="12" r="7"></circle>
+    <circle fill="#F79E1B" cx="23" cy="12" r="7"></circle>
+    <path fill="#FF5F00" d="M22 12c0-2.4-1.2-4.5-3-5.7-1.8 1.3-3 3.4-3 5.7s1.2 4.5 3 5.7c1.8-1.2 3-3.3 3-5.7z"></path>
+  </svg>
+);
+
+const LogoVisa = () => (
+  <svg viewBox="0 0 38 24" xmlns="http://www.w3.org/2000/svg" role="img" className="h-6 md:h-8 w-auto" aria-labelledby="pi-visa">
+    <title id="pi-visa">Visa</title>
+    <path opacity=".07" d="M35 0H3C1.3 0 0 1.3 0 3v18c0 1.7 1.4 3 3 3h32c1.7 0 3-1.3 3-3V3c0-1.7-1.4-3-3-3z"></path>
+    <path fill="#fff" d="M35 1c1.1 0 2 .9 2 2v18c0 1.1-.9 2-2 2H3c-1.1 0-2-.9-2-2V3c0-1.1.9-2 2-2h32"></path>
+    <path d="M28.3 10.1H28c-.4 1-.7 1.5-1 3h1.9c-.3-1.5-.3-2.2-.6-3zm2.9 5.9h-1.7c-.1 0-.1 0-.2-.1l-.2-.9-.1-.2h-2.4c-.1 0-.2 0-.2.2l-.3.9c0 .1-.1.1-.1.1h-2.1l.2-.5L27 8.7c0-.5.3-.7.8-.7h1.5c.1 0 .2 0 .2.2l1.4 6.5c.1.4.2.7.2 1.1.1.1.1.1.1.2zm-13.4-.3l.4-1.8c.1 0 .2.1.2.1.7.3 1.4.5 2.1.4.2 0 .5-.1.7-.2.5-.2.5-.7.1-1.1-.2-.2-.5-.3-.8-.5-.4-.2-.8-.4-1.1-.7-1.2-1-.8-2.4-.1-3.1.6-.4.9-.8 1.7-.8 1.2 0 2.5 0 3.1.2h.1c-.1.6-.2 1.1-.4 1.7-.5-.2-1-.4-1.5-.4-.3 0-.6 0-.9.1-.2 0-.3.1-.4.2-.2.2-.2.5 0 .7l.5.4c.4.2.8.4 1.1.6.5.3 1 .8 1.1 1.4.2.9-.1 1.7-.9 2.3-.5.4-.7.6-1.4.6-1.4 0-2.5.1-3.4-.2-.1.2-.1.2-.2.1zm-3.5.3c.1-.7.1-.7.2-1 .5-2.2 1-4.5 1.4-6.7.1-.2.1-.3.3-.3H18c-.2 1.2-.4 2.1-.7 3.2-.3 1.5-.6 3-1 4.5 0 .2-.1.2-.3.2M5 8.2c0-.1.2-.2.3-.2h3.4c.5 0 .9.3 1 .8l.9 4.4c0 .1 0 .1.1.2 0-.1.1-.1.1-.1l2.1-5.1c-.1-.1 0-.2.1-.2h2.1c0 .1 0 .1-.1.2l-3.1 7.3c-.1.2-.1.3-.2.4-.1.1-.3 0-.5 0H9.7c-.1 0-.2 0-.2-.2L7.9 9.5c-.2-.2-.5-.5-.9-.6-.6-.3-1.7-.5-1.9-.5L5 8.2z" fill="#142688"></path>
   </svg>
 );
 
@@ -52,14 +74,14 @@ const getAttributeIcon = (name: string) => {
 export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps) {
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
-  const [mounted, setMounted] = useState(false); // 🆕 ჰიდრაციისთვის
+  const [mounted, setMounted] = useState(false);
+  const [isDescOpen, setIsDescOpen] = useState(false);
   const t = useTranslations('Product');
   
   const router = useRouter();
   const addItem = useCartStore((state) => state.addItem);
-  const { toggleItem, isInWishlist } = useWishlistStore(); // 🆕 ვისლისტის სთორი
+  const { toggleItem, isInWishlist } = useWishlistStore();
 
-  // 🆕 ჰიდრაციის ეფექტი
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -157,7 +179,6 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
       }
   };
 
-  // 🆕 ვისლისტის ფუნქცია
   const handleWishlist = () => {
     toggleItem({
       id: product.databaseId,
@@ -171,7 +192,7 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
     });
   };
 
-  const isLiked = mounted ? isInWishlist(product.databaseId) : false; // 🆕 სტატუსი
+  const isLiked = mounted ? isInWishlist(product.databaseId) : false;
 
   const colorMap: Record<string, string> = { 
     'shavi': '#000000', 'შავი': '#000000',
@@ -253,15 +274,17 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
             </div>
 
             <div className="flex items-center gap-2 w-full sm:w-auto">
-                <button 
-                    onClick={handleBuyNow}
-                    disabled={isBuyNowDisabled}
-                    className="flex-1 sm:flex-none bg-black text-white px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-brand-DEFAULT transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed h-12 cursor-pointer"
-                >
-                    <CreditCard className="w-4 h-4" /> {t('buyNow')}
-                </button>
+                {/* ✅ "იყიდე ახლავე" ღილაკი ჩანს მხოლოდ მაშინ, როცა პროდუქტი მარაგშია */}
+                {!isProductOutOfStock && (
+                    <button 
+                        onClick={handleBuyNow}
+                        disabled={isBuyNowDisabled}
+                        className="flex-1 sm:flex-none bg-black text-white px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-brand-DEFAULT transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap h-12 cursor-pointer"
+                    >
+                        <CreditCard className="w-4 h-4" /> {t('buyNow')}
+                    </button>
+                )}
                 
-                {/* 🆕 განახლებული ვისლისტის ღილაკი */}
                 <button 
                   onClick={handleWishlist}
                   className={`h-12 w-12 flex items-center justify-center border rounded-xl transition shadow-sm group active:scale-90 cursor-pointer ${
@@ -335,20 +358,22 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
             </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 md:gap-3 mb-8">
-            <div className="border border-brand-light bg-brand-light/30 rounded-2xl p-2 md:p-3 flex flex-col items-center text-center justify-center transition-all hover:shadow-md hover:border-brand-medium h-full min-h-[110px]">
+        {/* Payment Blocks */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 mb-8">
+            <div className="col-span-2 border border-brand-light bg-brand-light/30 rounded-2xl p-2 md:p-3 flex flex-col items-center text-center justify-center transition-all hover:shadow-md hover:border-brand-medium h-full min-h-[110px]">
                 <span className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-2">{t('Payment.onlineTitle')}</span>
-                <div className="flex items-center justify-center gap-2 mb-2 scale-90">
+                <div className="flex items-center justify-center gap-4 mb-2">
                     <LogoTBC />
-                    <span className="text-gray-300">|</span>
                     <LogoBOG />
+                    <LogoVisa />
+                    <LogoMastercard />
                 </div>
                 <div className="text-[8px] md:text-[9px] text-brand-DEFAULT font-bold bg-white px-2 py-0.5 rounded-full shadow-sm whitespace-nowrap">
                     {t('Payment.onlineTime')}
                 </div>
             </div>
 
-            <div className="border border-gray-100 bg-gray-50 rounded-2xl p-2 md:p-3 flex flex-col items-center text-center justify-center transition-all hover:shadow-md hover:border-gray-200 h-full min-h-[110px]">
+            <div className="col-span-1 border border-gray-100 bg-gray-50 rounded-2xl p-2 md:p-3 flex flex-col items-center text-center justify-center transition-all hover:shadow-md hover:border-gray-200 h-full min-h-[110px]">
                 <span className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-2">გადარიცხვა</span>
                 <div className="mb-2 text-gray-600">
                     <Landmark className="w-5 h-5 md:w-6 md:h-6" />
@@ -358,13 +383,13 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
                 </div>
             </div>
 
-            <div className="border border-gray-100 bg-gray-50 rounded-2xl p-2 md:p-3 flex flex-col items-center text-center justify-center transition-all hover:shadow-md hover:border-gray-200 h-full min-h-[110px]">
-                <span className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-2">{t('Payment.courierTitle')}</span>
-                <div className="mb-2 text-gray-600">
-                    <Smartphone className="w-5 h-5 md:w-6 md:h-6" />
+            <div className="col-span-1 border border-gray-100 bg-gray-50 rounded-2xl p-2 md:p-3 flex flex-col items-center text-center justify-center transition-all hover:shadow-md hover:border-gray-200 cursor-default h-full min-h-[110px]">
+                <span className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-2">რეალური ფოტოები</span>
+                <div className="mb-2 text-brand-DEFAULT">
+                    <Camera className="w-5 h-5 md:w-6 md:h-6" />
                 </div>
                 <div className="text-[8px] md:text-[9px] text-gray-500 font-medium leading-tight">
-                    {t('Payment.courierDesc')}
+                    პროდუქცია 100%-ით<br/>შეესაბამება ფოტოებს
                 </div>
             </div>
         </div>
@@ -372,37 +397,8 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
         <div className="border-t border-gray-100 my-6"></div>
 
         <div className="space-y-6">
-            <div 
-                className="bg-gray-50 p-5 rounded-2xl text-gray-600 text-sm leading-relaxed border border-gray-100" 
-                dangerouslySetInnerHTML={{ __html: product.shortDescription || 'აღწერა არ არის.' }} 
-            />
-
-            {technicalAttributes.length > 0 && (
-                <div className="bg-white rounded-2xl p-1">
-                    <h4 className="font-bold text-brand-dark mb-4 text-xs uppercase tracking-widest flex items-center gap-2 opacity-60">
-                        <Info className="w-4 h-4" /> დეტალური მახასიათებლები
-                    </h4>
-                    <div className="grid grid-cols-2 gap-3">
-                        {technicalAttributes.map((attr) => {
-                            const label = attr.label || attr.name;
-                            const value = attr.terms?.nodes?.length 
-                                ? attr.terms.nodes.map(t => t.name).join(', ')
-                                : attr.options?.join(', ');
-
-                            return (
-                                <div key={attr.name} className="bg-gray-50 border border-gray-100 p-3 rounded-xl flex items-start gap-3">
-                                    <div className="text-brand-DEFAULT">{getAttributeIcon(attr.name)}</div>
-                                    <div className="flex flex-col min-w-0">
-                                        <span className="text-[10px] text-gray-400 font-bold uppercase truncate" title={label}>{label}</span>
-                                        <span className="text-sm font-bold text-brand-dark truncate">{value}</span>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-            )}
-
+            
+            {/* ✅ 1. მიწოდება და შემოწმება (აწეულია ზემოთ) */}
             <div className="space-y-3">
                 <div className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 bg-white hover:border-brand-light transition-colors">
                     <div className="bg-brand-light text-brand-DEFAULT p-3 rounded-full flex-shrink-0"><Truck className="w-5 h-5" /></div>
@@ -425,6 +421,52 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
                     </div>
                 </div>
             </div>
+
+            {/* ✅ 2. დეტალური მახასიათებლები (შუაშია) */}
+            {technicalAttributes.length > 0 && (
+                <div className="bg-white rounded-2xl p-1">
+                    <h4 className="font-bold text-brand-dark mb-4 text-xs uppercase tracking-widest flex items-center gap-2 opacity-60">
+                        <Layers className="w-4 h-4" /> დეტალური მახასიათებლები
+                    </h4>
+                    <div className="grid grid-cols-2 gap-3">
+                        {technicalAttributes.map((attr) => {
+                            const label = attr.label || attr.name;
+                            const value = attr.terms?.nodes?.length 
+                                ? attr.terms.nodes.map(t => t.name).join(', ')
+                                : attr.options?.join(', ');
+
+                            return (
+                                <div key={attr.name} className="bg-gray-50 border border-gray-100 p-3 rounded-xl flex items-start gap-3">
+                                    <div className="text-brand-DEFAULT">{getAttributeIcon(attr.name)}</div>
+                                    <div className="flex flex-col min-w-0">
+                                        <span className="text-[10px] text-gray-400 font-bold uppercase truncate" title={label}>{label}</span>
+                                        <span className="text-sm font-bold text-brand-dark truncate">{value}</span>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
+            {/* ✅ 3. პროდუქტის აღწერის აკორდეონი (ჩამოტანილია ბოლოში) */}
+            <div className="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden">
+                <button 
+                    onClick={() => setIsDescOpen(!isDescOpen)}
+                    className="w-full p-5 flex items-center justify-between font-bold text-brand-dark text-sm uppercase tracking-widest hover:bg-gray-100/50 transition-colors"
+                >
+                    <span className="flex items-center gap-2"><Info className="w-4 h-4 opacity-60" /> პროდუქტის აღწერა</span>
+                    {isDescOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+                
+                {isDescOpen && (
+                    <div 
+                        className="px-5 pb-5 text-gray-600 text-sm leading-relaxed animate-slide-down" 
+                        dangerouslySetInnerHTML={{ __html: product.shortDescription || 'აღწერა არ არის.' }} 
+                    />
+                )}
+            </div>
+
         </div>
       </div>
     </div>
