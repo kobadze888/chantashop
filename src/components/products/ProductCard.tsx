@@ -312,7 +312,7 @@ export default function ProductCard(props: ProductCardProps) {
                >
                  <CreditCard className="w-4 h-4 flex-shrink-0" />
                  <span className="text-[11px] font-bold uppercase truncate min-w-0">
-                   {t('buyNow')}
+                   {t('buy')}
                  </span>
                </button>
              </>
