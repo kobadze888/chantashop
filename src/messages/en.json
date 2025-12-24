@@ -11,7 +11,11 @@
     "showResults": "Show Results",
     "clearFilters": "Clear Filters",
     "viewAll": "View All",
-    "currency": "GEL"
+    "currency": "GEL",
+    "error": "Error",
+    "success": "Success",
+    "retry": "Retry",
+    "close": "Close"
   },
   "Header": {
     "promo": "Free shipping on orders over 200₾",
@@ -24,7 +28,11 @@
     "shippingTerms": "Shipping Terms",
     "returnPolicy": "Return Policy",
     "followUs": "Follow Us",
-    "rights": "All rights reserved."
+    "rights": "All rights reserved.",
+    "aboutUs": "About Us",
+    "customerService": "Customer Service",
+    "quickLinks": "Quick Links",
+    "contactInfo": "Contact Information"
   },
   "Home": {
     "Hero": {
@@ -50,7 +58,7 @@
     }
   },
   "Catalog": {
-    "title": "Catalog",
+    "title": "Full Catalog",
     "productsCount": "{count} products",
     "notFound": "No products found.",
     "filters": {
@@ -78,6 +86,16 @@
     "addToCart": "Add to Cart",
     "color": "Color",
     "colors": "Colors",
+    "sku": "SKU",
+    "category": "Category",
+    "tags": "Tags",
+    "share": "Share",
+    "relatedProducts": "Related Products",
+    "description": "Description",
+    "additionalInfo": "Additional Information",
+    "addToWishlist": "Add to Wishlist",
+    "removeFromWishlist": "Remove from Wishlist",
+    "quickView": "Quick View",
     "Payment": {
       "onlineTitle": "Online Payment",
       "onlineDesc": "Any Georgian Bank Card",
@@ -97,7 +115,7 @@
   "Cart": {
     "title": "Shopping Cart",
     "empty": "Your cart is empty",
-    "emptyDesc": "Looks like you haven't made your choice yet.",
+    "emptyDesc": "Looks like you haven't made your choice yet. Explore our collection.",
     "viewCollection": "View Collection",
     "freeShippingAdd": "Add {amount} for free shipping",
     "freeShippingDone": "Congratulations! Free shipping unlocked",
@@ -110,8 +128,13 @@
     "secure": "Secure Transaction",
     "item": "item",
     "items": "items",
-    "title": "Shopping Cart",
-    "empty": "Your cart is empty"
+    "continueShopping": "Continue Shopping",
+    "remove": "Remove",
+    "image": "Image",
+    "product": "Product",
+    "price": "Price",
+    "quantity": "Quantity",
+    "clearCart": "Clear Cart"
   },
   "Checkout": {
     "title": "Checkout",
@@ -124,7 +147,7 @@
     "addressTitle": "Shipping Address",
     "city": "City",
     "address": "Address",
-    "apt": "Apt (Optional)",
+    "apt": "Apt/Entrance (Optional)",
     "paymentMethod": "Payment Method",
     "bacs": "Bank Transfer",
     "cod": "Cash on Delivery",
@@ -137,7 +160,16 @@
     "cityPlaceholder": "Select or type...",
     "errorCity": "Please select a city",
     "errorGeneric": "Failed",
-    "total": "Total"
+    "total": "Total",
+    "details": "Billing Details",
+    "personalInfo": "Personal Information",
+    "region": "Region",
+    "zipCode": "Zip Code",
+    "orderNotes": "Order Notes",
+    "orderSummary": "Order Summary",
+    "successTitle": "Thank you for your order!",
+    "successMessage": "Your order has been received and is being processed.",
+    "backToHome": "Back to Home"
   },
   "Success": {
     "title": "Thank you for your order!",
@@ -170,21 +202,14 @@
     "notFoundDesc": "Please check your order number and email.",
     "back": "Go Back"
   },
-  
   "Navigation": {
     "home": "Home",
     "shop": "Catalog",
-    "about": "About",
+    "about": "About Us",
     "contact": "Contact",
     "trackOrder": "Track Order",
     "wishlist": "Wishlist"
   },
-  "Header": {
-    "promo": "Free delivery on orders over 200 GEL",
-    "selectLanguage": "Select Language"
-  },
-
-
   "Wishlist": {
     "title": "Wishlist",
     "empty": "Your wishlist is empty",
