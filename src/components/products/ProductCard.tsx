@@ -1,15 +1,17 @@
 'use client';
 
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Link, useRouter } from '@/navigation';
 import { Eye, Heart, ShoppingBag, XCircle, CreditCard, Maximize } from 'lucide-react';
+import { Link, useRouter } from '@/navigation';
 import { useCartStore } from '@/store/cartStore';
 import { useWishlistStore } from '@/store/wishlistStore'; 
 import { useTranslations } from 'next-intl';
 import { formatPrice } from '@/lib/utils';
-import { useState, useEffect } from 'react';
 
-// ფერების კოდები
+/**
+ * ფერების კოდების რუკა - გამოიყენება პროდუქტის ფერების სვოტჩების დასახატად
+ */
 const colorMap: Record<string, string> = {
   'shavi': '#000000', 'tetri': '#FFFFFF', 'lurji': '#2563EB', 'muqi_lurji': '#1E3A8A',
   'cisferi': '#60A5FA', 'beji': '#F5F5DC', 'yavisferi': '#8B4513', 'vardisferi': '#DB2777',
@@ -40,11 +42,17 @@ interface ProductCardProps {
   priority?: boolean;
 }
 
+/**
+ * ამოწმებს სურათის ლინკის ვალიდურობას
+ */
 function isValidImageUrl(url: string | undefined | null): boolean {
   if (!url || url.includes('placeholder')) return false;
   return url.startsWith('http') && url.length > 10;
 }
 
+/**
+ * ითვლის ფასდაკლების პროცენტს
+ */
 function calculateDiscount(regular: string, sale: string): number | null {
   if (!regular || !sale) return null;
   const reg = parseFloat(regular.replace(/[^0-9.]/g, ''));
@@ -58,8 +66,7 @@ export default function ProductCard(props: ProductCardProps) {
   const {
     id, name, price, salePrice, regularPrice, image, secondImage,
     slug, attributes, stockQuantity, stockStatus, stockStatusManual, className,
-    index = 0, onQuickView, locale, shortDescription, description, productCategories,
-    priority = false 
+    onQuickView, productCategories, priority = false
   } = props;
 
   const addItem = useCartStore((state) => state.addItem);
@@ -69,6 +76,7 @@ export default function ProductCard(props: ProductCardProps) {
   const router = useRouter();
   const t = useTranslations('Product');
 
+  // სურათების მდგომარეობა
   const [imgSrc, setImgSrc] = useState(isValidImageUrl(image) ? image : '/placeholder.jpg');
   const [hoverImgSrc, setHoverImgSrc] = useState(isValidImageUrl(secondImage) ? secondImage : null);
 
@@ -79,7 +87,7 @@ export default function ProductCard(props: ProductCardProps) {
   const isLiked = mounted ? isInWishlist(id) : false;
   const isOutOfStock = stockStatusManual === 'outofstock' || stockStatus === 'OUT_OF_STOCK' || stockQuantity === 0;
 
-  // ფასების ლოგიკა
+  // ფასების ფორმატირება და ფასდაკლების ლოგიკა
   const rawRegular = regularPrice ? parseFloat(regularPrice.replace(/[^0-9.]/g, '')) : 0;
   const rawSale = salePrice ? parseFloat(salePrice.replace(/[^0-9.]/g, '')) : 0;
   const hasDiscount = salePrice && regularPrice && rawSale < rawRegular;
@@ -88,22 +96,58 @@ export default function ProductCard(props: ProductCardProps) {
   const displayOldPrice = hasDiscount ? formatPrice(regularPrice) : null;
   const discountPercent = hasDiscount ? calculateDiscount(regularPrice!, salePrice!) : null;
 
-  // კატეგორიის წამოღება
   const categoryName = productCategories?.nodes?.[0]?.name;
 
+  // ვარიაციების (მაგ: ფერების) შემოწმება
+  const colorAttribute = attributes?.nodes?.find((attr: any) => 
+    attr.name === 'pa_color' || attr.name === 'color' || attr.label === 'ფერი'
+  );
+  const colorOptions = colorAttribute?.options || [];
+  const hasVariations = colorOptions.length > 0;
+
+  /**
+   * კალათაში დამატება ან ვარიაციების არჩევაზე გადასვლა
+   */
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (isOutOfStock) return;
+
+    if (hasVariations) {
+      router.push({ pathname: '/product/[slug]', params: { slug } });
+      return;
+    }
+
     addItem({ id, name, price: salePrice || price, image: imgSrc, slug, stockQuantity });
   };
 
+  /**
+   * სწრაფი ყიდვა ან ვარიაციების არჩევაზე გადასვლა
+   */
   const handleBuyNow = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (isOutOfStock) return;
+
+    if (hasVariations) {
+      router.push({ pathname: '/product/[slug]', params: { slug } });
+      return;
+    }
+
     addItem({ id, name, price: salePrice || price, image: imgSrc, slug, stockQuantity });
     router.push('/checkout');
+  };
+
+  /**
+   * Wishlist-ში დამატება/ამოღება
+   */
+  const handleWishlist = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleItem({ 
+      id, name, price, salePrice, regularPrice, image, slug, 
+      attributes, stockQuantity, stockStatus, productCategories
+    });
   };
 
   const handleFullView = (e: React.MouseEvent) => {
@@ -111,20 +155,6 @@ export default function ProductCard(props: ProductCardProps) {
     e.stopPropagation();
     router.push({ pathname: '/product/[slug]', params: { slug } });
   };
-
-  const handleWishlist = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    toggleItem({ 
-      id, name, price, salePrice, regularPrice, image, slug, 
-      attributes, stockQuantity, stockStatus, shortDescription, description, productCategories
-    });
-  };
-
-  const colorAttribute = attributes?.nodes?.find((attr: any) => 
-    attr.name === 'pa_color' || attr.name === 'color' || attr.label === 'ფერი'
-  );
-  const colorOptions = colorAttribute?.options || [];
 
   return (
     <div 
@@ -135,18 +165,17 @@ export default function ProductCard(props: ProductCardProps) {
       {/* 1. სურათის სექცია */}
       <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-gray-50 mb-3 border border-gray-100 cursor-pointer">
         
-        {/* Badges - წითელი ფონი */}
-        <div className="absolute top-2.5 left-2.5 z-20 flex flex-col gap-1.5 pointer-events-none">
-           {!isOutOfStock && hasDiscount && discountPercent && (
+        {/* ფასდაკლების ბეიჯი - მკვეთრი წითელი/ვარდისფერი */}
+        {!isOutOfStock && hasDiscount && discountPercent && (
+          <div className="absolute top-2.5 left-2.5 z-20 pointer-events-none">
             <span className="bg-rose-600 text-white text-[10px] font-bold px-2.5 py-1 rounded shadow-sm tracking-wide">
               -{discountPercent}%
             </span>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* მარჯვენა მხარეს ღილაკები (Wishlist + QuickView) */}
+        {/* Wishlist და QuickView აიკონები - მარჯვენა მხარეს */}
         <div className="absolute top-2.5 right-2.5 z-30 flex flex-col gap-1.5">
-            {/* Wishlist Button */}
             <button
               onClick={handleWishlist}
               className={`p-2 rounded-full transition-all duration-200 shadow-sm border active:scale-95 cursor-pointer ${
@@ -159,7 +188,6 @@ export default function ProductCard(props: ProductCardProps) {
               <Heart className={`w-4.5 h-4.5 ${isLiked ? 'fill-current' : ''}`} strokeWidth={2} />
             </button>
 
-            {/* Quick View */}
             <button 
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onQuickView?.(e); }}
                 className="hidden md:flex p-2 rounded-full bg-white/90 text-gray-600 border border-transparent hover:text-brand-DEFAULT hover:bg-white hover:border-brand-DEFAULT/20 shadow-sm transition-all duration-300 transform translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 backdrop-blur-sm active:scale-95 cursor-pointer"
@@ -169,16 +197,16 @@ export default function ProductCard(props: ProductCardProps) {
             </button>
         </div>
 
-        {/* კატეგორია - სურათის მარცხენა ქვედა კუთხეში */}
+        {/* კატეგორიის ბეიჯი - სურათის ქვედა მარცხენა კუთხეში */}
         {categoryName && (
            <div className="absolute bottom-2.5 left-2.5 z-20 pointer-events-none">
-             <span className="bg-white/90 backdrop-blur-[4px] text-gray-900 text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg shadow-sm border border-gray-100/50">
+             <span className="bg-white/90 backdrop-blur-[4px] text-gray-900 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg shadow-sm border border-gray-100/50">
                {categoryName}
              </span>
            </div>
         )}
 
-        {/* Out of stock Overlay */}
+        {/* მარაგში არ არის - Overlay */}
         {isOutOfStock && (
           <div className="absolute inset-0 z-20 bg-white/60 backdrop-blur-[2px] flex items-center justify-center">
              <div className="bg-black/90 text-white px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 shadow-xl">
@@ -188,7 +216,7 @@ export default function ProductCard(props: ProductCardProps) {
           </div>
         )}
 
-        {/* სურათები - Fade Effect Only */}
+        {/* სურათები */}
         {hoverImgSrc && !isOutOfStock && (
           <Image
             src={hoverImgSrc}
@@ -212,7 +240,7 @@ export default function ProductCard(props: ProductCardProps) {
       </div>
 
       {/* 2. ინფორმაციის სექცია */}
-      <div className="flex flex-col flex-1 gap-1.5">
+      <div className="flex flex-col flex-1 gap-1.5 min-w-0">
         
         {/* სათაური */}
         <Link 
@@ -225,22 +253,21 @@ export default function ProductCard(props: ProductCardProps) {
         </Link>
 
         {/* ფასები და ფერები */}
-        <div className="flex justify-between items-end mt-auto mb-3">
-            {/* ფასები */}
-            <div className="flex flex-col gap-0.5 leading-none">
-                 <span className={`text-[19px] font-bold tracking-tight ${hasDiscount ? 'text-brand-DEFAULT' : 'text-gray-900'}`}>
+        <div className="flex justify-between items-end mt-auto mb-3 gap-2">
+            <div className="flex flex-col gap-0.5 leading-none min-w-0">
+                 <span className={`text-[19px] font-bold tracking-tight truncate ${hasDiscount ? 'text-brand-DEFAULT' : 'text-gray-900'}`}>
                    {displayPrice}
                  </span>
                  {hasDiscount && displayOldPrice && (
-                   <span className="text-xs text-gray-400 line-through decoration-gray-300">
+                   <span className="text-xs text-gray-400 line-through decoration-gray-300 truncate">
                      {displayOldPrice}
                    </span>
                  )}
             </div>
 
-            {/* ფერები (თუ არის) */}
+            {/* ფერების სვოტჩები */}
             {colorOptions.length > 0 && !isOutOfStock && (
-                <div className="flex -space-x-1.5 pb-1">
+                <div className="flex -space-x-1.5 pb-1 flex-shrink-0">
                   {colorOptions.slice(0, 4).map((colorSlug: string, idx: number) => (
                     <div
                       key={idx}
@@ -257,34 +284,34 @@ export default function ProductCard(props: ProductCardProps) {
             )}
         </div>
 
-        {/* 3. ღილაკები - თარგმნილი წარწერებით */}
-        <div className="flex gap-2 h-11">
+        {/* 3. ღილაკები - ადაპტირებული მობილურზე და გრძელ ტექსტებზე */}
+        <div className="flex gap-2 h-11 w-full min-w-0">
            {isOutOfStock ? (
-              <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400 text-center rounded-xl text-[10px] font-bold uppercase cursor-not-allowed tracking-wider border border-gray-100">
+              <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400 text-center rounded-xl text-[10px] font-bold uppercase cursor-not-allowed tracking-wider border border-gray-100 px-1 truncate">
                 {t('outOfStock')}
               </div>
            ) : (
              <>
-               {/* კალათა - მხოლოდ აიკონი მობილურზე, ტექსტით დესკტოპზე */}
+               {/* კალათა - მობილურზე მხოლოდ აიკონი */}
                <button
                  onClick={handleAddToCart}
-                 className="group/btn flex items-center justify-center w-12 md:w-auto md:flex-1 bg-white text-gray-900 border border-gray-200 rounded-xl hover:border-black hover:bg-gray-50 transition-all active:scale-95 shadow-sm cursor-pointer px-2"
-                 title={t('addToCart')}
+                 className="group/btn flex items-center justify-center w-12 md:w-auto md:flex-1 bg-white text-gray-900 border border-gray-200 rounded-xl hover:border-black hover:bg-gray-50 transition-all active:scale-95 shadow-sm cursor-pointer px-1.5 overflow-hidden"
+                 title={hasVariations ? t('selectOptions') : t('addToCart')}
                >
-                 <ShoppingBag className="w-5 h-5 md:w-4 md:h-4 md:mr-1.5" />
-                 <span className="hidden md:block text-[11px] font-bold uppercase truncate">
-                    {t('addToCart')}
+                 <ShoppingBag className="w-5 h-5 md:w-4 md:h-4 flex-shrink-0 md:mr-1.5" />
+                 <span className="hidden md:block text-[11px] font-bold uppercase truncate min-w-0">
+                    {hasVariations ? t('selectOptions') : t('addToCart')}
                  </span>
                </button>
 
-               {/* ყიდვა - ტექსტით ყველგან, ვარდისფერი */}
+               {/* ყიდვა - ვარდისფერი, ტექსტით ყველგან */}
                <button
                  onClick={handleBuyNow}
-                 className="flex-1 flex items-center justify-center bg-brand-DEFAULT text-white rounded-xl hover:bg-brand-dark transition-all active:scale-95 shadow-sm hover:shadow-brand-DEFAULT/20 cursor-pointer px-2 gap-1.5"
+                 className="flex-1 flex items-center justify-center bg-brand-DEFAULT text-white rounded-xl hover:bg-brand-dark transition-all active:scale-95 shadow-sm hover:shadow-brand-DEFAULT/20 cursor-pointer px-2 overflow-hidden gap-1.5"
                  title={t('buyNow')}
                >
-                 <CreditCard className="w-4 h-4" />
-                 <span className="text-[11px] font-bold uppercase truncate">
+                 <CreditCard className="w-4 h-4 flex-shrink-0" />
+                 <span className="text-[11px] font-bold uppercase truncate min-w-0">
                    {t('buyNow')}
                  </span>
                </button>
