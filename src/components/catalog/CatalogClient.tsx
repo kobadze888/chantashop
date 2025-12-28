@@ -27,6 +27,27 @@ const PriceFilter = ({
 }: { 
     minPrice: number, maxPrice: number, setMinPrice: (v: number) => void, setMaxPrice: (v: number) => void, applyFilter: () => void, maxLimit: number 
 }) => {
+    // Helper to handle input changes smoothly
+    const handleMinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value;
+        if (val === '') {
+            setMinPrice(0);
+        } else {
+            const num = parseInt(val, 10);
+            if (!isNaN(num)) setMinPrice(num);
+        }
+    };
+
+    const handleMaxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value;
+        if (val === '') {
+            setMaxPrice(maxLimit);
+        } else {
+            const num = parseInt(val, 10);
+            if (!isNaN(num)) setMaxPrice(num);
+        }
+    };
+
     return (
         <div className="px-1 animate-fade-in">
             <div className="flex items-center gap-2 mb-4">
@@ -34,11 +55,14 @@ const PriceFilter = ({
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">₾</span>
                     <input 
                       type="number" 
+                      // ✅ Fix: text-base prevents zoom on mobile, value binding improved
                       value={minPrice === 0 ? '' : minPrice} 
-                      onChange={(e) => setMinPrice(Number(e.target.value))} 
-                      className="w-full border border-gray-200 bg-gray-50 rounded-lg pl-6 pr-2 py-2 text-sm font-bold text-brand-dark focus:border-brand-DEFAULT focus:ring-1 focus:ring-brand-DEFAULT outline-none transition cursor-text" 
+                      onChange={handleMinChange}
+                      onFocus={(e) => e.target.select()} // Auto-select on focus for easy typing
+                      className="w-full border border-gray-200 bg-gray-50 rounded-lg pl-6 pr-2 py-2 text-base md:text-sm font-bold text-brand-dark focus:border-brand-DEFAULT focus:ring-1 focus:ring-brand-DEFAULT outline-none transition cursor-text" 
                       placeholder="0"
                       min="0"
+                      inputMode="numeric"
                     />
                 </div>
                 <span className="text-gray-400 font-bold">-</span>
@@ -47,10 +71,12 @@ const PriceFilter = ({
                     <input 
                       type="number" 
                       value={maxPrice === maxLimit ? '' : maxPrice} 
-                      onChange={(e) => setMaxPrice(Number(e.target.value))} 
-                      className="w-full border border-gray-200 bg-gray-50 rounded-lg pl-6 pr-2 py-2 text-sm font-bold text-brand-dark focus:border-brand-DEFAULT focus:ring-1 focus:ring-brand-DEFAULT outline-none transition cursor-text" 
+                      onChange={handleMaxChange}
+                      onFocus={(e) => e.target.select()}
+                      className="w-full border border-gray-200 bg-gray-50 rounded-lg pl-6 pr-2 py-2 text-base md:text-sm font-bold text-brand-dark focus:border-brand-DEFAULT focus:ring-1 focus:ring-brand-DEFAULT outline-none transition cursor-text" 
                       placeholder={String(maxLimit)}
                       max={maxLimit}
+                      inputMode="numeric"
                     />
                 </div>
             </div>
@@ -123,7 +149,7 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
   const tCommon = useTranslations('Common');
   
   const sortDropdownRef = useRef<HTMLDivElement>(null); 
-  const productsTopRef = useRef<HTMLDivElement>(null); // Ref for scrolling to top
+  const productsTopRef = useRef<HTMLDivElement>(null);
 
   const urlMinPrice = Number(searchParams.get('minPrice')) || 0;
   const urlMaxPrice = Number(searchParams.get('maxPrice')) || maxPriceLimit;
@@ -176,8 +202,16 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
   };
 
   const scrollToProducts = () => {
-    if (window.innerWidth >= 768) { // Only on desktop
-         window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (productsTopRef.current) {
+        // Desktop: scroll to products, Mobile: only if not in modal (modal handles itself)
+        const offset = 100; // Offset for header
+        const elementPosition = productsTopRef.current.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - offset;
+        
+        window.scrollTo({
+             top: offsetPosition,
+             behavior: "smooth"
+        });
     }
   };
 
@@ -278,15 +312,15 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
       <div className={`fixed inset-0 bg-black/60 z-[90] transition-opacity duration-300 md:hidden ${mobileFiltersOpen ? 'opacity-100 visible' : 'invisible'}`} onClick={() => setMobileFiltersOpen(false)}>
         <div className={`absolute right-0 top-0 bottom-0 w-[85%] max-w-[320px] bg-white shadow-2xl transform transition-transform duration-300 flex flex-col h-full ${mobileFiltersOpen ? 'translate-x-0' : 'translate-x-full'}`} onClick={(e) => e.stopPropagation()}>
             
-            {/* 1. Mobile Filter Header */}
+            {/* Mobile Filter Header */}
             <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-white">
                 <h3 className="font-serif font-bold text-xl text-brand-dark">{t('filters.title')}</h3>
                 <button onClick={() => setMobileFiltersOpen(false)} className="p-2 -mr-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full cursor-pointer transition"><X className="w-6 h-6" /></button>
             </div>
             
-            {/* 2. Scrollable Content */}
+            {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto p-5 space-y-8">
-                {/* Price Filter (Top) */}
+                {/* Price Filter */}
                 <div>
                   <h4 className="font-bold mb-3 uppercase text-[11px] tracking-widest text-brand-dark">ფასით გაფილტვრა</h4>
                   <PriceFilter minPrice={tempMinPrice} maxPrice={tempMaxPrice} setMinPrice={setTempMinPrice} setMaxPrice={setTempMaxPrice} applyFilter={applyPriceFilter} maxLimit={maxPriceLimit} />
@@ -351,7 +385,7 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
                 ))}
             </div>
 
-            {/* 3. Sticky Footer Actions */}
+            {/* Sticky Footer Actions */}
             <div className="p-4 border-t border-gray-100 bg-white space-y-3 z-10">
                 <button onClick={() => setMobileFiltersOpen(false)} className="w-full bg-brand-dark text-white py-3.5 rounded-xl font-bold cursor-pointer shadow-lg active:scale-95 transition text-sm">{tCommon('showResults')}</button>
                 <button onClick={handleClearFilters} disabled={!filtersActive} className={`w-full py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 text-sm cursor-pointer ${filtersActive ? 'bg-gray-100 text-red-500 hover:bg-red-50' : 'bg-gray-50 text-gray-300 cursor-not-allowed'}`}><RefreshCcw className="w-3.5 h-3.5" /> {tCommon('clearFilters')}</button>
@@ -361,7 +395,6 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
 
       {/* --- PAGE HEADER (Compact Mobile) --- */}
       <div className="container mx-auto px-4 mb-6 md:mb-8 mt-4 md:mt-0" ref={productsTopRef}>
-          {/* Mobile Layout: Row with Title left, Filter Button right */}
           <div className="flex md:hidden items-center justify-between gap-4 mb-6">
               <div>
                   <h1 className="text-2xl font-serif font-black text-brand-dark">{t('title')}</h1>
@@ -375,7 +408,6 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
               </button>
           </div>
 
-          {/* Desktop Layout (Standard) */}
           <div className="hidden md:flex flex-col md:flex-row justify-between items-end gap-6 border-b border-gray-100 pb-8">
               <div>
                   <span className="text-brand-DEFAULT text-xs font-bold tracking-widest uppercase mb-2 block">2025</span>
@@ -409,7 +441,7 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
                 <button onClick={handleClearFilters} disabled={!filtersActive} className={`w-full py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 cursor-pointer ${filtersActive ? 'bg-brand-DEFAULT text-white hover:bg-brand-dark' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}><RefreshCcw className="w-4 h-4" /> {tCommon('clearFilters')}</button>
             </div>
             <aside className="space-y-10 overflow-y-auto pr-4 pt-6 pb-24 h-full hide-scrollbar"> 
-                {/* 1. Price (Top) */}
+                {/* Price */}
                 <div>
                     <button className="flex justify-between items-center w-full font-bold uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2 mb-6 cursor-pointer" onClick={() => setIsPriceOpen(!isPriceOpen)}>
                         ფასით გაფილტვრა
@@ -418,7 +450,7 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
                     {isPriceOpen && <PriceFilter minPrice={tempMinPrice} maxPrice={tempMaxPrice} setMinPrice={setTempMinPrice} setMaxPrice={setTempMaxPrice} applyFilter={applyPriceFilter} maxLimit={maxPriceLimit} />}
                 </div>
 
-                {/* 2. Categories */}
+                {/* Categories */}
                 <div>
                     <button className="flex justify-between items-center w-full font-bold uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2 mb-6 cursor-pointer" onClick={() => setIsCategoriesOpen(!isCategoriesOpen)}>
                         {t('filters.categories')}
@@ -449,7 +481,7 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
                     )}
                 </div>
 
-                {/* 3. Attributes */}
+                {/* Attributes */}
                 {attributes?.map((attr) => (
                     <div key={attr.taxonomyName}>
                         <button className="flex justify-between items-center w-full font-bold uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2 mb-6 cursor-pointer" onClick={() => toggleSection(attr.taxonomyName)}>
@@ -459,7 +491,7 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
                         {openSections[attr.taxonomyName] && (
                             <div className="animate-fade-in mb-8">
                                 {isColorAttribute(attr.taxonomyName) ? (
-                                    <div className="flex flex-wrap gap-2.5">
+                                    <div className="flex flex-wrap gap-2">
                                         <button onClick={() => handleAttrChange(attr.taxonomyName, 'all')} className={`px-3 py-1 text-xs border rounded-full transition cursor-pointer font-bold ${getActiveAttr(attr.taxonomyName) === 'all' ? 'bg-brand-dark text-white border-brand-dark' : 'bg-white hover:border-brand-dark text-gray-600'}`}>{t('filters.all')}</button>
                                         {attr.terms.map((term) => (
                                             <button key={term.id} onClick={() => handleAttrChange(attr.taxonomyName, term.slug)} className={`w-8 h-8 rounded-full border-2 transition transform hover:scale-110 cursor-pointer relative ${getActiveAttr(attr.taxonomyName) === term.slug ? 'border-brand-DEFAULT ring-2 ring-brand-light ring-offset-2' : 'border-gray-100'}`} style={{ backgroundColor: colorMap[term.slug.toLowerCase()] || '#e5e7eb' }} title={term.name}>
@@ -492,7 +524,7 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
 
         {/* --- MAIN CONTENT --- */}
         <div className="flex-1">
-            {/* Active Filters Row (Desktop only or visible on top) */}
+            {/* Active Filters Row */}
             {activeBadges.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2 mb-6 animate-fade-in">
                     {activeBadges.map((badge) => (
