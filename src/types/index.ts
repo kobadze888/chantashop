@@ -96,4 +96,5 @@ export interface CartItem {
   slug: string;
   selectedOptions?: Record<string, string>;
   stockQuantity?: number;
+  sku?: string; // ✅ დაემატა SKU გლობალური მარაგის კონტროლისთვის
 }

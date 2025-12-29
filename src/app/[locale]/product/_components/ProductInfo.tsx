@@ -140,7 +140,15 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
   const displayImage = selectedVariation?.image?.sourceUrl || product.image?.sourceUrl || '/placeholder.jpg';
   const displayStock = selectedVariation?.stockStatus || product.stockStatus;
   const displayStockQuantity = selectedVariation?.stockQuantity || product.stockQuantity;
-  const displaySku = selectedVariation?.sku || product.sku;
+  
+  // ✅ განახლებული ლოგიკა: 
+  // ვიღებთ ვარიაციის SKU-ს. თუ ის არ არსებობს (null ან ""), 
+  // მაშინ ვაბრუნებთ undefined-ს და არა მშობლის SKU-ს.
+  // ეს თავიდან აგვაცილებს სხვადასხვა ვარიაციების (წითელი/შავი) აღრევას, 
+  // რადგან მათ აღარ ექნებათ საერთო იდენტიფიკატორი (Parent SKU).
+  const displaySku = selectedVariation 
+    ? (selectedVariation.sku || undefined) 
+    : product.sku;
 
   useMemo(() => {
     if (displayStockQuantity !== undefined && quantity > displayStockQuantity) {
@@ -162,6 +170,7 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
     slug: product.slug,
     stockQuantity: displayStockQuantity,
     selectedOptions: finalSelectedOptions,
+    sku: displaySku, // ✅ ახალი ლოგიკით გადაცემული SKU
   };
   
   const cartDataForButton = { ...itemBase, quantity };
@@ -274,7 +283,6 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
             </div>
 
             <div className="flex items-center gap-2 w-full sm:w-auto">
-                {/* ✅ "იყიდე ახლავე" ღილაკი ჩანს მხოლოდ მაშინ, როცა პროდუქტი მარაგშია */}
                 {!isProductOutOfStock && (
                     <button 
                         onClick={handleBuyNow}
@@ -358,7 +366,7 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
             </div>
         </div>
 
-        {/* Payment Blocks */}
+        {/* Payment Blocks - იგივე რჩება */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 mb-8">
             <div className="col-span-2 border border-brand-light bg-brand-light/30 rounded-2xl p-2 md:p-3 flex flex-col items-center text-center justify-center transition-all hover:shadow-md hover:border-brand-medium h-full min-h-[110px]">
                 <span className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-2">{t('Payment.onlineTitle')}</span>
@@ -397,8 +405,6 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
         <div className="border-t border-gray-100 my-6"></div>
 
         <div className="space-y-6">
-            
-            {/* ✅ 1. მიწოდება და შემოწმება (აწეულია ზემოთ) */}
             <div className="space-y-3">
                 <div className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 bg-white hover:border-brand-light transition-colors">
                     <div className="bg-brand-light text-brand-DEFAULT p-3 rounded-full flex-shrink-0"><Truck className="w-5 h-5" /></div>
@@ -422,7 +428,6 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
                 </div>
             </div>
 
-            {/* ✅ 2. დეტალური მახასიათებლები (შუაშია) */}
             {technicalAttributes.length > 0 && (
                 <div className="bg-white rounded-2xl p-1">
                     <h4 className="font-bold text-brand-dark mb-4 text-xs uppercase tracking-widest flex items-center gap-2 opacity-60">
@@ -449,7 +454,6 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
                 </div>
             )}
 
-            {/* ✅ 3. პროდუქტის აღწერის აკორდეონი (ჩამოტანილია ბოლოში) */}
             <div className="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden">
                 <button 
                     onClick={() => setIsDescOpen(!isDescOpen)}

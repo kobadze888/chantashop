@@ -25,31 +25,30 @@ export const useCartStore = create<CartStore>()(
         const items = [...state.items];
         const existing = items.find((i) => i.id === item.id);
         const maxStock = (item as CartItem).stockQuantity ?? 999;
-        
-        // თუ მარაგში საერთოდ არ არის
-        if (!existing && maxStock <= 0) {
-            useToastStore.getState().showToast('პროდუქტი მარაგში არ არის', 'error');
+        const itemSku = item.sku; 
+
+        // ✅ გლობალური მარაგის შემოწმება SKU-ს მიხედვით
+        // ახალი ცვლილების შემდეგ, ვარიაციების SKU აღარ იქნება საერთო (მშობლის), თუ ის კონკრეტულად არ არის გაწერილი
+        const currentGlobalQuantity = items.reduce((sum, i) => {
+             if (itemSku && i.sku && i.sku === itemSku) return sum + i.quantity;
+             if (!itemSku && i.id === item.id) return sum + i.quantity;
+             return sum;
+        }, 0);
+
+        if (currentGlobalQuantity >= maxStock) {
+            useToastStore.getState().showToast(`მარაგში მხოლოდ ${maxStock} ცალია`, 'error');
             return state;
         }
 
-        // თუ უკვე არის კალათაში და ვზრდით რაოდენობას
         if (existing) {
-          const newQuantity = existing.quantity + 1;
-          if (newQuantity <= maxStock) { 
-            // წარმატებული დამატება (რაოდენობის ზრდა)
-            useToastStore.getState().showToast(`რაოდენობა გაიზარდა: ${item.name}`, 'success');
-            return {
-              items: items.map((i) => 
-                i.id === item.id ? { ...i, quantity: newQuantity } : i
-              ),
-            };
-          }
-          // მარაგის ლიმიტი
-          useToastStore.getState().showToast(`მარაგში მხოლოდ ${maxStock} ცალია`, 'error');
-          return state;
+          useToastStore.getState().showToast(`რაოდენობა გაიზარდა: ${item.name}`, 'success');
+          return {
+            items: items.map((i) => 
+              i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+            ),
+          };
         }
         
-        // ახალი პროდუქტის დამატება
         useToastStore.getState().showToast(`${item.name} დაემატა კალათაში`, 'success');
         return { 
           items: [...items, { ...item, quantity: 1, stockQuantity: maxStock }] 
@@ -64,14 +63,24 @@ export const useCartStore = create<CartStore>()(
       updateQuantity: (id, action) => set((state) => ({
         items: state.items.map((item) => {
           if (item.id === id) {
-            const newQuantity = action === 'inc' ? item.quantity + 1 : Math.max(1, item.quantity - 1);
+            if (action === 'dec') {
+                return { ...item, quantity: Math.max(1, item.quantity - 1) };
+            }
+
             const maxStock = item.stockQuantity ?? 999;
+            const itemSku = item.sku;
+
+            const currentGlobalQuantity = state.items.reduce((sum, i) => {
+                if (itemSku && i.sku && i.sku === itemSku) return sum + i.quantity;
+                if (!itemSku && i.id === item.id) return sum + i.quantity;
+                return sum;
+            }, 0);
             
-            if (action === 'inc' && newQuantity > maxStock) {
+            if (currentGlobalQuantity >= maxStock) {
                 useToastStore.getState().showToast(`მაქსიმალური რაოდენობა: ${maxStock}`, 'error');
                 return item;
             }
-            return { ...item, quantity: newQuantity };
+            return { ...item, quantity: item.quantity + 1 };
           }
           return item;
         })
@@ -91,6 +100,7 @@ export const useCartStore = create<CartStore>()(
     { 
       name: 'chantashop-cart',
       storage: createJSONStorage(() => localStorage),
+      version: 2, // ✅ ვერსია გაიზარდა, რომ კალათა გასუფთავდეს
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
       }
