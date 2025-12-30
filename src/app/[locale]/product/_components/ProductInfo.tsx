@@ -209,24 +209,28 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
 
   const isLiked = mounted ? isInWishlist(product.databaseId) : false;
 
+// ✅ განახლებული ColorMap ყველა ენისთვის
   const colorMap: Record<string, string> = { 
-    'shavi': '#000000', 'შავი': '#000000',
-    'tetri': '#FFFFFF', 'თეთრი': '#FFFFFF',
-    'lurji': '#2563EB', 'ლურჯი': '#2563EB',
-    'muqi_lurji': '#1E3A8A', 'მუქი ლურჯი': '#1E3A8A',
-    'cisferi': '#60A5FA', 'ცისფერი': '#60A5FA',
-    'beji': '#F5F5DC', 'ბეჟი': '#F5F5DC',
-    'yavisferi': '#8B4513', 'ყავისფერი': '#8B4513',
-    'vardisferi': '#DB2777', 'ვარდისფერი': '#DB2777',
-    'witeli': '#DC2626', 'წითელი': '#DC2626',
-    'mwvane': '#16A34A', 'მწვანე': '#16A34A',
-    'narinjisferi': '#F97316', 'ნარინჯისფერი': '#F97316',
-    'yviteli': '#FACC15', 'ყვითელი': '#FACC15',
-    'rcuxi': '#9CA3AF', 'რუხი': '#9CA3AF',
-    'vercxlisferi': '#C0C0C0', 'oqrosferi': '#FFD700', 'iasamnisferi': '#A855F7', 'kanisferi': '#FFE4C4', 
+    'shavi': '#000000', 'black-en': '#000000', 'chernyj-ru': '#000000', 'შავი': '#000000',
+    'tetri': '#FFFFFF', 'white-en': '#FFFFFF', 'belyj-ru': '#FFFFFF', 'თეთრი': '#FFFFFF',
+    'lurji': '#2563EB', 'blue-en': '#2563EB', 'sinij-ru': '#2563EB', 'ლურჯი': '#2563EB',
+    'witeli': '#DC2626', 'red-en': '#DC2626', 'krasnyj-ru': '#DC2626', 'წითელი': '#DC2626',
+    'beji': '#F5F5DC', 'beige-en': '#F5F5DC', 'bezhevyj-ru': '#F5F5DC', 'bejevi': '#F5F5DC', 'ბეჟი': '#F5F5DC',
+    'yavisferi': '#8B4513', 'brown-en': '#8B4513', 'korichnevyj-ru': '#8B4513', 'ყავისფერი': '#8B4513',
+    'vardisferi': '#DB2777', 'pink-en': '#DB2777', 'rozovyj-ru': '#DB2777', 'ვარდისფერი': '#DB2777',
+    'mwvane': '#16A34A', 'green-en': '#16A34A', 'zelenyj-ru': '#16A34A', 'მწვანე': '#16A34A',
+    'stafilosferi': '#F97316', 'orange-en': '#F97316', 'oranzhevyj-ru': '#F97316', 'ნარინჯისფერი': '#F97316',
+    'yviteli': '#FACC15', 'yellow-en': '#FACC15', 'zheltyj-ru': '#FACC15', 'ყვითელი': '#FACC15',
+    'rcuxi': '#9CA3AF', 'nacrisferi': '#9CA3AF', 'grey-en': '#9CA3AF', 'seryj-ru': '#9CA3AF', 'რუხი': '#9CA3AF',
+    'cisferi': '#60A5FA', 'light-blue-en': '#60A5FA', 'goluboj-ru': '#60A5FA', 'ცისფერი': '#60A5FA',
+    'muqi_lurji': '#1E3A8A', 'dark-blue-en': '#1E3A8A', 'temno-sinij-ru': '#1E3A8A', 'მუქი ლურჯი': '#1E3A8A',
+    'vercxlisferi': '#C0C0C0', 'silver-en': '#C0C0C0', 'serebristyj-ru': '#C0C0C0',
+    'oqrosferi': '#FFD700', 'gold-en': '#FFD700', 'zolotistyj-ru': '#FFD700',
+    'iasamnisferi': '#A855F7', 'purple-en': '#A855F7', 'fioletovyj-ru': '#A855F7',
+    'kanisferi': '#FFE4C4', 'nude-en': '#FFE4C4', 'telesnyj-ru': '#FFE4C4', 
     'vardisferi_(pradas_stili)': '#DB2777', 'ვარდისფერი (პრადა)': '#DB2777'
   };
-
+  
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 animate-fade-in pb-10">
       
