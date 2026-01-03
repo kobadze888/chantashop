@@ -22,17 +22,66 @@ interface CatalogClientProps {
   locale: string;
 }
 
+// ✅ მხოლოდ ფერების თარგმანი/გასწორება (რადგან სლაგები მოდის ბაზიდან)
+const colorTranslations: Record<string, { ka: string; en: string; ru: string }> = {
+    'shavi': { ka: 'შავი', en: 'Black', ru: 'Черный' },
+    'black': { ka: 'შავი', en: 'Black', ru: 'Черный' },
+    'tetri': { ka: 'თეთრი', en: 'White', ru: 'Белый' },
+    'white': { ka: 'თეთრი', en: 'White', ru: 'Белый' },
+    'lurji': { ka: 'ლურჯი', en: 'Blue', ru: 'Синий' },
+    'blue': { ka: 'ლურჯი', en: 'Blue', ru: 'Синий' },
+    'witeli': { ka: 'წითელი', en: 'Red', ru: 'Красный' },
+    'red': { ka: 'წითელი', en: 'Red', ru: 'Красный' },
+    'beji': { ka: 'ბეჟი', en: 'Beige', ru: 'Бежевый' },
+    'beige': { ka: 'ბეჟი', en: 'Beige', ru: 'Бежевый' },
+    'yavisferi': { ka: 'ყავისფერი', en: 'Brown', ru: 'Коричневый' },
+    'brown': { ka: 'ყავისფერი', en: 'Brown', ru: 'Коричневый' },
+    'vardisferi': { ka: 'ვარდისფერი', en: 'Pink', ru: 'Розовый' },
+    'pink': { ka: 'ვარდისფერი', en: 'Pink', ru: 'Розовый' },
+    'mwvane': { ka: 'მწვანე', en: 'Green', ru: 'Зеленый' },
+    'green': { ka: 'მწვანე', en: 'Green', ru: 'Зеленый' },
+    'stafilosferi': { ka: 'ნარინჯისფერი', en: 'Orange', ru: 'Оранжевый' },
+    'orange': { ka: 'ნარინჯისფერი', en: 'Orange', ru: 'Оранжевый' },
+    'yviteli': { ka: 'ყვითელი', en: 'Yellow', ru: 'Желтый' },
+    'yellow': { ka: 'ყვითელი', en: 'Yellow', ru: 'Желтый' },
+    'rcuxi': { ka: 'რუხი', en: 'Grey', ru: 'Серый' },
+    'grey': { ka: 'რუხი', en: 'Grey', ru: 'Серый' },
+    'nacrisferi': { ka: 'ნაცრისფერი', en: 'Grey', ru: 'Серый' },
+    'cisferi': { ka: 'ცისფერი', en: 'Light Blue', ru: 'Голубой' },
+    'light-blue': { ka: 'ცისფერი', en: 'Light Blue', ru: 'Голубой' },
+    'muqi_lurji': { ka: 'მუქი ლურჯი', en: 'Dark Blue', ru: 'Темно-синий' },
+    'dark-blue': { ka: 'მუქი ლურჯი', en: 'Dark Blue', ru: 'Темно-синий' },
+    'vercxlisferi': { ka: 'ვერცხლისფერი', en: 'Silver', ru: 'Серебристый' },
+    'silver': { ka: 'ვერცხლისფერი', en: 'Silver', ru: 'Серебристый' },
+    'oqrosferi': { ka: 'ოქროსფერი', en: 'Gold', ru: 'Золотистый' },
+    'gold': { ka: 'ოქროსფერი', en: 'Gold', ru: 'Золотистый' },
+    'iasamnisferi': { ka: 'იასამნისფერი', en: 'Purple', ru: 'Фиолетовый' },
+    'purple': { ka: 'იასამნისფერი', en: 'Purple', ru: 'Фиолетовый' },
+    'kanisferi': { ka: 'ხორცისფერი', en: 'Nude', ru: 'Телесный' },
+    'nude': { ka: 'ხორცისფერი', en: 'Nude', ru: 'Телесный' },
+    'cream': { ka: 'კრემისფერი', en: 'Cream', ru: 'Кремовый' }
+};
+
+// ✅ დამხმარე ფუნქცია: ფერის "გასუფთავება" და თარგმნა Locale-ის მიხედვით
+const formatColorName = (slug: string, locale: string) => {
+    if (!slug) return '';
+    let cleanSlug = slug.toLowerCase().replace(/-en|-ru|-ge/g, '').replace(/_/g, ' ');
+    const translation = colorTranslations[cleanSlug] || colorTranslations[slug];
+    if (translation) {
+        return translation[locale as keyof typeof translation] || translation.en;
+    }
+    return cleanSlug.charAt(0).toUpperCase() + cleanSlug.slice(1);
+};
+
 const PriceFilter = ({ 
     minPrice, maxPrice, setMinPrice, setMaxPrice, applyFilter, maxLimit 
 }: { 
     minPrice: number, maxPrice: number, setMinPrice: (v: number) => void, setMaxPrice: (v: number) => void, applyFilter: () => void, maxLimit: number 
 }) => {
-    // Helper to handle input changes smoothly
     const handleMinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
-        if (val === '') {
-            setMinPrice(0);
-        } else {
+        if (val === '') setMinPrice(0);
+        else {
             const num = parseInt(val, 10);
             if (!isNaN(num)) setMinPrice(num);
         }
@@ -40,9 +89,8 @@ const PriceFilter = ({
 
     const handleMaxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
-        if (val === '') {
-            setMaxPrice(maxLimit);
-        } else {
+        if (val === '') setMaxPrice(maxLimit);
+        else {
             const num = parseInt(val, 10);
             if (!isNaN(num)) setMaxPrice(num);
         }
@@ -55,10 +103,9 @@ const PriceFilter = ({
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">₾</span>
                     <input 
                       type="number" 
-                      // ✅ Fix: text-base prevents zoom on mobile, value binding improved
                       value={minPrice === 0 ? '' : minPrice} 
                       onChange={handleMinChange}
-                      onFocus={(e) => e.target.select()} // Auto-select on focus for easy typing
+                      onFocus={(e) => e.target.select()}
                       className="w-full border border-gray-200 bg-gray-50 rounded-lg pl-6 pr-2 py-2 text-base md:text-sm font-bold text-brand-dark focus:border-brand-DEFAULT focus:ring-1 focus:ring-brand-DEFAULT outline-none transition cursor-text" 
                       placeholder="0"
                       min="0"
@@ -106,27 +153,28 @@ const PriceFilter = ({
     );
 };
 
-// ✅ განახლებული ColorMap ყველა ენისთვის
-  const colorMap: Record<string, string> = { 
-    'shavi': '#000000', 'black-en': '#000000', 'chernyj-ru': '#000000', 'შავი': '#000000',
-    'tetri': '#FFFFFF', 'white-en': '#FFFFFF', 'belyj-ru': '#FFFFFF', 'თეთრი': '#FFFFFF',
-    'lurji': '#2563EB', 'blue-en': '#2563EB', 'sinij-ru': '#2563EB', 'ლურჯი': '#2563EB',
-    'witeli': '#DC2626', 'red-en': '#DC2626', 'krasnyj-ru': '#DC2626', 'წითელი': '#DC2626',
-    'beji': '#F5F5DC', 'beige-en': '#F5F5DC', 'bezhevyj-ru': '#F5F5DC', 'bejevi': '#F5F5DC', 'ბეჟი': '#F5F5DC',
-    'yavisferi': '#8B4513', 'brown-en': '#8B4513', 'korichnevyj-ru': '#8B4513', 'ყავისფერი': '#8B4513',
-    'vardisferi': '#DB2777', 'pink-en': '#DB2777', 'rozovyj-ru': '#DB2777', 'ვარდისფერი': '#DB2777',
-    'mwvane': '#16A34A', 'green-en': '#16A34A', 'zelenyj-ru': '#16A34A', 'მწვანე': '#16A34A',
-    'stafilosferi': '#F97316', 'orange-en': '#F97316', 'oranzhevyj-ru': '#F97316', 'ნარინჯისფერი': '#F97316',
-    'yviteli': '#FACC15', 'yellow-en': '#FACC15', 'zheltyj-ru': '#FACC15', 'ყვითელი': '#FACC15',
-    'rcuxi': '#9CA3AF', 'nacrisferi': '#9CA3AF', 'grey-en': '#9CA3AF', 'seryj-ru': '#9CA3AF', 'რუხი': '#9CA3AF',
-    'cisferi': '#60A5FA', 'light-blue-en': '#60A5FA', 'goluboj-ru': '#60A5FA', 'ცისფერი': '#60A5FA',
-    'muqi_lurji': '#1E3A8A', 'dark-blue-en': '#1E3A8A', 'temno-sinij-ru': '#1E3A8A', 'მუქი ლურჯი': '#1E3A8A',
-    'vercxlisferi': '#C0C0C0', 'silver-en': '#C0C0C0', 'serebristyj-ru': '#C0C0C0',
-    'oqrosferi': '#FFD700', 'gold-en': '#FFD700', 'zolotistyj-ru': '#FFD700',
-    'iasamnisferi': '#A855F7', 'purple-en': '#A855F7', 'fioletovyj-ru': '#A855F7',
-    'kanisferi': '#FFE4C4', 'nude-en': '#FFE4C4', 'telesnyj-ru': '#FFE4C4', 
+const colorMap: Record<string, string> = { 
+    'shavi': '#000000', 'black-en': '#000000', 'chernyj-ru': '#000000', 'შავი': '#000000', 'black': '#000000',
+    'tetri': '#FFFFFF', 'white-en': '#FFFFFF', 'belyj-ru': '#FFFFFF', 'თეთრი': '#FFFFFF', 'white': '#FFFFFF',
+    'lurji': '#2563EB', 'blue-en': '#2563EB', 'sinij-ru': '#2563EB', 'ლურჯი': '#2563EB', 'blue': '#2563EB',
+    'witeli': '#DC2626', 'red-en': '#DC2626', 'krasnyj-ru': '#DC2626', 'წითელი': '#DC2626', 'red': '#DC2626',
+    'beji': '#F5F5DC', 'beige-en': '#F5F5DC', 'bezhevyj-ru': '#F5F5DC', 'bejevi': '#F5F5DC', 'ბეჟი': '#F5F5DC', 'beige': '#F5F5DC',
+    'cream-en': '#FFFDD0', 'cream': '#FFFDD0',
+    'yavisferi': '#8B4513', 'brown-en': '#8B4513', 'korichnevyj-ru': '#8B4513', 'ყავისფერი': '#8B4513', 'brown': '#8B4513',
+    'vardisferi': '#DB2777', 'pink-en': '#DB2777', 'rozovyj-ru': '#DB2777', 'ვარდისფერი': '#DB2777', 'pink': '#DB2777',
+    'mwvane': '#16A34A', 'green-en': '#16A34A', 'zelenyj-ru': '#16A34A', 'მწვანე': '#16A34A', 'green': '#16A34A',
+    'stafilosferi': '#F97316', 'orange-en': '#F97316', 'oranzhevyj-ru': '#F97316', 'ნარინჯისფერი': '#F97316', 'orange': '#F97316',
+    'yviteli': '#FACC15', 'yellow-en': '#FACC15', 'zheltyj-ru': '#FACC15', 'ყვითელი': '#FACC15', 'yellow': '#FACC15',
+    'rcuxi': '#9CA3AF', 'nacrisferi': '#9CA3AF', 'grey-en': '#9CA3AF', 'seryj-ru': '#9CA3AF', 'რუხი': '#9CA3AF', 'grey': '#9CA3AF',
+    'cisferi': '#60A5FA', 'light-blue-en': '#60A5FA', 'goluboj-ru': '#60A5FA', 'ცისფერი': '#60A5FA', 'light-blue': '#60A5FA',
+    'muqi_lurji': '#1E3A8A', 'dark-blue-en': '#1E3A8A', 'temno-sinij-ru': '#1E3A8A', 'მუქი ლურჯი': '#1E3A8A', 'dark-blue': '#1E3A8A',
+    'vercxlisferi': '#C0C0C0', 'silver-en': '#C0C0C0', 'serebristyj-ru': '#C0C0C0', 'silver': '#C0C0C0',
+    'oqrosferi': '#FFD700', 'gold-en': '#FFD700', 'zolotistyj-ru': '#FFD700', 'gold': '#FFD700',
+    'iasamnisferi': '#A855F7', 'purple-en': '#A855F7', 'fioletovyj-ru': '#A855F7', 'purple': '#A855F7',
+    'kanisferi': '#FFE4C4', 'nude-en': '#FFE4C4', 'telesnyj-ru': '#FFE4C4', 'nude': '#FFE4C4',
     'vardisferi_(pradas_stili)': '#DB2777', 'ვარდისფერი (პრადა)': '#DB2777'
-  };
+};
+
 const parsePrice = (priceString: string | undefined | null): number => {
   if (!priceString) return 0;
   const matches = priceString.match(/(\d+\.?\d*)/g);
@@ -205,8 +253,7 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
 
   const scrollToProducts = () => {
     if (productsTopRef.current) {
-        // Desktop: scroll to products, Mobile: only if not in modal (modal handles itself)
-        const offset = 100; // Offset for header
+        const offset = 100;
         const elementPosition = productsTopRef.current.getBoundingClientRect().top;
         const offsetPosition = elementPosition + window.pageYOffset - offset;
         
@@ -295,13 +342,21 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
   const activeBadges = [];
   if (activeCategory !== 'all') {
     const cat = categories.find(c => c.slug === activeCategory);
+    // გამოყენებულია კატეგორიის დინამიური სახელი
     activeBadges.push({ key: 'category', label: cat?.name || activeCategory });
   }
   attributes?.forEach(attr => {
     const val = searchParams.get(attr.taxonomyName);
     if (val && val !== 'all') {
         const term = attr.terms.find(t => t.slug === val);
-        activeBadges.push({ key: attr.taxonomyName, label: term?.name || val });
+        let label = term?.name || val;
+        
+        // მხოლოდ ფერებისთვის ვიყენებთ formatColorName-ს
+        if (isColorAttribute(attr.taxonomyName)) {
+            label = formatColorName(val, locale);
+        }
+        
+        activeBadges.push({ key: attr.taxonomyName, label });
     }
   });
   if (urlMinPrice > 0 || urlMaxPrice < maxPriceLimit) {
@@ -314,21 +369,18 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
       <div className={`fixed inset-0 bg-black/60 z-[90] transition-opacity duration-300 md:hidden ${mobileFiltersOpen ? 'opacity-100 visible' : 'invisible'}`} onClick={() => setMobileFiltersOpen(false)}>
         <div className={`absolute right-0 top-0 bottom-0 w-[85%] max-w-[320px] bg-white shadow-2xl transform transition-transform duration-300 flex flex-col h-full ${mobileFiltersOpen ? 'translate-x-0' : 'translate-x-full'}`} onClick={(e) => e.stopPropagation()}>
             
-            {/* Mobile Filter Header */}
             <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-white">
                 <h3 className="font-serif font-bold text-xl text-brand-dark">{t('filters.title')}</h3>
                 <button onClick={() => setMobileFiltersOpen(false)} className="p-2 -mr-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full cursor-pointer transition"><X className="w-6 h-6" /></button>
             </div>
             
-            {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto p-5 space-y-8">
-                {/* Price Filter */}
                 <div>
                   <h4 className="font-bold mb-3 uppercase text-[11px] tracking-widest text-brand-dark">ფასით გაფილტვრა</h4>
                   <PriceFilter minPrice={tempMinPrice} maxPrice={tempMaxPrice} setMinPrice={setTempMinPrice} setMaxPrice={setTempMaxPrice} applyFilter={applyPriceFilter} maxLimit={maxPriceLimit} />
                 </div>
 
-                {/* Categories */}
+                {/* Mobile Categories */}
                 <div>
                     <h4 className="font-bold mb-3 uppercase text-[11px] tracking-widest text-brand-dark">{t('filters.categories')}</h4>
                     <div className="space-y-3"> 
@@ -354,7 +406,7 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
                     </div>
                 </div>
 
-                {/* Attributes */}
+                {/* Mobile Attributes */}
                 {attributes?.map((attr) => (
                     <div key={attr.taxonomyName}>
                         <h4 className="font-bold mb-3 uppercase text-[11px] tracking-widest text-brand-dark">{attr.label}</h4>
@@ -362,7 +414,7 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
                             <div className="flex flex-wrap gap-2">
                                 <button onClick={() => handleAttrChange(attr.taxonomyName, 'all')} className={`px-3 py-1.5 text-[10px] border rounded-full transition cursor-pointer font-bold ${getActiveAttr(attr.taxonomyName) === 'all' ? 'bg-brand-dark text-white border-brand-dark' : 'bg-white hover:border-brand-dark text-gray-600'}`}>{t('filters.all')}</button>
                                 {attr.terms.map((term) => (
-                                    <button key={term.id} onClick={() => handleAttrChange(attr.taxonomyName, term.slug)} className={`w-8 h-8 rounded-full border-2 transition transform hover:scale-110 cursor-pointer relative ${getActiveAttr(attr.taxonomyName) === term.slug ? 'border-brand-DEFAULT ring-2 ring-brand-light ring-offset-1' : 'border-gray-200'}`} style={{ backgroundColor: colorMap[term.slug.toLowerCase()] || '#e5e7eb' }} title={term.name}>
+                                    <button key={term.id} onClick={() => handleAttrChange(attr.taxonomyName, term.slug)} className={`w-8 h-8 rounded-full border-2 transition transform hover:scale-110 cursor-pointer relative ${getActiveAttr(attr.taxonomyName) === term.slug ? 'border-brand-DEFAULT ring-2 ring-brand-light ring-offset-1' : 'border-gray-200'}`} style={{ backgroundColor: colorMap[term.slug.toLowerCase()] || '#e5e7eb' }} title={formatColorName(term.slug, locale)}>
                                         {getActiveAttr(attr.taxonomyName) === term.slug && <Check className="w-3 h-3 text-white absolute inset-0 m-auto mix-blend-difference" />}
                                     </button>
                                 ))}
@@ -387,7 +439,6 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
                 ))}
             </div>
 
-            {/* Sticky Footer Actions */}
             <div className="p-4 border-t border-gray-100 bg-white space-y-3 z-10">
                 <button onClick={() => setMobileFiltersOpen(false)} className="w-full bg-brand-dark text-white py-3.5 rounded-xl font-bold cursor-pointer shadow-lg active:scale-95 transition text-sm">{tCommon('showResults')}</button>
                 <button onClick={handleClearFilters} disabled={!filtersActive} className={`w-full py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 text-sm cursor-pointer ${filtersActive ? 'bg-gray-100 text-red-500 hover:bg-red-50' : 'bg-gray-50 text-gray-300 cursor-not-allowed'}`}><RefreshCcw className="w-3.5 h-3.5" /> {tCommon('clearFilters')}</button>
@@ -395,7 +446,7 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
         </div>
       </div>
 
-      {/* --- PAGE HEADER (Compact Mobile) --- */}
+      {/* --- PAGE HEADER --- */}
       <div className="container mx-auto px-4 mb-6 md:mb-8 mt-4 md:mt-0" ref={productsTopRef}>
           <div className="flex md:hidden items-center justify-between gap-4 mb-6">
               <div>
@@ -443,7 +494,6 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
                 <button onClick={handleClearFilters} disabled={!filtersActive} className={`w-full py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 cursor-pointer ${filtersActive ? 'bg-brand-DEFAULT text-white hover:bg-brand-dark' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}><RefreshCcw className="w-4 h-4" /> {tCommon('clearFilters')}</button>
             </div>
             <aside className="space-y-10 overflow-y-auto pr-4 pt-6 pb-24 h-full hide-scrollbar"> 
-                {/* Price */}
                 <div>
                     <button className="flex justify-between items-center w-full font-bold uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2 mb-6 cursor-pointer" onClick={() => setIsPriceOpen(!isPriceOpen)}>
                         ფასით გაფილტვრა
@@ -452,7 +502,7 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
                     {isPriceOpen && <PriceFilter minPrice={tempMinPrice} maxPrice={tempMaxPrice} setMinPrice={setTempMinPrice} setMaxPrice={setTempMaxPrice} applyFilter={applyPriceFilter} maxLimit={maxPriceLimit} />}
                 </div>
 
-                {/* Categories */}
+                {/* Desktop Categories */}
                 <div>
                     <button className="flex justify-between items-center w-full font-bold uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2 mb-6 cursor-pointer" onClick={() => setIsCategoriesOpen(!isCategoriesOpen)}>
                         {t('filters.categories')}
@@ -483,7 +533,7 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
                     )}
                 </div>
 
-                {/* Attributes */}
+                {/* Desktop Attributes */}
                 {attributes?.map((attr) => (
                     <div key={attr.taxonomyName}>
                         <button className="flex justify-between items-center w-full font-bold uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2 mb-6 cursor-pointer" onClick={() => toggleSection(attr.taxonomyName)}>
@@ -496,7 +546,8 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
                                     <div className="flex flex-wrap gap-2">
                                         <button onClick={() => handleAttrChange(attr.taxonomyName, 'all')} className={`px-3 py-1 text-xs border rounded-full transition cursor-pointer font-bold ${getActiveAttr(attr.taxonomyName) === 'all' ? 'bg-brand-dark text-white border-brand-dark' : 'bg-white hover:border-brand-dark text-gray-600'}`}>{t('filters.all')}</button>
                                         {attr.terms.map((term) => (
-                                            <button key={term.id} onClick={() => handleAttrChange(attr.taxonomyName, term.slug)} className={`w-8 h-8 rounded-full border-2 transition transform hover:scale-110 cursor-pointer relative ${getActiveAttr(attr.taxonomyName) === term.slug ? 'border-brand-DEFAULT ring-2 ring-brand-light ring-offset-2' : 'border-gray-100'}`} style={{ backgroundColor: colorMap[term.slug.toLowerCase()] || '#e5e7eb' }} title={term.name}>
+                                            // ✅ formatColorName(slug, locale)
+                                            <button key={term.id} onClick={() => handleAttrChange(attr.taxonomyName, term.slug)} className={`w-8 h-8 rounded-full border-2 transition transform hover:scale-110 cursor-pointer relative ${getActiveAttr(attr.taxonomyName) === term.slug ? 'border-brand-DEFAULT ring-2 ring-brand-light ring-offset-2' : 'border-gray-100'}`} style={{ backgroundColor: colorMap[term.slug.toLowerCase()] || '#e5e7eb' }} title={formatColorName(term.slug, locale)}>
                                                 {getActiveAttr(attr.taxonomyName) === term.slug && <Check className="w-3 h-3 text-white absolute inset-0 m-auto mix-blend-difference" />}
                                             </button>
                                         ))}
@@ -526,7 +577,6 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
 
         {/* --- MAIN CONTENT --- */}
         <div className="flex-1">
-            {/* Active Filters Row */}
             {activeBadges.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2 mb-6 animate-fade-in">
                     {activeBadges.map((badge) => (

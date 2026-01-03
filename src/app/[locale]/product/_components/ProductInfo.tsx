@@ -68,6 +68,60 @@ const getAttributeIcon = (name: string) => {
     return <Box className="w-4 h-4 text-brand-DEFAULT" />;
 };
 
+// ✅ ლექსიკონი: სლაგი -> ლამაზი სახელი (ინგლისური, რუსული და ქართული სლაგები)
+const slugToNameMap: Record<string, string> = {
+    // English
+    'red-en': 'Red', 'black-en': 'Black', 'white-en': 'White', 'blue-en': 'Blue',
+    'green-en': 'Green', 'yellow-en': 'Yellow', 'grey-en': 'Grey', 'pink-en': 'Pink',
+    'purple-en': 'Purple', 'brown-en': 'Brown', 'beige-en': 'Beige', 'orange-en': 'Orange',
+    'silver-en': 'Silver', 'gold-en': 'Gold', 'nude-en': 'Nude', 'cream-en': 'Cream',
+    'light-blue-en': 'Light Blue', 'dark-blue-en': 'Dark Blue', 
+    
+    // Russian
+    'chernyj-ru': 'Черный', 'belyj-ru': 'Белый', 'sinij-ru': 'Синий', 'krasnyj-ru': 'Красный',
+    'zelenyj-ru': 'Зеленый', 'zheltyj-ru': 'Желтый', 'seryj-ru': 'Серый', 'rozovyj-ru': 'Розовый',
+    'fioletovyj-ru': 'Фиолетовый', 'korichnevyj-ru': 'Коричневый', 'bezhevyj-ru': 'Бежевый',
+    'oranzhevyj-ru': 'Оранжевый', 'serebristyj-ru': 'Серебристый', 'zolotistyj-ru': 'Золотистый',
+    'telesnyj-ru': 'Телесный', 'temno-sinij-ru': 'Темно-синий', 'goluboj-ru': 'Голубой',
+
+    // ✅ Georgian (Transliterated slugs -> Georgian script)
+    'shavi': 'შავი',
+    'tetri': 'თეთრი',
+    'lurji': 'ლურჯი',
+    'witeli': 'წითელი',
+    'beji': 'ბეჟი',
+    'yavisferi': 'ყავისფერი', // თქვენი კონკრეტული ქეისი
+    'vardisferi': 'ვარდისფერი',
+    'mwvane': 'მწვანე',
+    'stafilosferi': 'ნარინჯისფერი',
+    'yviteli': 'ყვითელი',
+    'rcuxi': 'რუხი',
+    'nacrisferi': 'ნაცრისფერი',
+    'cisferi': 'ცისფერი',
+    'muqi_lurji': 'მუქი ლურჯი',
+    'vercxlisferi': 'ვერცხლისფერი',
+    'oqrosferi': 'ოქროსფერი',
+    'iasamnisferi': 'იასამნისფერი',
+    'kanisferi': 'ხორცისფერი',
+};
+
+// ✅ დამხმარე ფუნქცია: ფერის "გასუფთავება"
+const formatColorName = (slug: string) => {
+    if (!slug) return '';
+    // 1. ჯერ ვეძებთ ლექსიკონში (yavisferi -> ყავისფერი)
+    if (slugToNameMap[slug]) return slugToNameMap[slug];
+
+    // 2. თუ სლაგი შეიცავს -en, -ru ან -ge-ს, ვასუფთავებთ
+    if (slug.includes('-en') || slug.includes('-ru') || slug.includes('-ge')) {
+        let clean = slug.replace(/-en|-ru|-ge/g, '');
+        clean = clean.replace(/-/g, ' ').replace(/_/g, ' ');
+        return clean.charAt(0).toUpperCase() + clean.slice(1);
+    }
+
+    // 3. თუ არაფერი ემთხვევა, ვაბრუნებთ ორიგინალს
+    return slug;
+};
+
 export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps) {
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -91,30 +145,15 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
     attr.name.includes('ფერი')
   );
 
-  useMemo(() => {
-    if (colorAttribute && !selectedColor && colorAttribute.options && colorAttribute.options.length > 0) {
-      setSelectedColor(colorAttribute.options[0]);
-    }
-  }, [colorAttribute, selectedColor]);
-
-  const technicalAttributes = attributes.filter(attr => attr !== colorAttribute);
-
-  const selectedVariation = useMemo(() => {
-    if (!product.variations || !selectedColor) return null;
-    return product.variations.nodes.find((variation) => {
-      return variation.attributes?.nodes.some(attr => 
-        (attr.name.includes('color') || attr.name.includes('ფერი')) && attr.value === selectedColor
-      );
-    });
-  }, [product.variations, selectedColor]);
-
+  // ✅ 1. ფერების ოფციების მომზადება
+  // ვტოვებთ სლაგს VALUE-ში, რომ ფუნქციონალმა იმუშაოს!
   const colorOptions = useMemo(() => {
     if (!colorAttribute) return [];
     if (colorAttribute.terms?.nodes?.length) {
         return colorAttribute.terms.nodes.map(term => ({
             name: term.name,
             slug: term.slug,
-            value: term.slug
+            value: term.slug // <--- ეს არ შემიცვლია, რადგან თქვით რომ ლოგიკა მუშაობს
         }));
     }
     return colorAttribute.options?.map(opt => ({
@@ -124,12 +163,39 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
     })) || [];
   }, [colorAttribute]);
 
-  const selectedColorName = useMemo(() => {
-      const name = colorOptions.find(c => c.value === selectedColor)?.name;
-      return name || (selectedColor && typeof selectedColor === 'string' ? selectedColor : null);
+  // ✅ 2. საწყისი ინიციალიზაცია
+  useEffect(() => {
+    if (colorOptions.length > 0 && !selectedColor) {
+      setSelectedColor(colorOptions[0].value);
+    }
+  }, [colorOptions, selectedColor]);
+
+  const technicalAttributes = attributes.filter(attr => attr !== colorAttribute);
+
+  // ✅ 3. ვარიაციის პოვნა (ორიგინალი ლოგიკა)
+  const selectedVariation = useMemo(() => {
+    if (!product.variations || !selectedColor) return null;
+    return product.variations.nodes.find((variation) => {
+      return variation.attributes?.nodes.some(attr => 
+        (attr.name.includes('color') || attr.name.includes('ფერი')) && attr.value === selectedColor
+      );
+    });
+  }, [product.variations, selectedColor]);
+
+  // ✅ 4. Display-სთვის სახელის "გალამაზება"
+  const displayColorName = useMemo(() => {
+      if (!selectedColor) return null;
+      
+      const option = colorOptions.find(c => c.value === selectedColor);
+      
+      // აქ ხდება მაგია: formatColorName გადააქცევს "yavisferi"-ს "ყავისფერი"-დ
+      if (option) {
+         return formatColorName(selectedColor);
+      }
+      return selectedColor;
   }, [colorOptions, selectedColor]);
   
-  const safeSelectedColorName = selectedColorName || undefined;
+  const safeSelectedColorName = displayColorName || undefined;
   
   const displayPrice = selectedVariation?.price || product.price;
   const regularPrice = selectedVariation?.regularPrice || product.regularPrice;
@@ -144,25 +210,21 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
 
   const isProductOutOfStock = displayStock !== 'IN_STOCK' || (displayStockQuantity !== undefined && displayStockQuantity === 0);
 
-  // ✅ ახალი ლოგიკა: რაოდენობის სინქრონიზაცია მარაგთან
   useEffect(() => {
     if (isProductOutOfStock) {
       setQuantity(0);
     } else {
-      // თუ მარაგშია და რაოდენობა 0-ია (ან ცარიელია), ავტომატურად დავაყენოთ 1
-      if (quantity === 0) {
-        setQuantity(1);
-      }
+      if (quantity === 0) setQuantity(1);
     }
   }, [isProductOutOfStock, quantity]);
 
-  // მაქსიმალური რაოდენობის შემოწმება
   useEffect(() => {
     if (displayStockQuantity !== undefined && displayStockQuantity > 0 && quantity > displayStockQuantity) {
         setQuantity(displayStockQuantity);
     }
   }, [displayStockQuantity, quantity]);
 
+  // კალათისთვისაც ლამაზი სახელი გავატანოთ
   const finalSelectedOptions: Record<string, string> | undefined = safeSelectedColorName 
     ? { Color: safeSelectedColorName } 
     : undefined;
@@ -209,13 +271,14 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
 
   const isLiked = mounted ? isInWishlist(product.databaseId) : false;
 
-// ✅ განახლებული ColorMap ყველა ენისთვის
+  // ფერების რუკა (ფონისთვის)
   const colorMap: Record<string, string> = { 
     'shavi': '#000000', 'black-en': '#000000', 'chernyj-ru': '#000000', 'შავი': '#000000',
     'tetri': '#FFFFFF', 'white-en': '#FFFFFF', 'belyj-ru': '#FFFFFF', 'თეთრი': '#FFFFFF',
     'lurji': '#2563EB', 'blue-en': '#2563EB', 'sinij-ru': '#2563EB', 'ლურჯი': '#2563EB',
     'witeli': '#DC2626', 'red-en': '#DC2626', 'krasnyj-ru': '#DC2626', 'წითელი': '#DC2626',
     'beji': '#F5F5DC', 'beige-en': '#F5F5DC', 'bezhevyj-ru': '#F5F5DC', 'bejevi': '#F5F5DC', 'ბეჟი': '#F5F5DC',
+    'cream-en': '#FFFDD0',
     'yavisferi': '#8B4513', 'brown-en': '#8B4513', 'korichnevyj-ru': '#8B4513', 'ყავისფერი': '#8B4513',
     'vardisferi': '#DB2777', 'pink-en': '#DB2777', 'rozovyj-ru': '#DB2777', 'ვარდისფერი': '#DB2777',
     'mwvane': '#16A34A', 'green-en': '#16A34A', 'zelenyj-ru': '#16A34A', 'მწვანე': '#16A34A',
@@ -320,13 +383,16 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
             <div className="mb-8">
                 <div className="flex justify-between items-center mb-3">
                     <span className="text-xs font-bold text-brand-dark uppercase tracking-wider">
-                        {t('color')}: <span className="text-gray-500 font-normal capitalize">{selectedColorName}</span>
+                        {/* ✅ აქ გამოჩნდება გასუფთავებული სახელი (მაგ. yavisferi -> ყავისფერი) */}
+                        {t('color')}: <span className="text-gray-500 font-normal capitalize">{displayColorName}</span>
                     </span>
                 </div>
                 <div className="flex flex-wrap gap-3">
                     {colorOptions.map((option) => {
                         const isSelected = selectedColor === option.value;
                         const bg = colorMap[option.slug.toLowerCase().replace(/\s+/g, '_')] || '#E5E7EB';
+                        // Tooltip-ისთვისაც გავასუფთაოთ
+                        const tooltipName = formatColorName(option.value);
                         
                         return (
                             <button
@@ -340,7 +406,7 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
                                     }
                                 `}
                                 style={{ backgroundColor: bg }}
-                                title={option.name}
+                                title={tooltipName}
                             />
                         );
                     })}
@@ -357,7 +423,6 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
                 >
                     <Minus className="w-4 h-4" />
                 </button>
-                {/* ✅ გარანტია: თუ მარაგშია, აჩვენოს რაოდენობა (დეფოლტად 1), წინააღმდეგ შემთხვევაში 0 */}
                 <span className="flex-1 text-center font-bold text-lg text-brand-dark">
                     {isProductOutOfStock ? 0 : (quantity || 1)}
                 </span>
