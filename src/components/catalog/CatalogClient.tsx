@@ -22,7 +22,7 @@ interface CatalogClientProps {
   locale: string;
 }
 
-// ✅ 1. Color Map: ფერების კოდები
+// ✅ 1. Color Map: ფერების კოდები ყველა ენისთვის
 const colorMap: Record<string, string> = { 
     // --- შავი ---
     'shavi': '#000000', 'black': '#000000', 'chernyj': '#000000', 'chernyy': '#000000',
@@ -65,7 +65,6 @@ const colorMap: Record<string, string> = {
 };
 
 // ✅ დამხმარე ფუნქცია: სლაგის გასუფთავება და ფერის პოვნა
-// ეს აშორებს -en, -ru დაბოლოებებს, რათა "red-en"-მაც და "red"-მაც სწორი ფერი აიღოს
 const getColorHex = (slug: string) => {
     if (!slug) return '#e5e7eb';
     const cleanSlug = slug.toLowerCase().replace(/-en|-ru|-ka|-ge/g, '').trim();
@@ -223,6 +222,21 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
       attributes?.forEach(attr => { defaults[attr.taxonomyName] = true; });
       setOpenSections(defaults);
   }, [attributes]);
+
+  // ✅ SORTING LOGIC: მარაგში მყოფი პროდუქტები წინ, ამოწურულები ბოლოში
+  const sortedProducts = [...initialProducts].sort((a, b) => {
+      // ვამოწმებთ არის თუ არა პროდუქტი ამოწურული (OUT_OF_STOCK ან რაოდენობა <= 0)
+      const aOOS = a.stockStatus === 'OUT_OF_STOCK' || (typeof a.stockQuantity === 'number' && a.stockQuantity <= 0);
+      const bOOS = b.stockStatus === 'OUT_OF_STOCK' || (typeof b.stockQuantity === 'number' && b.stockQuantity <= 0);
+
+      // თუ a არის OOS, გადავიტანოთ ბოლოში (დადებითი მნიშვნელობა)
+      if (aOOS && !bOOS) return 1;
+      // თუ b არის OOS, გადავიტანოთ ბოლოში (a გადმოდის წინ)
+      if (!aOOS && bOOS) return -1;
+      
+      // თუ ორივე ერთნაირი სტატუსისაა, ვტოვებთ ორიგინალ თანმიმდევრობას (რაც სერვერიდან მოდის - DATE_DESC)
+      return 0;
+  });
 
   const toggleSection = (taxName: string) => {
       setOpenSections(prev => ({ ...prev, [taxName]: !prev[taxName] }));
@@ -388,7 +402,6 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
                                         key={term.id} 
                                         onClick={() => handleAttrChange(attr.taxonomyName, term.slug)} 
                                         className={`w-8 h-8 rounded-full border-2 transition transform hover:scale-110 cursor-pointer relative ${getActiveAttr(attr.taxonomyName) === term.slug ? 'border-brand-DEFAULT ring-2 ring-brand-light ring-offset-1' : 'border-gray-200'}`} 
-                                        // ✅ აქ ვიყენებთ ახალ ფუნქციას ფერის მისაღებად
                                         style={{ backgroundColor: getColorHex(term.slug) }} 
                                         title={term.name}
                                     >
@@ -527,7 +540,7 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
                                                 key={term.id} 
                                                 onClick={() => handleAttrChange(attr.taxonomyName, term.slug)} 
                                                 className={`w-8 h-8 rounded-full border-2 transition transform hover:scale-110 cursor-pointer relative ${getActiveAttr(attr.taxonomyName) === term.slug ? 'border-brand-DEFAULT ring-2 ring-brand-light ring-offset-2' : 'border-gray-100'}`} 
-                                                // ✅ აქ უკვე ვიყენებთ ახალ ფუნქციას: getColorHex
+                                                // ✅ აქ ვიყენებთ ახალ ფუნქციას: getColorHex
                                                 style={{ backgroundColor: getColorHex(term.slug) }} 
                                                 title={term.name}
                                             >
@@ -578,8 +591,9 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
                 </div>
             )}
 
+            {/* ✅ გამოიყენება sortedProducts (დასორტირებული) სია, initialProducts-ის ნაცვლად */}
             <div className={`grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-x-3 gap-y-6 md:gap-8 transition-opacity duration-300 ${isPending ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
-                {initialProducts.map((product) => (
+                {sortedProducts.map((product) => (
                     <ProductCard 
                         key={product.databaseId || product.id}
                         id={product.databaseId}
