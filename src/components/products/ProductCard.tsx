@@ -221,9 +221,12 @@ export default function ProductCard(props: ProductCardProps) {
            </div>
         )}
 
-        {/* მარაგში არ არის - Overlay */}
+        {/* ✅ FIX: მარაგში არ არის - Overlay 
+            - ამოღებულია backdrop-blur-[2px], რადგან ეს იწვევს "თეთრ ზოლებს" რენდერისას
+            - გაზრდილია bg-white/80-მდე, რომ უკეთ გადაფაროს
+        */}
         {isOutOfStock && (
-          <div className="absolute inset-0 z-20 bg-white/60 backdrop-blur-[2px] flex items-center justify-center">
+          <div className="absolute inset-0 z-20 bg-white/80 flex items-center justify-center">
              <div className="bg-black/90 text-white px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 shadow-xl">
                 <XCircle className="w-3.5 h-3.5" />
                 {t('outOfStock')}
