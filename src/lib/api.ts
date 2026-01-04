@@ -13,14 +13,6 @@ interface FiltersData { categories: FilterTerm[]; attributes: AttributeGroup[]; 
 async function fetchAPI(query: string, { variables }: { variables?: any } = {}, revalidateTime: number, tags: string[] = []) {
   const headers = { 'Content-Type': 'application/json' };
 
-  // 🕵️‍♂️ [SPY] ჯაშუში 1: ვბეჭდავთ რას ვაგზავნით (მხოლოდ ფილტრების მოთხოვნაზე)
-  if (query.includes('terms') || query.includes('allPaColor')) {
-    console.log('\n🔴 -----------------------------------------------------');
-    console.log('🚀 [API REQUEST] Sending Request to WordPress...');
-    console.log('📦 Variables:', JSON.stringify(variables, null, 2));
-    console.log('🔴 -----------------------------------------------------\n');
-  }
-
   const fetchOptions: RequestInit = {
     method: 'POST',
     headers,
@@ -34,22 +26,6 @@ async function fetchAPI(query: string, { variables }: { variables?: any } = {}, 
   try {
     const res = await fetch(WORDPRESS_API_URL, fetchOptions);
     const json = await res.json();
-
-    // 🕵️‍♂️ [SPY] ჯაშუში 2: ვბეჭდავთ რა მივიღეთ პასუხად
-    if (query.includes('terms') || query.includes('allPaColor')) {
-        const termsCount = json.data?.terms?.nodes?.length || 0;
-        const colorCount = json.data?.allPaColor?.nodes?.length || 0;
-        
-        console.log('\n🟢 -----------------------------------------------------');
-        console.log(`✅ [API RESPONSE] General Terms: ${termsCount}, Colors: ${colorCount}`);
-        
-        // ვამოწმებთ არის თუ არა წითელი ფერების სიაში
-        const hasRed = json.data?.allPaColor?.nodes?.some((t: any) => t.slug === 'tsiteli' || t.slug === 'witeli');
-        if (hasRed) console.log('🎉 RED FOUND in API Response!');
-        else console.log('❌ RED NOT FOUND in API Response.');
-
-        console.log('🟢 -----------------------------------------------------\n');
-    }
 
     if (json.errors) {
       console.error('❌ WPGraphQL Error:', JSON.stringify(json.errors, null, 2));

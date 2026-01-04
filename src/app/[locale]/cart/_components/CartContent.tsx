@@ -19,6 +19,7 @@ const formatPrice = (price: number) => {
 
 export default function CartContent() {
   const t = useTranslations('Cart');
+  const tToast = useTranslations('Toast'); // ✅ თარგმანები
   const [mounted, setMounted] = useState(false);
   const { items, removeItem, updateQuantity, totalPrice } = useCartStore();
 
@@ -44,7 +45,6 @@ export default function CartContent() {
         <p className="text-gray-500 mb-10 text-lg max-w-md mx-auto">
           {t('emptyDesc')}
         </p>
-        {/* ✅ შეცვლილია /shop-ზე */}
         <Link href="/shop" className="bg-brand-dark text-white px-10 py-4 rounded-full font-bold hover:bg-brand-DEFAULT transition-all shadow-xl hover:shadow-brand-DEFAULT/30 active:scale-95 flex items-center gap-2">
           {t('viewCollection')} <ArrowRight className="w-4 h-4" />
         </Link>
@@ -54,7 +54,6 @@ export default function CartContent() {
 
   return (
     <div className="animate-fade-in">
-      {/* ... კალათის დანარჩენი კოდი იგივეა ... */}
       <h1 className="text-4xl md:text-5xl font-serif font-black text-brand-dark mb-10">
         {t('title')} 
         <span className="text-xl md:text-2xl text-gray-400 font-sans ml-4 font-normal">
@@ -97,16 +96,21 @@ export default function CartContent() {
                         </div>
                       )}
                     </div>
-                    <button onClick={() => removeItem(item.id)} className="text-gray-300 hover:text-red-500 transition p-2 hover:bg-red-50 rounded-full"><Trash2 className="w-5 h-5" /></button>
+                    {/* ✅ ამოღებისას ვატანთ ნათარგმნ მესიჯს */}
+                    <button onClick={() => removeItem(item.id, tToast('removed'))} className="text-gray-300 hover:text-red-500 transition p-2 hover:bg-red-50 rounded-full cursor-pointer"><Trash2 className="w-5 h-5" /></button>
                   </div>
                   <div className="flex justify-between items-end mt-4">
                     <div className="flex items-center bg-gray-50 rounded-full border border-gray-200 h-10 shadow-inner">
-                      <button onClick={() => updateQuantity(item.id, 'dec')} className="w-10 h-full flex items-center justify-center hover:text-brand-DEFAULT transition active:scale-90" disabled={item.quantity <= 1}><Minus className="w-3 h-3" /></button>
+                      <button onClick={() => updateQuantity(item.id, 'dec')} className="w-10 h-full flex items-center justify-center hover:text-brand-DEFAULT transition active:scale-90 cursor-pointer" disabled={item.quantity <= 1}><Minus className="w-3 h-3" /></button>
                       <span className="w-6 text-center font-bold text-sm text-brand-dark">{item.quantity}</span>
                       <button 
-                        onClick={() => updateQuantity(item.id, 'inc')} 
+                        onClick={() => {
+                            // ✅ სტოკის ერორის მესიჯი
+                            const stockMsg = tToast('stockError', { quantity: item.stockQuantity || 0 });
+                            updateQuantity(item.id, 'inc', stockMsg);
+                        }} 
                         disabled={item.quantity >= (item.stockQuantity || Infinity)}
-                        className="w-10 h-full flex items-center justify-center hover:text-brand-DEFAULT transition active:scale-90 disabled:opacity-50"
+                        className="w-10 h-full flex items-center justify-center hover:text-brand-DEFAULT transition active:scale-90 disabled:opacity-50 cursor-pointer"
                       >
                         <Plus className="w-3 h-3" />
                       </button>
@@ -139,7 +143,7 @@ export default function CartContent() {
                 <span className="block text-3xl font-black text-brand-DEFAULT font-serif leading-none">{formatPrice(currentTotal)}</span>
               </div>
             </div>
-            <Link href="/checkout" className="w-full bg-brand-dark text-white py-5 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-brand-DEFAULT transition-all transform hover:-translate-y-1 shadow-lg shadow-brand-dark/20 group active:scale-95 uppercase tracking-widest text-xs">
+            <Link href="/checkout" className="w-full bg-brand-dark text-white py-5 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-brand-DEFAULT transition-all transform hover:-translate-y-1 shadow-lg shadow-brand-dark/20 group active:scale-95 uppercase tracking-widest text-xs cursor-pointer">
               {t('checkout')} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>

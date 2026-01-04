@@ -3,13 +3,23 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { CartItem } from '@/types';
 import { useToastStore } from './toastStore';
 
+// მესიჯების ინტერფეისი
+interface ToastMessages {
+  added?: string;
+  increased?: string;
+  stockError?: string;
+  removed?: string;
+}
+
 interface CartStore {
   items: CartItem[];
   _hasHydrated: boolean;
   setHasHydrated: (state: boolean) => void;
-  addItem: (item: Omit<CartItem, 'quantity'>) => void;
-  removeItem: (id: number) => void;
-  updateQuantity: (id: number, action: 'inc' | 'dec') => void;
+  // ✅ addItem იღებს მესიჯებს
+  addItem: (item: Omit<CartItem, 'quantity'>, messages?: ToastMessages) => void;
+  removeItem: (id: number, removedMsg?: string) => void;
+  // ✅ updateQuantity იღებს მესიჯს
+  updateQuantity: (id: number, action: 'inc' | 'dec', errorMsg?: string) => void;
   clearCart: () => void;
   totalPrice: () => number;
 }
@@ -21,29 +31,32 @@ export const useCartStore = create<CartStore>()(
       _hasHydrated: false,
       setHasHydrated: (state) => set({ _hasHydrated: state }),
 
-      addItem: (item) => set((state) => {
+      addItem: (item, messages) => set((state) => {
         const items = [...state.items];
-        // ვეძებთ პროდუქტს ID-ით (კონკრეტული ენის ვერსია)
         const existing = items.find((i) => i.id === item.id);
         const maxStock = (item as CartItem).stockQuantity ?? 999;
         const itemSku = item.sku; 
 
-        // ✅ გლობალური მარაგის შემოწმება SKU-ს მიხედვით ყველა ენაზე
-        // თუ SKU არსებობს, ვთვლით ყველა იმ ნივთის ჯამს კალათაში, რომელსაც იგივე SKU აქვს
+        // ✅ გლობალური მარაგის შემოწმება SKU-ს მიხედვით
         const currentGlobalQuantity = items.reduce((sum, i) => {
              if (itemSku && i.sku && i.sku === itemSku) return sum + i.quantity;
-             // თუ SKU არ აქვს, ვუბრუნდებით ID-ით შემოწმებას
              if (!itemSku && i.id === item.id) return sum + i.quantity;
              return sum;
         }, 0);
 
         if (currentGlobalQuantity >= maxStock) {
-            useToastStore.getState().showToast(`მარაგში მხოლოდ ${maxStock} ცალია (ჯამში ყველა ენაზე)`, 'error');
+            // ✅ ვიყენებთ გადმოცემულ error მესიჯს
+            if (messages?.stockError) {
+                useToastStore.getState().showToast(messages.stockError, 'error');
+            }
             return state;
         }
 
         if (existing) {
-          useToastStore.getState().showToast(`რაოდენობა გაიზარდა: ${item.name}`, 'success');
+          // ✅ ვიყენებთ "რაოდენობა გაიზარდა" მესიჯს
+          if (messages?.increased) {
+              useToastStore.getState().showToast(messages.increased, 'success');
+          }
           return {
             items: items.map((i) => 
               i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
@@ -51,18 +64,23 @@ export const useCartStore = create<CartStore>()(
           };
         }
         
-        useToastStore.getState().showToast(`${item.name} დაემატა კალათაში`, 'success');
+        // ✅ ვიყენებთ "დაემატა" მესიჯს
+        if (messages?.added) {
+            useToastStore.getState().showToast(messages.added, 'success');
+        }
         return { 
           items: [...items, { ...item, quantity: 1, stockQuantity: maxStock }] 
         };
       }),
 
-      removeItem: (id) => set((state) => {
-        useToastStore.getState().showToast('პროდუქტი ამოღებულია', 'info');
+      removeItem: (id, removedMsg) => set((state) => {
+        if (removedMsg) {
+            useToastStore.getState().showToast(removedMsg, 'info');
+        }
         return { items: state.items.filter((i) => i.id !== id) };
       }),
 
-      updateQuantity: (id, action) => set((state) => ({
+      updateQuantity: (id, action, errorMsg) => set((state) => ({
         items: state.items.map((item) => {
           if (item.id === id) {
             if (action === 'dec') {
@@ -72,7 +90,6 @@ export const useCartStore = create<CartStore>()(
             const maxStock = item.stockQuantity ?? 999;
             const itemSku = item.sku;
 
-            // ✅ აქაც იგივე გლობალური შემოწმება SKU-თ
             const currentGlobalQuantity = state.items.reduce((sum, i) => {
                 if (itemSku && i.sku && i.sku === itemSku) return sum + i.quantity;
                 if (!itemSku && i.id === item.id) return sum + i.quantity;
@@ -80,7 +97,10 @@ export const useCartStore = create<CartStore>()(
             }, 0);
             
             if (currentGlobalQuantity >= maxStock) {
-                useToastStore.getState().showToast(`მაქსიმალური მარაგია: ${maxStock}`, 'error');
+                // ✅ ვიყენებთ სტოკის ერორ მესიჯს
+                if (errorMsg) {
+                    useToastStore.getState().showToast(errorMsg, 'error');
+                }
                 return item;
             }
             return { ...item, quantity: item.quantity + 1 };

@@ -98,6 +98,7 @@
     "addToWishlist": "Add to Wishlist",
     "removeFromWishlist": "Remove from Wishlist",
     "quickView": "Quick View",
+    "viewDetails": "View Full Details",
     "Payment": {
       "onlineTitle": "Online Payment",
       "onlineDesc": "Any Georgian Bank Card",
@@ -217,5 +218,12 @@
     "empty": "Your wishlist is empty",
     "emptyDescription": "You haven't added any items to your wishlist yet.",
     "goShop": "Go to Catalog"
+  },
+
+  "Toast": {
+    "added": "{name} added to cart",
+    "quantityIncreased": "Quantity increased: {name}",
+    "removed": "Item removed",
+    "stockError": "Only {quantity} left in stock"
   }
 }

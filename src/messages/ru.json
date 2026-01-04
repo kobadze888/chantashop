@@ -98,6 +98,7 @@
     "addToWishlist": "В избранное",
     "removeFromWishlist": "Удалить из избранного",
     "quickView": "Быстрый просмотр",
+    "viewDetails": "Посмотреть детали",
     "Payment": {
       "onlineTitle": "Оплата онлайн",
       "onlineDesc": "Любой грузинской картой",
@@ -223,5 +224,12 @@
     "empty": "Список пуст",
     "emptyDescription": "Вы еще не добавили ни одного товара в список желаний.",
     "goShop": "Перейти в каталог"
+  },
+
+  "Toast": {
+    "added": "{name} добавлен в корзину",
+    "quantityIncreased": "Количество увеличено: {name}",
+    "removed": "Товар удален",
+    "stockError": "В наличии только {quantity} шт."
   }
 }

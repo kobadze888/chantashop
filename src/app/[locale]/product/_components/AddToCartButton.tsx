@@ -15,6 +15,7 @@ interface AddToCartButtonProps {
 export default function AddToCartButton({ product, stockStatus, disabled = false }: AddToCartButtonProps) {
     const addItem = useCartStore((state) => state.addItem);
     const t = useTranslations('Product');
+    const tToast = useTranslations('Toast'); // ✅ თარგმანები ტოსტებისთვის
     const [isAdding, setIsAdding] = useState(false);
     
     // მარაგის შემოწმება
@@ -27,10 +28,18 @@ export default function AddToCartButton({ product, stockStatus, disabled = false
             setIsAdding(true);
             const { quantity: qtyToUse, ...itemBase } = product; 
             
-            // ვამატებთ არჩეულ რაოდენობას ციკლით, რადგან Store ამატებს თითო-თითოს
-            // Store-ი თვითონ ამოწმებს მარაგს თითოეულ დამატებაზე და გამოიტანს Toast-ს
+            // ✅ ვქმნით მესიჯების ობიექტს
+            const messages = {
+                added: tToast('added', { name: product.name }),
+                increased: tToast('quantityIncreased', { name: product.name }),
+                stockError: tToast('stockError', { quantity: product.stockQuantity })
+            };
+            
+            // ვამატებთ არჩეულ რაოდენობას ციკლით
             for(let i = 0; i < qtyToUse; i++) {
-                addItem(itemBase); 
+                // ✅ მესიჯს გადავცემთ მხოლოდ ბოლო იტერაციაზე, რომ სპამი არ იყოს
+                const msgPayload = (i === qtyToUse - 1) ? messages : undefined;
+                addItem(itemBase, msgPayload); 
             }
 
             // მცირე დაყოვნება ვიზუალური ეფექტისთვის
