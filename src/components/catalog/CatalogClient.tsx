@@ -22,56 +22,71 @@ interface CatalogClientProps {
   locale: string;
 }
 
-// ✅ მხოლოდ ფერების თარგმანი/გასწორება (რადგან სლაგები მოდის ბაზიდან)
-const colorTranslations: Record<string, { ka: string; en: string; ru: string }> = {
-    'shavi': { ka: 'შავი', en: 'Black', ru: 'Черный' },
-    'black': { ka: 'შავი', en: 'Black', ru: 'Черный' },
-    'tetri': { ka: 'თეთრი', en: 'White', ru: 'Белый' },
-    'white': { ka: 'თეთრი', en: 'White', ru: 'Белый' },
-    'lurji': { ka: 'ლურჯი', en: 'Blue', ru: 'Синий' },
-    'blue': { ka: 'ლურჯი', en: 'Blue', ru: 'Синий' },
-    'witeli': { ka: 'წითელი', en: 'Red', ru: 'Красный' },
-    'red': { ka: 'წითელი', en: 'Red', ru: 'Красный' },
-    'beji': { ka: 'ბეჟი', en: 'Beige', ru: 'Бежевый' },
-    'beige': { ka: 'ბეჟი', en: 'Beige', ru: 'Бежевый' },
-    'yavisferi': { ka: 'ყავისფერი', en: 'Brown', ru: 'Коричневый' },
-    'brown': { ka: 'ყავისფერი', en: 'Brown', ru: 'Коричневый' },
-    'vardisferi': { ka: 'ვარდისფერი', en: 'Pink', ru: 'Розовый' },
-    'pink': { ka: 'ვარდისფერი', en: 'Pink', ru: 'Розовый' },
-    'mwvane': { ka: 'მწვანე', en: 'Green', ru: 'Зеленый' },
-    'green': { ka: 'მწვანე', en: 'Green', ru: 'Зеленый' },
-    'stafilosferi': { ka: 'ნარინჯისფერი', en: 'Orange', ru: 'Оранжевый' },
-    'orange': { ka: 'ნარინჯისფერი', en: 'Orange', ru: 'Оранжевый' },
-    'yviteli': { ka: 'ყვითელი', en: 'Yellow', ru: 'Желтый' },
-    'yellow': { ka: 'ყვითელი', en: 'Yellow', ru: 'Желтый' },
-    'rcuxi': { ka: 'რუხი', en: 'Grey', ru: 'Серый' },
-    'grey': { ka: 'რუხი', en: 'Grey', ru: 'Серый' },
-    'nacrisferi': { ka: 'ნაცრისფერი', en: 'Grey', ru: 'Серый' },
-    'cisferi': { ka: 'ცისფერი', en: 'Light Blue', ru: 'Голубой' },
-    'light-blue': { ka: 'ცისფერი', en: 'Light Blue', ru: 'Голубой' },
-    'muqi_lurji': { ka: 'მუქი ლურჯი', en: 'Dark Blue', ru: 'Темно-синий' },
-    'dark-blue': { ka: 'მუქი ლურჯი', en: 'Dark Blue', ru: 'Темно-синий' },
-    'vercxlisferi': { ka: 'ვერცხლისფერი', en: 'Silver', ru: 'Серебристый' },
-    'silver': { ka: 'ვერცხლისფერი', en: 'Silver', ru: 'Серебристый' },
-    'oqrosferi': { ka: 'ოქროსფერი', en: 'Gold', ru: 'Золотистый' },
-    'gold': { ka: 'ოქროსფერი', en: 'Gold', ru: 'Золотистый' },
-    'iasamnisferi': { ka: 'იასამნისფერი', en: 'Purple', ru: 'Фиолетовый' },
-    'purple': { ka: 'იასამნისფერი', en: 'Purple', ru: 'Фиолетовый' },
-    'kanisferi': { ka: 'ხორცისფერი', en: 'Nude', ru: 'Телесный' },
-    'nude': { ka: 'ხორცისფერი', en: 'Nude', ru: 'Телесный' },
-    'cream': { ka: 'კრემისფერი', en: 'Cream', ru: 'Кремовый' }
+// ✅ 1. Color Map: ფერების კოდები
+const colorMap: Record<string, string> = { 
+    // --- შავი ---
+    'shavi': '#000000', 'black': '#000000', 'chernyj': '#000000', 'chernyy': '#000000',
+    // --- თეთრი ---
+    'tetri': '#FFFFFF', 'white': '#FFFFFF', 'belyj': '#FFFFFF', 'belyy': '#FFFFFF',
+    // --- ლურჯი ---
+    'lurji': '#2563EB', 'blue': '#2563EB', 'sinij': '#2563EB', 'siniy': '#2563EB',
+    // --- წითელი ---
+    'witeli': '#DC2626', 'tsiteli': '#DC2626', 'red': '#DC2626', 'krasnyj': '#DC2626', 'krasnyy': '#DC2626',
+    // --- ბეჟი ---
+    'beji': '#F5F5DC', 'beige': '#F5F5DC', 'bezhevyj': '#F5F5DC', 'bezhevyy': '#F5F5DC',
+    // --- ყავისფერი ---
+    'yavisferi': '#8B4513', 'brown': '#8B4513', 'korichnevyj': '#8B4513', 'korichnevyy': '#8B4513',
+    // --- ვარდისფერი ---
+    'vardisferi': '#DB2777', 'pink': '#DB2777', 'rozovyj': '#DB2777', 'rozovyy': '#DB2777',
+    // --- მწვანე ---
+    'mwvane': '#16A34A', 'green': '#16A34A', 'zelenyj': '#16A34A', 'zelenyy': '#16A34A',
+    // --- ნარინჯისფერი ---
+    'stafilosferi': '#F97316', 'orange': '#F97316', 'oranzhevyj': '#F97316', 'oranzhevyy': '#F97316',
+    // --- ყვითელი ---
+    'yviteli': '#FACC15', 'yellow': '#FACC15', 'zheltyj': '#FACC15', 'zheltyy': '#FACC15',
+    // --- რუხი / ნაცრისფერი ---
+    'rcuxi': '#9CA3AF', 'nacrisferi': '#9CA3AF', 'grey': '#9CA3AF', 'gray': '#9CA3AF', 'seryj': '#9CA3AF', 'seryy': '#9CA3AF',
+    // --- ცისფერი ---
+    'cisferi': '#60A5FA', 'light-blue': '#60A5FA', 'goluboj': '#60A5FA', 'goluboy': '#60A5FA',
+    // --- მუქი ლურჯი ---
+    'muqi_lurji': '#1E3A8A', 'dark-blue': '#1E3A8A', 'temno-sinij': '#1E3A8A', 'temno-siniy': '#1E3A8A',
+    // --- ვერცხლისფერი ---
+    'vercxlisferi': '#C0C0C0', 'silver': '#C0C0C0', 'serebristyj': '#C0C0C0', 'serebristyy': '#C0C0C0',
+    // --- ოქროსფერი ---
+    'oqrosferi': '#FFD700', 'gold': '#FFD700', 'zolotistyj': '#FFD700', 'zolotistyy': '#FFD700',
+    // --- იასამნისფერი ---
+    'iasamnisferi': '#A855F7', 'purple': '#A855F7', 'fioletovyj': '#A855F7', 'fioletovyy': '#A855F7',
+    // --- ხორცისფერი ---
+    'kanisferi': '#FFE4C4', 'nude': '#FFE4C4', 'telesnyj': '#FFE4C4', 'telesnyy': '#FFE4C4',
+    // --- კრემისფერი ---
+    'cream': '#FFFDD0', 'kremovyj': '#FFFDD0', 'kremovyy': '#FFFDD0',
+    // --- პრადა ვარდისფერი ---
+    'vardisferi_(pradas_stili)': '#DB2777', 'vardisferi-pradas-stili': '#DB2777'
 };
 
-// ✅ დამხმარე ფუნქცია: ფერის "გასუფთავება" და თარგმნა Locale-ის მიხედვით
-const formatColorName = (slug: string, locale: string) => {
-    if (!slug) return '';
-    let cleanSlug = slug.toLowerCase().replace(/-en|-ru|-ge/g, '').replace(/_/g, ' ');
-    const translation = colorTranslations[cleanSlug] || colorTranslations[slug];
-    if (translation) {
-        return translation[locale as keyof typeof translation] || translation.en;
-    }
-    return cleanSlug.charAt(0).toUpperCase() + cleanSlug.slice(1);
+// ✅ დამხმარე ფუნქცია: სლაგის გასუფთავება და ფერის პოვნა
+// ეს აშორებს -en, -ru დაბოლოებებს, რათა "red-en"-მაც და "red"-მაც სწორი ფერი აიღოს
+const getColorHex = (slug: string) => {
+    if (!slug) return '#e5e7eb';
+    const cleanSlug = slug.toLowerCase().replace(/-en|-ru|-ka|-ge/g, '').trim();
+    return colorMap[cleanSlug] || colorMap[slug] || '#e5e7eb';
 };
+
+const parsePrice = (priceString: string | undefined | null): number => {
+  if (!priceString) return 0;
+  const matches = priceString.match(/(\d+\.?\d*)/g);
+  if (!matches || matches.length === 0) return 0;
+  const prices = matches.map(p => parseFloat(p));
+  return Math.min(...prices);
+};
+
+export default function CatalogClient(props: CatalogClientProps) {
+  return (
+    <Suspense fallback={null}>
+      <CatalogContent {...props} />
+    </Suspense>
+  );
+}
 
 const PriceFilter = ({ 
     minPrice, maxPrice, setMinPrice, setMaxPrice, applyFilter, maxLimit 
@@ -152,44 +167,6 @@ const PriceFilter = ({
         </div>
     );
 };
-
-const colorMap: Record<string, string> = { 
-    'shavi': '#000000', 'black-en': '#000000', 'chernyj-ru': '#000000', 'შავი': '#000000', 'black': '#000000',
-    'tetri': '#FFFFFF', 'white-en': '#FFFFFF', 'belyj-ru': '#FFFFFF', 'თეთრი': '#FFFFFF', 'white': '#FFFFFF',
-    'lurji': '#2563EB', 'blue-en': '#2563EB', 'sinij-ru': '#2563EB', 'ლურჯი': '#2563EB', 'blue': '#2563EB',
-    'witeli': '#DC2626', 'red-en': '#DC2626', 'krasnyj-ru': '#DC2626', 'წითელი': '#DC2626', 'red': '#DC2626',
-    'beji': '#F5F5DC', 'beige-en': '#F5F5DC', 'bezhevyj-ru': '#F5F5DC', 'bejevi': '#F5F5DC', 'ბეჟი': '#F5F5DC', 'beige': '#F5F5DC',
-    'cream-en': '#FFFDD0', 'cream': '#FFFDD0',
-    'yavisferi': '#8B4513', 'brown-en': '#8B4513', 'korichnevyj-ru': '#8B4513', 'ყავისფერი': '#8B4513', 'brown': '#8B4513',
-    'vardisferi': '#DB2777', 'pink-en': '#DB2777', 'rozovyj-ru': '#DB2777', 'ვარდისფერი': '#DB2777', 'pink': '#DB2777',
-    'mwvane': '#16A34A', 'green-en': '#16A34A', 'zelenyj-ru': '#16A34A', 'მწვანე': '#16A34A', 'green': '#16A34A',
-    'stafilosferi': '#F97316', 'orange-en': '#F97316', 'oranzhevyj-ru': '#F97316', 'ნარინჯისფერი': '#F97316', 'orange': '#F97316',
-    'yviteli': '#FACC15', 'yellow-en': '#FACC15', 'zheltyj-ru': '#FACC15', 'ყვითელი': '#FACC15', 'yellow': '#FACC15',
-    'rcuxi': '#9CA3AF', 'nacrisferi': '#9CA3AF', 'grey-en': '#9CA3AF', 'seryj-ru': '#9CA3AF', 'რუხი': '#9CA3AF', 'grey': '#9CA3AF',
-    'cisferi': '#60A5FA', 'light-blue-en': '#60A5FA', 'goluboj-ru': '#60A5FA', 'ცისფერი': '#60A5FA', 'light-blue': '#60A5FA',
-    'muqi_lurji': '#1E3A8A', 'dark-blue-en': '#1E3A8A', 'temno-sinij-ru': '#1E3A8A', 'მუქი ლურჯი': '#1E3A8A', 'dark-blue': '#1E3A8A',
-    'vercxlisferi': '#C0C0C0', 'silver-en': '#C0C0C0', 'serebristyj-ru': '#C0C0C0', 'silver': '#C0C0C0',
-    'oqrosferi': '#FFD700', 'gold-en': '#FFD700', 'zolotistyj-ru': '#FFD700', 'gold': '#FFD700',
-    'iasamnisferi': '#A855F7', 'purple-en': '#A855F7', 'fioletovyj-ru': '#A855F7', 'purple': '#A855F7',
-    'kanisferi': '#FFE4C4', 'nude-en': '#FFE4C4', 'telesnyj-ru': '#FFE4C4', 'nude': '#FFE4C4',
-    'vardisferi_(pradas_stili)': '#DB2777', 'ვარდისფერი (პრადა)': '#DB2777'
-};
-
-const parsePrice = (priceString: string | undefined | null): number => {
-  if (!priceString) return 0;
-  const matches = priceString.match(/(\d+\.?\d*)/g);
-  if (!matches || matches.length === 0) return 0;
-  const prices = matches.map(p => parseFloat(p));
-  return Math.min(...prices);
-};
-
-export default function CatalogClient(props: CatalogClientProps) {
-  return (
-    <Suspense fallback={null}>
-      <CatalogContent {...props} />
-    </Suspense>
-  );
-}
 
 function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit = 5000, locale }: CatalogClientProps) {
   const router = useRouter();
@@ -342,7 +319,6 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
   const activeBadges = [];
   if (activeCategory !== 'all') {
     const cat = categories.find(c => c.slug === activeCategory);
-    // გამოყენებულია კატეგორიის დინამიური სახელი
     activeBadges.push({ key: 'category', label: cat?.name || activeCategory });
   }
   attributes?.forEach(attr => {
@@ -350,12 +326,6 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
     if (val && val !== 'all') {
         const term = attr.terms.find(t => t.slug === val);
         let label = term?.name || val;
-        
-        // მხოლოდ ფერებისთვის ვიყენებთ formatColorName-ს
-        if (isColorAttribute(attr.taxonomyName)) {
-            label = formatColorName(val, locale);
-        }
-        
         activeBadges.push({ key: attr.taxonomyName, label });
     }
   });
@@ -414,8 +384,15 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
                             <div className="flex flex-wrap gap-2">
                                 <button onClick={() => handleAttrChange(attr.taxonomyName, 'all')} className={`px-3 py-1.5 text-[10px] border rounded-full transition cursor-pointer font-bold ${getActiveAttr(attr.taxonomyName) === 'all' ? 'bg-brand-dark text-white border-brand-dark' : 'bg-white hover:border-brand-dark text-gray-600'}`}>{t('filters.all')}</button>
                                 {attr.terms.map((term) => (
-                                    <button key={term.id} onClick={() => handleAttrChange(attr.taxonomyName, term.slug)} className={`w-8 h-8 rounded-full border-2 transition transform hover:scale-110 cursor-pointer relative ${getActiveAttr(attr.taxonomyName) === term.slug ? 'border-brand-DEFAULT ring-2 ring-brand-light ring-offset-1' : 'border-gray-200'}`} style={{ backgroundColor: colorMap[term.slug.toLowerCase()] || '#e5e7eb' }} title={formatColorName(term.slug, locale)}>
-                                        {getActiveAttr(attr.taxonomyName) === term.slug && <Check className="w-3 h-3 text-white absolute inset-0 m-auto mix-blend-difference" />}
+                                    <button 
+                                        key={term.id} 
+                                        onClick={() => handleAttrChange(attr.taxonomyName, term.slug)} 
+                                        className={`w-8 h-8 rounded-full border-2 transition transform hover:scale-110 cursor-pointer relative ${getActiveAttr(attr.taxonomyName) === term.slug ? 'border-brand-DEFAULT ring-2 ring-brand-light ring-offset-1' : 'border-gray-200'}`} 
+                                        // ✅ აქ ვიყენებთ ახალ ფუნქციას ფერის მისაღებად
+                                        style={{ backgroundColor: getColorHex(term.slug) }} 
+                                        title={term.name}
+                                    >
+                                            {getActiveAttr(attr.taxonomyName) === term.slug && <Check className="w-3 h-3 text-white absolute inset-0 m-auto mix-blend-difference" />}
                                     </button>
                                 ))}
                             </div>
@@ -546,8 +523,14 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
                                     <div className="flex flex-wrap gap-2">
                                         <button onClick={() => handleAttrChange(attr.taxonomyName, 'all')} className={`px-3 py-1 text-xs border rounded-full transition cursor-pointer font-bold ${getActiveAttr(attr.taxonomyName) === 'all' ? 'bg-brand-dark text-white border-brand-dark' : 'bg-white hover:border-brand-dark text-gray-600'}`}>{t('filters.all')}</button>
                                         {attr.terms.map((term) => (
-                                            // ✅ formatColorName(slug, locale)
-                                            <button key={term.id} onClick={() => handleAttrChange(attr.taxonomyName, term.slug)} className={`w-8 h-8 rounded-full border-2 transition transform hover:scale-110 cursor-pointer relative ${getActiveAttr(attr.taxonomyName) === term.slug ? 'border-brand-DEFAULT ring-2 ring-brand-light ring-offset-2' : 'border-gray-100'}`} style={{ backgroundColor: colorMap[term.slug.toLowerCase()] || '#e5e7eb' }} title={formatColorName(term.slug, locale)}>
+                                            <button 
+                                                key={term.id} 
+                                                onClick={() => handleAttrChange(attr.taxonomyName, term.slug)} 
+                                                className={`w-8 h-8 rounded-full border-2 transition transform hover:scale-110 cursor-pointer relative ${getActiveAttr(attr.taxonomyName) === term.slug ? 'border-brand-DEFAULT ring-2 ring-brand-light ring-offset-2' : 'border-gray-100'}`} 
+                                                // ✅ აქ უკვე ვიყენებთ ახალ ფუნქციას: getColorHex
+                                                style={{ backgroundColor: getColorHex(term.slug) }} 
+                                                title={term.name}
+                                            >
                                                 {getActiveAttr(attr.taxonomyName) === term.slug && <Check className="w-3 h-3 text-white absolute inset-0 m-auto mix-blend-difference" />}
                                             </button>
                                         ))}

@@ -12,11 +12,21 @@ interface FiltersData { categories: FilterTerm[]; attributes: AttributeGroup[]; 
 
 async function fetchAPI(query: string, { variables }: { variables?: any } = {}, revalidateTime: number, tags: string[] = []) {
   const headers = { 'Content-Type': 'application/json' };
+
+  // 🕵️‍♂️ [SPY] ჯაშუში 1: ვბეჭდავთ რას ვაგზავნით (მხოლოდ ფილტრების მოთხოვნაზე)
+  if (query.includes('terms') || query.includes('allPaColor')) {
+    console.log('\n🔴 -----------------------------------------------------');
+    console.log('🚀 [API REQUEST] Sending Request to WordPress...');
+    console.log('📦 Variables:', JSON.stringify(variables, null, 2));
+    console.log('🔴 -----------------------------------------------------\n');
+  }
+
   const fetchOptions: RequestInit = {
     method: 'POST',
     headers,
     body: JSON.stringify({ query, variables }),
   };
+  
   if (tags.length > 0) fetchOptions.next = { tags, revalidate: revalidateTime };
   else if (revalidateTime === 0) fetchOptions.cache = 'no-store';
   else fetchOptions.next = { revalidate: revalidateTime };
@@ -24,6 +34,23 @@ async function fetchAPI(query: string, { variables }: { variables?: any } = {}, 
   try {
     const res = await fetch(WORDPRESS_API_URL, fetchOptions);
     const json = await res.json();
+
+    // 🕵️‍♂️ [SPY] ჯაშუში 2: ვბეჭდავთ რა მივიღეთ პასუხად
+    if (query.includes('terms') || query.includes('allPaColor')) {
+        const termsCount = json.data?.terms?.nodes?.length || 0;
+        const colorCount = json.data?.allPaColor?.nodes?.length || 0;
+        
+        console.log('\n🟢 -----------------------------------------------------');
+        console.log(`✅ [API RESPONSE] General Terms: ${termsCount}, Colors: ${colorCount}`);
+        
+        // ვამოწმებთ არის თუ არა წითელი ფერების სიაში
+        const hasRed = json.data?.allPaColor?.nodes?.some((t: any) => t.slug === 'tsiteli' || t.slug === 'witeli');
+        if (hasRed) console.log('🎉 RED FOUND in API Response!');
+        else console.log('❌ RED NOT FOUND in API Response.');
+
+        console.log('🟢 -----------------------------------------------------\n');
+    }
+
     if (json.errors) {
       console.error('❌ WPGraphQL Error:', JSON.stringify(json.errors, null, 2));
       if (json.data) return json.data;
@@ -67,19 +94,34 @@ export async function getProducts(filters: any = {}, locale: string = 'ka'): Pro
 }
 
 export async function getFilters(locale: string = 'ka'): Promise<FiltersData | null> {
-  const data = await fetchAPI(GET_FILTERS_QUERY, { variables: { wpLang: locale.toUpperCase() } }, 3600, ['filters']); 
+  // 🕵️‍♂️ ვაყენებთ 0-ს, რომ არ დაიმახსოვროს კეში და ყოველ ჯერზე გვაჩვენოს რეალური "ლაივ" შედეგი
+  const data = await fetchAPI(GET_FILTERS_QUERY, { variables: { wpLang: locale.toUpperCase() } }, 0, ['filters']); 
   if (!data) return null;
   
   const allCategories = data.productCategories?.nodes || [];
   const allTerms = data.terms?.nodes || [];
+  
+  // ✅ 1. ვიღებთ ფერებს ჩვენი ახალი წყაროდან (allPaColor), სადაც "წითელი" 100% არის
+  const colorTerms = data.allPaColor?.nodes || []; 
+
   const groupedAttributes: Record<string, FilterTerm[]> = {};
   
+  // ✅ 2. ვამუშავებთ ზოგად ტერმინებს (აქედან ვიღებთ მხოლოდ მასალას)
+  // ფერებს აქედან აღარ ვიღებთ, რადგან Polylang აქ ფილტრავდა "ობოლ" წითელს
   allTerms.forEach((term: any) => {
-    if (['pa_color', 'pa_masala'].includes(term.taxonomyName)) {
+    if (term.taxonomyName === 'pa_masala') {
         if (!groupedAttributes[term.taxonomyName]) groupedAttributes[term.taxonomyName] = [];
         groupedAttributes[term.taxonomyName].push(term);
     }
   });
+
+  // ✅ 3. ვამატებთ ფერებს სპეციალური სიიდან
+  if (colorTerms.length > 0) {
+      groupedAttributes['pa_color'] = colorTerms.map((term: any) => ({
+          ...term,
+          taxonomyName: 'pa_color' // ხელით ვამატებთ სახელს, რადგან allPaColor-ს ეს ველი არ მოაქვს
+      }));
+  }
 
   const attributes: AttributeGroup[] = Object.entries(groupedAttributes).map(([taxName, terms]) => {
       let label = (taxName === 'pa_color') ? 'ფერი' : (taxName === 'pa_masala' ? 'მასალა' : taxName.replace('pa_', ''));
@@ -110,10 +152,12 @@ export async function getPageBySlugReal(slug: string) {
 }
 
 export const getPageBySlug = getPageByUri;
+
 export async function getShopSeo(locale: string) {
   const data = await fetchAPI(GET_SHOP_PAGE_WITH_TRANSLATIONS, {}, 3600, ['pages']);
   return data?.pages?.nodes?.[0] || null;
 }
+
 export async function getSitemapData() {
   const data = await fetchAPI(GET_SITEMAP_DATA_QUERY, {}, 3600, ['sitemap']);
   return { products: data?.products?.nodes || [], pages: data?.pages?.nodes || [], terms: data?.terms?.nodes || [] };
@@ -122,7 +166,6 @@ export async function getSitemapData() {
 export async function getTaxonomySeo(taxonomy: string, slug: string) {
   let graphQLField = '';
   
-  // ✅ მკაცრი მეპინგი: ვამატებთ material-ის სწორ გადაყვანას paMasala-ზე
   if (taxonomy === 'category' || taxonomy === 'product_cat') {
     graphQLField = 'productCategory';
   } else if (taxonomy === 'pa_color' || taxonomy === 'color') {

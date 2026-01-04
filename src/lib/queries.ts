@@ -35,7 +35,6 @@ export const PRODUCT_FRAGMENT = `
     shortDescription
     description
     stockStatusManual
-    # ✅ განახლებული სტრუქტურა მარაგისთვის
     ... on InventoriedProduct {
       stockStatus
       stockQuantity
@@ -91,6 +90,7 @@ export const GET_PRODUCTS_QUERY = `
   }
 `;
 
+// ✅ შესწორებულია: wpLang გადაეცემა terms-ს, რათა PHP ფილტრმა იმუშაოს
 export const GET_FILTERS_QUERY = `
   query GetFilters($wpLang: String!) {
     productCategories(first: 1000, where: { hideEmpty: true, wpLang: $wpLang }) {
@@ -98,6 +98,10 @@ export const GET_FILTERS_QUERY = `
     }
     terms(first: 3000, where: { hideEmpty: true, wpLang: $wpLang }) {
       nodes { id name slug taxonomyName count }
+    }
+    # ✅ აქ დაემატა wpLang: $wpLang
+    allPaColor(first: 100, where: { hideEmpty: true, wpLang: $wpLang }) {
+      nodes { id name slug count }
     }
     products(first: 1, where: { orderby: { field: PRICE, order: DESC }, wpLang: $wpLang }) {
       nodes {

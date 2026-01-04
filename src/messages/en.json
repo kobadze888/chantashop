@@ -67,7 +67,8 @@
       "price": "Price",
       "color": "Color",
       "material": "Material",
-      "all": "All"
+      "all": "All",
+      "applyPrice": "Применить"
     },
     "Sort": {
       "newest": "Newest",

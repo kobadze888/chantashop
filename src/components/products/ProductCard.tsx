@@ -17,7 +17,7 @@ import { formatPrice } from '@/lib/utils';
     'shavi': '#000000', 'black-en': '#000000', 'chernyj-ru': '#000000', 'შავი': '#000000',
     'tetri': '#FFFFFF', 'white-en': '#FFFFFF', 'belyj-ru': '#FFFFFF', 'თეთრი': '#FFFFFF',
     'lurji': '#2563EB', 'blue-en': '#2563EB', 'sinij-ru': '#2563EB', 'ლურჯი': '#2563EB',
-    'witeli': '#DC2626', 'red-en': '#DC2626', 'krasnyj-ru': '#DC2626', 'წითელი': '#DC2626',
+    'tsiteli': '#DC2626', 'red-en': '#DC2626', 'krasnyj-ru': '#DC2626', 'წითელი': '#DC2626',
     'beji': '#F5F5DC', 'beige-en': '#F5F5DC', 'bezhevyj-ru': '#F5F5DC', 'bejevi': '#F5F5DC', 'ბეჟი': '#F5F5DC',
     'yavisferi': '#8B4513', 'brown-en': '#8B4513', 'korichnevyj-ru': '#8B4513', 'ყავისფერი': '#8B4513',
     'vardisferi': '#DB2777', 'pink-en': '#DB2777', 'rozovyj-ru': '#DB2777', 'ვარდისფერი': '#DB2777',
