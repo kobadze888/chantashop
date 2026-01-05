@@ -15,7 +15,8 @@
     "error": "Ошибка",
     "success": "Успешно",
     "retry": "Повторить",
-    "close": "Закрыть"
+    "close": "Закрыть",
+    "share": "Поделиться"
   },
   "Header": {
     "promo": "Бесплатная доставка при заказе от 200₾",
@@ -65,6 +66,7 @@
       "title": "Фильтры",
       "categories": "Категории",
       "price": "Цена",
+      "priceFilter": "Фильтр по цене",
       "color": "Цвет",
       "material": "Материал",
       "all": "Все",
@@ -80,6 +82,7 @@
   "Product": {
     "inStock": "В наличии",
     "outOfStock": "Нет в наличии",
+    "stockLimit": "В наличии только {quantity} шт.",
     "reviews": "{count} отзывов",
     "priceLabel": "Цена",
     "buy": "Купить",
@@ -94,6 +97,9 @@
     "share": "Поделиться",
     "relatedProducts": "Похожие товары",
     "description": "Описание",
+    "detailedSpecs": "Характеристики",
+    "productDescription": "Описание товара",
+    "noDescription": "Описание отсутствует.",
     "additionalInfo": "Дополнительная информация",
     "addToWishlist": "В избранное",
     "removeFromWishlist": "Удалить из избранного",
@@ -105,12 +111,16 @@
       "onlineTime": "За 3 мин",
       "courierTitle": "Оплата курьеру",
       "courierDesc": "Только банковский перевод (Mobile Bank)",
-      "noCash": "Наличные НЕ принимаются!"
+      "noCash": "Наличные НЕ принимаются!",
+      "transferTitle": "Перевод",
+      "transferDesc": "Оплата банковским переводом",
+      "realPhotoTitle": "Живые фото",
+      "realPhotoDesc": "Товар на 100% соответствует фото"
     },
     "Services": {
       "deliveryTitle": "Доставка и сроки",
       "deliveryDesc": "Тбилиси: 6₾ (1-2 дня) | Регионы: 10₾ (2-3 дня).",
-      "freeShipping": "200₾+ Бесплатно.",
+      "freeShipping": "Бесплатная доставка",
       "checkTitle": "Проверка на месте",
       "checkDesc": "Откройте и проверьте посылку. В случае брака можно вернуть сразу."
     }
@@ -225,11 +235,19 @@
     "emptyDescription": "Вы еще не добавили ни одного товара в список желаний.",
     "goShop": "Перейти в каталог"
   },
-
   "Toast": {
     "added": "{name} добавлен в корзину",
     "quantityIncreased": "Количество увеличено: {name}",
     "removed": "Товар удален",
-    "stockError": "В наличии только {quantity} шт."
+    "stockError": "В наличии только {quantity} шт.",
+    "wishlistAdded": "{name} добавлено в избранное",
+    "wishlistRemoved": "{name} удалено из избранного"
+  },
+  "Attributes": {
+    "pa_color": "Цвет",
+    "pa_material": "Материал",
+    "pa_masala": "Материал",
+    "pa_size": "Размер",
+    "pa_zoma": "Размер"
   }
 }

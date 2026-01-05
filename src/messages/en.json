@@ -11,11 +11,12 @@
     "showResults": "Show Results",
     "clearFilters": "Clear Filters",
     "viewAll": "View All",
-    "currency": "GEL",
+    "currency": "₾",
     "error": "Error",
     "success": "Success",
     "retry": "Retry",
-    "close": "Close"
+    "close": "Close",
+    "share": "Share"
   },
   "Header": {
     "promo": "Free shipping on orders over 200₾",
@@ -65,10 +66,11 @@
       "title": "Filters",
       "categories": "Categories",
       "price": "Price",
+      "priceFilter": "Filter by Price",
       "color": "Color",
       "material": "Material",
       "all": "All",
-      "applyPrice": "Применить"
+      "applyPrice": "Apply"
     },
     "Sort": {
       "newest": "Newest",
@@ -80,10 +82,11 @@
   "Product": {
     "inStock": "In Stock",
     "outOfStock": "Out of Stock",
+    "stockLimit": "Only {quantity} left in stock",
     "reviews": "{count} reviews",
     "priceLabel": "Price",
     "buy": "Buy",
-    "buyNow": "Buy",
+    "buyNow": "Buy Now",
     "addToCart": "Add to Cart",
     "selectOptions": "Select Options",
     "color": "Color",
@@ -94,6 +97,9 @@
     "share": "Share",
     "relatedProducts": "Related Products",
     "description": "Description",
+    "detailedSpecs": "Detailed Specifications",
+    "productDescription": "Product Description",
+    "noDescription": "No description available.",
     "additionalInfo": "Additional Information",
     "addToWishlist": "Add to Wishlist",
     "removeFromWishlist": "Remove from Wishlist",
@@ -105,12 +111,16 @@
       "onlineTime": "In 3 mins",
       "courierTitle": "Pay to Courier",
       "courierDesc": "Bank Transfer Only (Mobile Bank)",
-      "noCash": "Cash NOT accepted!"
+      "noCash": "Cash NOT accepted!",
+      "transferTitle": "Bank Transfer",
+      "transferDesc": "Payment via Bank\nTransfer",
+      "realPhotoTitle": "Real Photos",
+      "realPhotoDesc": "Products match photos\n100% accurately"
     },
     "Services": {
       "deliveryTitle": "Delivery & Terms",
       "deliveryDesc": "Tbilisi: 6₾ (1-2 days) | Regions: 10₾ (2-3 days).",
-      "freeShipping": "Free over 200₾.",
+      "freeShipping": "Free over 200₾",
       "checkTitle": "Inspect on Spot",
       "checkDesc": "Open and check parcel on spot. You can return immediately if defective."
     }
@@ -219,11 +229,19 @@
     "emptyDescription": "You haven't added any items to your wishlist yet.",
     "goShop": "Go to Catalog"
   },
-
   "Toast": {
     "added": "{name} added to cart",
     "quantityIncreased": "Quantity increased: {name}",
     "removed": "Item removed",
-    "stockError": "Only {quantity} left in stock"
+    "stockError": "Only {quantity} left in stock",
+    "wishlistAdded": "{name} added to wishlist",
+    "wishlistRemoved": "{name} removed from wishlist"
+  },
+  "Attributes": {
+    "pa_color": "Color",
+    "pa_material": "Material",
+    "pa_masala": "Material",
+    "pa_size": "Size",
+    "pa_zoma": "Size"
   }
 }

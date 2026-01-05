@@ -15,7 +15,8 @@
     "error": "შეცდომა",
     "success": "წარმატება",
     "retry": "ცადეთ თავიდან",
-    "close": "დახურვა"
+    "close": "დახურვა",
+    "share": "გაზიარება"
   },
   "Header": {
     "promo": "უფასო მიწოდება 200₾+ შეკვეთებზე",
@@ -65,6 +66,7 @@
       "title": "ფილტრაცია",
       "categories": "კატეგორიები",
       "price": "ფასი",
+      "priceFilter": "ფასით გაფილტვრა",
       "color": "ფერი",
       "material": "მასალა",
       "all": "ყველა",
@@ -80,6 +82,7 @@
   "Product": {
     "inStock": "მარაგშია",
     "outOfStock": "ამოიწურა",
+    "stockLimit": "მარაგში მხოლოდ {quantity} ცალია",
     "reviews": "{count} შეფასება",
     "priceLabel": "ფასი",
     "buy": "ყიდვა",
@@ -94,6 +97,9 @@
     "share": "გაზიარება",
     "relatedProducts": "მსგავსი პროდუქტები",
     "description": "აღწერა",
+    "detailedSpecs": "დეტალური მახასიათებლები",
+    "productDescription": "პროდუქტის აღწერა",
+    "noDescription": "აღწერა არ არის.",
     "additionalInfo": "დამატებითი ინფორმაცია",
     "addToWishlist": "სურვილებში დამატება",
     "removeFromWishlist": "სურვილებიდან ამოღება",
@@ -102,15 +108,19 @@
     "Payment": {
       "onlineTitle": "ონლაინ გადახდა",
       "onlineDesc": "ნებისმიერი ქართული ბანკის ბარათით",
-      "onlineTime": "3 წუთში",
+      "onlineTime": "აისახება წამებში",
       "courierTitle": "გადახდა კურიერთან",
       "courierDesc": "მხოლოდ საბანკო გადარიცხვით (მობაილბანკი)",
-      "noCash": "ნაღდი ფული არ მიიღება!"
+      "noCash": "ნაღდი ფული არ მიიღება!",
+      "transferTitle": "გადარიცხვა",
+      "transferDesc": "გადახდა საბანკო\nგადარიცხვით",
+      "realPhotoTitle": "რეალური ფოტოები",
+      "realPhotoDesc": "პროდუქცია 100%-ით\nშეესაბამება ფოტოებს"
     },
     "Services": {
       "deliveryTitle": "მიწოდება და ვადები",
       "deliveryDesc": "თბილისი: 6₾ (1-2 დღე) | რეგიონები: 10₾ (2-3 დღე).",
-      "freeShipping": "200₾+ უფასო.",
+      "freeShipping": "უფასო მიწოდება",
       "checkTitle": "შეამოწმე ადგილზე",
       "checkDesc": "გახსენით და შეამოწმეთ ამანატი ადგილზე. ნებისმიერი წუნის შემთხვევაში შეგიძლიათ დააბრუნოთ."
     }
@@ -219,11 +229,19 @@
     "emptyDescription": "თქვენ ჯერ არ დაგიმატებიათ არცერთი ნივთი სურვილების სიაში.",
     "goShop": "კატალოგში გადასვლა"
   },
-
   "Toast": {
     "added": "{name} დაემატა კალათაში",
     "quantityIncreased": "რაოდენობა გაიზარდა: {name}",
     "removed": "პროდუქტი ამოღებულია",
-    "stockError": "მარაგში მხოლოდ {quantity} ცალია"
+    "stockError": "მარაგში მხოლოდ {quantity} ცალია",
+    "wishlistAdded": "{name} დაემატა სურვილებში",
+    "wishlistRemoved": "{name} ამოღებულია სურვილებიდან"
+  },
+  "Attributes": {
+    "pa_color": "ფერი",
+    "pa_material": "მასალა",
+    "pa_masala": "მასალა",
+    "pa_size": "ზომა",
+    "pa_zoma": "ზომა"
   }
 }

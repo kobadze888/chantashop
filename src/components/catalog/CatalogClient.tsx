@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense, useTransition, useRef } from 'react'; 
-import { SlidersHorizontal, X, ChevronDown, ShoppingBag, RefreshCcw, Check } from 'lucide-react';
+import { SlidersHorizontal, X, ChevronDown, ShoppingBag, RefreshCcw, Check, ArrowDownCircle } from 'lucide-react';
 import ProductCard from '@/components/products/ProductCard';
 import type { Product, Category, FilterTerm } from '@/types';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
@@ -22,49 +22,31 @@ interface CatalogClientProps {
   locale: string;
 }
 
-// ✅ 1. Color Map: ფერების კოდები ყველა ენისთვის
+const PRODUCTS_PER_PAGE = 12; // ✅ პაგინაციის რაოდენობა
+
+// ✅ 1. Color Map
 const colorMap: Record<string, string> = { 
-    // --- შავი ---
     'shavi': '#000000', 'black': '#000000', 'chernyj': '#000000', 'chernyy': '#000000',
-    // --- თეთრი ---
     'tetri': '#FFFFFF', 'white': '#FFFFFF', 'belyj': '#FFFFFF', 'belyy': '#FFFFFF',
-    // --- ლურჯი ---
     'lurji': '#2563EB', 'blue': '#2563EB', 'sinij': '#2563EB', 'siniy': '#2563EB',
-    // --- წითელი ---
     'witeli': '#DC2626', 'tsiteli': '#DC2626', 'red': '#DC2626', 'krasnyj': '#DC2626', 'krasnyy': '#DC2626',
-    // --- ბეჟი ---
     'beji': '#F5F5DC', 'beige': '#F5F5DC', 'bezhevyj': '#F5F5DC', 'bezhevyy': '#F5F5DC',
-    // --- ყავისფერი ---
     'yavisferi': '#8B4513', 'brown': '#8B4513', 'korichnevyj': '#8B4513', 'korichnevyy': '#8B4513',
-    // --- ვარდისფერი ---
     'vardisferi': '#DB2777', 'pink': '#DB2777', 'rozovyj': '#DB2777', 'rozovyy': '#DB2777',
-    // --- მწვანე ---
     'mwvane': '#16A34A', 'green': '#16A34A', 'zelenyj': '#16A34A', 'zelenyy': '#16A34A',
-    // --- ნარინჯისფერი ---
     'stafilosferi': '#F97316', 'orange': '#F97316', 'oranzhevyj': '#F97316', 'oranzhevyy': '#F97316',
-    // --- ყვითელი ---
     'yviteli': '#FACC15', 'yellow': '#FACC15', 'zheltyj': '#FACC15', 'zheltyy': '#FACC15',
-    // --- რუხი / ნაცრისფერი ---
     'rcuxi': '#9CA3AF', 'nacrisferi': '#9CA3AF', 'grey': '#9CA3AF', 'gray': '#9CA3AF', 'seryj': '#9CA3AF', 'seryy': '#9CA3AF',
-    // --- ცისფერი ---
     'cisferi': '#60A5FA', 'light-blue': '#60A5FA', 'goluboj': '#60A5FA', 'goluboy': '#60A5FA',
-    // --- მუქი ლურჯი ---
     'muqi_lurji': '#1E3A8A', 'dark-blue': '#1E3A8A', 'temno-sinij': '#1E3A8A', 'temno-siniy': '#1E3A8A',
-    // --- ვერცხლისფერი ---
     'vercxlisferi': '#C0C0C0', 'silver': '#C0C0C0', 'serebristyj': '#C0C0C0', 'serebristyy': '#C0C0C0',
-    // --- ოქროსფერი ---
     'oqrosferi': '#FFD700', 'gold': '#FFD700', 'zolotistyj': '#FFD700', 'zolotistyy': '#FFD700',
-    // --- იასამნისფერი ---
     'iasamnisferi': '#A855F7', 'purple': '#A855F7', 'fioletovyj': '#A855F7', 'fioletovyy': '#A855F7',
-    // --- ხორცისფერი ---
     'kanisferi': '#FFE4C4', 'nude': '#FFE4C4', 'telesnyj': '#FFE4C4', 'telesnyy': '#FFE4C4',
-    // --- კრემისფერი ---
     'cream': '#FFFDD0', 'kremovyj': '#FFFDD0', 'kremovyy': '#FFFDD0',
-    // --- პრადა ვარდისფერი ---
     'vardisferi_(pradas_stili)': '#DB2777', 'vardisferi-pradas-stili': '#DB2777'
 };
 
-// ✅ დამხმარე ფუნქცია: სლაგის გასუფთავება და ფერის პოვნა
 const getColorHex = (slug: string) => {
     if (!slug) return '#e5e7eb';
     const cleanSlug = slug.toLowerCase().replace(/-en|-ru|-ka|-ge/g, '').trim();
@@ -88,9 +70,9 @@ export default function CatalogClient(props: CatalogClientProps) {
 }
 
 const PriceFilter = ({ 
-    minPrice, maxPrice, setMinPrice, setMaxPrice, applyFilter, maxLimit 
+    minPrice, maxPrice, setMinPrice, setMaxPrice, applyFilter, maxLimit, filterLabel, currencySymbol 
 }: { 
-    minPrice: number, maxPrice: number, setMinPrice: (v: number) => void, setMaxPrice: (v: number) => void, applyFilter: () => void, maxLimit: number 
+    minPrice: number, maxPrice: number, setMinPrice: (v: number) => void, setMaxPrice: (v: number) => void, applyFilter: () => void, maxLimit: number, filterLabel: string, currencySymbol: string 
 }) => {
     const handleMinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
@@ -114,7 +96,7 @@ const PriceFilter = ({
         <div className="px-1 animate-fade-in">
             <div className="flex items-center gap-2 mb-4">
                 <div className="flex-1 relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">₾</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">{currencySymbol}</span>
                     <input 
                       type="number" 
                       value={minPrice === 0 ? '' : minPrice} 
@@ -128,7 +110,7 @@ const PriceFilter = ({
                 </div>
                 <span className="text-gray-400 font-bold">-</span>
                 <div className="flex-1 relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">₾</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">{currencySymbol}</span>
                     <input 
                       type="number" 
                       value={maxPrice === maxLimit ? '' : maxPrice} 
@@ -153,15 +135,15 @@ const PriceFilter = ({
             />
             
             <div className="flex justify-between mt-2 text-[10px] font-bold text-gray-400 mb-3">
-                <span>0 ₾</span>
-                <span>{maxLimit} ₾</span>
+                <span>0 {currencySymbol}</span>
+                <span>{maxLimit} {currencySymbol}</span>
             </div>
 
             <button 
                 onClick={applyFilter}
                 className="w-full bg-brand-dark text-white py-3 rounded-lg text-xs font-bold hover:bg-brand-DEFAULT transition shadow-sm active:scale-95 flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wide"
             >
-                <Check className="w-3.5 h-3.5" /> ფასით გაფილტვრა
+                <Check className="w-3.5 h-3.5" /> {filterLabel}
             </button>
         </div>
     );
@@ -171,8 +153,10 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  
   const t = useTranslations('Catalog');
   const tCommon = useTranslations('Common');
+  const tAttr = useTranslations('Attributes');
   
   const sortDropdownRef = useRef<HTMLDivElement>(null); 
   const productsTopRef = useRef<HTMLDivElement>(null);
@@ -191,11 +175,13 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
   const getActiveAttr = (taxName: string) => searchParams.get(taxName) || 'all';
 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(true); 
   const [isPriceOpen, setIsPriceOpen] = useState(true);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   const [isSortOpen, setIsSortOpen] = useState(false);
+
+  // ✅ პაგინაციის სთეითი
+  const [visibleCount, setVisibleCount] = useState(PRODUCTS_PER_PAGE);
 
   useEffect(() => {
     setTempMinPrice(urlMinPrice);
@@ -223,47 +209,54 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
       setOpenSections(defaults);
   }, [attributes]);
 
-  // ✅ SORTING LOGIC: მარაგში მყოფი პროდუქტები წინ, ამოწურულები ბოლოში
+  // ✅ ფილტრის შეცვლისას პაგინაციის განულება
+  useEffect(() => {
+      setVisibleCount(PRODUCTS_PER_PAGE);
+  }, [activeCategory, urlMinPrice, urlMaxPrice, searchParams]);
+
   const sortedProducts = [...initialProducts].sort((a, b) => {
-      // ვამოწმებთ არის თუ არა პროდუქტი ამოწურული (OUT_OF_STOCK ან რაოდენობა <= 0)
       const aOOS = a.stockStatus === 'OUT_OF_STOCK' || (typeof a.stockQuantity === 'number' && a.stockQuantity <= 0);
       const bOOS = b.stockStatus === 'OUT_OF_STOCK' || (typeof b.stockQuantity === 'number' && b.stockQuantity <= 0);
-
-      // თუ a არის OOS, გადავიტანოთ ბოლოში (დადებითი მნიშვნელობა)
       if (aOOS && !bOOS) return 1;
-      // თუ b არის OOS, გადავიტანოთ ბოლოში (a გადმოდის წინ)
       if (!aOOS && bOOS) return -1;
-      
-      // თუ ორივე ერთნაირი სტატუსისაა, ვტოვებთ ორიგინალ თანმიმდევრობას (რაც სერვერიდან მოდის - DATE_DESC)
       return 0;
   });
+
+  // ✅ პროდუქტების დაჭრა პაგინაციისთვის
+  const visibleProducts = sortedProducts.slice(0, visibleCount);
 
   const toggleSection = (taxName: string) => {
       setOpenSections(prev => ({ ...prev, [taxName]: !prev[taxName] }));
   };
 
+  // ✅ სქროლის ლოგიკა: ფილტრის გამოყენებისას ზემოთ დაბრუნება
   const scrollToProducts = () => {
     if (productsTopRef.current) {
         const offset = 100;
-        const elementPosition = productsTopRef.current.getBoundingClientRect().top;
-        const offsetPosition = elementPosition + window.pageYOffset - offset;
-        
-        window.scrollTo({
-             top: offsetPosition,
-             behavior: "smooth"
-        });
+        const elementPosition = productsTopRef.current.getBoundingClientRect().top + window.pageYOffset;
+        window.scrollTo({ top: elementPosition - offset, behavior: "smooth" });
     }
   };
 
   const updateFilter = (key: string, value: string | number) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (value === 'all' || value === 0 || (key === 'sort' && value === 'DATE_DESC')) { 
-      params.delete(key);
-    } else {
-      params.set(key, String(value));
-    }
+    if (value === 'all' || value === 0 || (key === 'sort' && value === 'DATE_DESC')) params.delete(key);
+    else params.set(key, String(value));
+    
     startTransition(() => {
         router.push(`${pathname}?${params.toString()}`, { scroll: false });
+        scrollToProducts();
+    });
+  };
+
+  const handleClearFilters = () => {
+    const params = new URLSearchParams();
+    if (activeSort !== 'DATE_DESC') params.set('sort', activeSort);
+    setTempMinPrice(0);
+    setTempMaxPrice(maxPriceLimit);
+    startTransition(() => {
+        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+        setMobileFiltersOpen(false);
         scrollToProducts();
     });
   };
@@ -285,14 +278,10 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
       const params = new URLSearchParams(searchParams.toString());
       let finalMin = tempMinPrice < 0 ? 0 : tempMinPrice;
       let finalMax = tempMaxPrice > maxPriceLimit ? maxPriceLimit : tempMaxPrice;
-      if (finalMin > finalMax) {
-          finalMin = 0;
-          finalMax = maxPriceLimit;
-          setTempMinPrice(0);
-          setTempMaxPrice(maxPriceLimit);
-      }
+      
       if (finalMin > 0) params.set('minPrice', String(finalMin)); else params.delete('minPrice');
       if (finalMax < maxPriceLimit) params.set('maxPrice', String(finalMax)); else params.delete('maxPrice');
+      
       startTransition(() => {
           router.push(`${pathname}?${params.toString()}`, { scroll: false });
           setMobileFiltersOpen(false);
@@ -300,19 +289,11 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
       });
   };
   
-  const handleClearFilters = () => {
-    const params = new URLSearchParams();
-    if (activeSort !== 'DATE_DESC') params.set('sort', activeSort);
-    setTempMinPrice(0);
-    setTempMaxPrice(maxPriceLimit);
-    startTransition(() => {
-        router.push(`${pathname}?${params.toString()}`, { scroll: false });
-        setMobileFiltersOpen(false); 
-        scrollToProducts();
-    });
+  const handleCategoryChange = (slug: string) => {
+      updateFilter('category', slug);
+      setMobileFiltersOpen(false); 
   };
-
-  const handleCategoryChange = (slug: string) => updateFilter('category', slug);
+  
   const handleAttrChange = (taxName: string, slug: string) => updateFilter(taxName, slug);
   const handleSortChange = (sortValue: string) => updateFilter('sort', sortValue); 
 
@@ -321,6 +302,16 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
   const isColorAttribute = (taxName: string) => {
       const lower = taxName.toLowerCase();
       return lower.includes('color') || lower.includes('feri') || lower.includes('colour');
+  };
+
+  // ✅ ატრიბუტების თარგმნის ლოგიკა (Fallback-ით)
+  const getTranslatedLabel = (attr: AttributeGroup) => {
+    try {
+        const translated = tAttr(attr.taxonomyName);
+        return translated.includes('Attributes.') ? attr.label : translated;
+    } catch {
+        return attr.label;
+    }
   };
 
   const sortOptions = [
@@ -344,15 +335,14 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
     }
   });
   if (urlMinPrice > 0 || urlMaxPrice < maxPriceLimit) {
-    activeBadges.push({ key: 'price', label: `${urlMinPrice}₾ - ${urlMaxPrice}₾` });
+    activeBadges.push({ key: 'price', label: `${urlMinPrice}${tCommon('currency')} - ${urlMaxPrice}${tCommon('currency')}` });
   }
   
   return (
     <>
-      {/* --- MOBILE FILTERS OVERLAY --- */}
-      <div className={`fixed inset-0 bg-black/60 z-[90] transition-opacity duration-300 md:hidden ${mobileFiltersOpen ? 'opacity-100 visible' : 'invisible'}`} onClick={() => setMobileFiltersOpen(false)}>
+      {/* --- MOBILE FILTERS DRAWER --- */}
+      <div className={`fixed inset-0 bg-black/60 z-[110] transition-opacity duration-300 md:hidden ${mobileFiltersOpen ? 'opacity-100 visible' : 'invisible'}`} onClick={() => setMobileFiltersOpen(false)}>
         <div className={`absolute right-0 top-0 bottom-0 w-[85%] max-w-[320px] bg-white shadow-2xl transform transition-transform duration-300 flex flex-col h-full ${mobileFiltersOpen ? 'translate-x-0' : 'translate-x-full'}`} onClick={(e) => e.stopPropagation()}>
-            
             <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-white">
                 <h3 className="font-serif font-bold text-xl text-brand-dark">{t('filters.title')}</h3>
                 <button onClick={() => setMobileFiltersOpen(false)} className="p-2 -mr-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full cursor-pointer transition"><X className="w-6 h-6" /></button>
@@ -360,11 +350,19 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
             
             <div className="flex-1 overflow-y-auto p-5 space-y-8">
                 <div>
-                  <h4 className="font-bold mb-3 uppercase text-[11px] tracking-widest text-brand-dark">ფასით გაფილტვრა</h4>
-                  <PriceFilter minPrice={tempMinPrice} maxPrice={tempMaxPrice} setMinPrice={setTempMinPrice} setMaxPrice={setTempMaxPrice} applyFilter={applyPriceFilter} maxLimit={maxPriceLimit} />
+                  <h4 className="font-bold mb-3 uppercase text-[11px] tracking-widest text-brand-dark">{t('filters.priceFilter')}</h4>
+                  <PriceFilter 
+                    minPrice={tempMinPrice} 
+                    maxPrice={tempMaxPrice} 
+                    setMinPrice={setTempMinPrice} 
+                    setMaxPrice={setTempMaxPrice} 
+                    applyFilter={applyPriceFilter} 
+                    maxLimit={maxPriceLimit} 
+                    filterLabel={t('filters.priceFilter')}
+                    currencySymbol={tCommon('currency')}
+                  />
                 </div>
 
-                {/* Mobile Categories */}
                 <div>
                     <h4 className="font-bold mb-3 uppercase text-[11px] tracking-widest text-brand-dark">{t('filters.categories')}</h4>
                     <div className="space-y-3"> 
@@ -390,41 +388,26 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
                     </div>
                 </div>
 
-                {/* Mobile Attributes */}
                 {attributes?.map((attr) => (
                     <div key={attr.taxonomyName}>
-                        <h4 className="font-bold mb-3 uppercase text-[11px] tracking-widest text-brand-dark">{attr.label}</h4>
-                        {isColorAttribute(attr.taxonomyName) ? (
-                            <div className="flex flex-wrap gap-2">
-                                <button onClick={() => handleAttrChange(attr.taxonomyName, 'all')} className={`px-3 py-1.5 text-[10px] border rounded-full transition cursor-pointer font-bold ${getActiveAttr(attr.taxonomyName) === 'all' ? 'bg-brand-dark text-white border-brand-dark' : 'bg-white hover:border-brand-dark text-gray-600'}`}>{t('filters.all')}</button>
-                                {attr.terms.map((term) => (
+                        <h4 className="font-bold mb-3 uppercase text-[11px] tracking-widest text-brand-dark">{getTranslatedLabel(attr)}</h4>
+                        <div className="flex flex-wrap gap-2">
+                             {attr.terms.map((term) => {
+                                const isColor = attr.taxonomyName.includes('color') || attr.taxonomyName.includes('feri');
+                                const isActive = getActiveAttr(attr.taxonomyName) === term.slug;
+                                return (
                                     <button 
                                         key={term.id} 
                                         onClick={() => handleAttrChange(attr.taxonomyName, term.slug)} 
-                                        className={`w-8 h-8 rounded-full border-2 transition transform hover:scale-110 cursor-pointer relative ${getActiveAttr(attr.taxonomyName) === term.slug ? 'border-brand-DEFAULT ring-2 ring-brand-light ring-offset-1' : 'border-gray-200'}`} 
-                                        style={{ backgroundColor: getColorHex(term.slug) }} 
-                                        title={term.name}
+                                        className={`transition-all ${isColor ? 'w-8 h-8 rounded-full border-2' : 'px-3 py-1.5 text-[10px] border rounded-full font-bold'} cursor-pointer ${isActive ? 'bg-brand-dark text-white border-brand-dark ring-2 ring-brand-light ring-offset-1' : 'bg-white hover:border-brand-dark text-gray-600'}`}
+                                        style={isColor ? { backgroundColor: getColorHex(term.slug) } : {}}
                                     >
-                                            {getActiveAttr(attr.taxonomyName) === term.slug && <Check className="w-3 h-3 text-white absolute inset-0 m-auto mix-blend-difference" />}
+                                        {!isColor && term.name}
+                                        {isColor && isActive && <Check className="w-3 h-3 text-white m-auto mix-blend-difference" />}
                                     </button>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="space-y-3">
-                                {attr.terms.map((term) => (
-                                    <label key={term.id} className="flex items-center gap-3 cursor-pointer group">
-                                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${getActiveAttr(attr.taxonomyName) === term.slug ? 'border-brand-DEFAULT' : 'border-gray-300'}`}>
-                                            {getActiveAttr(attr.taxonomyName) === term.slug && <div className="w-2.5 h-2.5 bg-brand-DEFAULT rounded-full" />}
-                                        </div>
-                                        <input type="radio" name={`mobile_${attr.taxonomyName}`} className="hidden" checked={getActiveAttr(attr.taxonomyName) === term.slug} onChange={() => handleAttrChange(attr.taxonomyName, term.slug)} />
-                                        <div className="flex items-center justify-between w-full">
-                                            <span className={`text-sm truncate mr-1 transition-colors ${getActiveAttr(attr.taxonomyName) === term.slug ? 'font-bold text-brand-dark' : 'text-gray-600'}`}>{term.name}</span>
-                                            <span className="text-[10px] text-gray-400 font-bold bg-gray-50 px-1.5 rounded">{term.count}</span>
-                                        </div>
-                                    </label>
-                                ))}
-                            </div>
-                        )}
+                                );
+                             })}
+                        </div>
                     </div>
                 ))}
             </div>
@@ -436,7 +419,7 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
         </div>
       </div>
 
-      {/* --- PAGE HEADER --- */}
+      {/* ✅ HEADER SECTION - დაბრუნებულია ორიგინალი პოზიცია */}
       <div className="container mx-auto px-4 mb-6 md:mb-8 mt-4 md:mt-0" ref={productsTopRef}>
           <div className="flex md:hidden items-center justify-between gap-4 mb-6">
               <div>
@@ -453,7 +436,6 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
 
           <div className="hidden md:flex flex-col md:flex-row justify-between items-end gap-6 border-b border-gray-100 pb-8">
               <div>
-                  <span className="text-brand-DEFAULT text-xs font-bold tracking-widest uppercase mb-2 block">2025</span>
                   <h1 className="text-4xl md:text-6xl font-serif font-black text-brand-dark">{t('title')}</h1>
                   <p className="text-gray-400 mt-2 text-sm">
                     {t('productsCount', { count: initialProducts.length })}
@@ -486,10 +468,21 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
             <aside className="space-y-10 overflow-y-auto pr-4 pt-6 pb-24 h-full hide-scrollbar"> 
                 <div>
                     <button className="flex justify-between items-center w-full font-bold uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2 mb-6 cursor-pointer" onClick={() => setIsPriceOpen(!isPriceOpen)}>
-                        ფასით გაფილტვრა
+                        {t('filters.priceFilter')}
                         <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isPriceOpen ? 'rotate-180' : ''}`} />
                     </button>
-                    {isPriceOpen && <PriceFilter minPrice={tempMinPrice} maxPrice={tempMaxPrice} setMinPrice={setTempMinPrice} setMaxPrice={setTempMaxPrice} applyFilter={applyPriceFilter} maxLimit={maxPriceLimit} />}
+                    {isPriceOpen && (
+                        <PriceFilter 
+                            minPrice={tempMinPrice} 
+                            maxPrice={tempMaxPrice} 
+                            setMinPrice={setTempMinPrice} 
+                            setMaxPrice={setTempMaxPrice} 
+                            applyFilter={applyPriceFilter} 
+                            maxLimit={maxPriceLimit} 
+                            filterLabel={t('filters.priceFilter')}
+                            currencySymbol={tCommon('currency')}
+                        />
+                    )}
                 </div>
 
                 {/* Desktop Categories */}
@@ -527,7 +520,7 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
                 {attributes?.map((attr) => (
                     <div key={attr.taxonomyName}>
                         <button className="flex justify-between items-center w-full font-bold uppercase text-xs tracking-widest text-brand-dark border-b border-gray-100 pb-2 mb-6 cursor-pointer" onClick={() => toggleSection(attr.taxonomyName)}>
-                            {attr.label}
+                            {getTranslatedLabel(attr)}
                             <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${openSections[attr.taxonomyName] ? 'rotate-180' : ''}`} />
                         </button>
                         {openSections[attr.taxonomyName] && (
@@ -540,28 +533,27 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
                                                 key={term.id} 
                                                 onClick={() => handleAttrChange(attr.taxonomyName, term.slug)} 
                                                 className={`w-8 h-8 rounded-full border-2 transition transform hover:scale-110 cursor-pointer relative ${getActiveAttr(attr.taxonomyName) === term.slug ? 'border-brand-DEFAULT ring-2 ring-brand-light ring-offset-2' : 'border-gray-100'}`} 
-                                                // ✅ აქ ვიყენებთ ახალ ფუნქციას: getColorHex
                                                 style={{ backgroundColor: getColorHex(term.slug) }} 
                                                 title={term.name}
                                             >
-                                                {getActiveAttr(attr.taxonomyName) === term.slug && <Check className="w-3 h-3 text-white absolute inset-0 m-auto mix-blend-difference" />}
+                                                    {getActiveAttr(attr.taxonomyName) === term.slug && <Check className="w-3 h-3 text-white absolute inset-0 m-auto mix-blend-difference" />}
                                             </button>
                                         ))}
                                     </div>
                                 ) : (
                                     <div className="space-y-3">
-                                        {attr.terms.map((term) => (
-                                            <label key={term.id} className="flex items-center justify-between group cursor-pointer">
-                                                <div className="flex items-center gap-3">
-                                                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${getActiveAttr(attr.taxonomyName) === term.slug ? 'border-brand-DEFAULT' : 'border-gray-300'}`}>
-                                                        {getActiveAttr(attr.taxonomyName) === term.slug && <div className="w-2 h-2 bg-brand-DEFAULT rounded-full" />}
+                                            {attr.terms.map((term) => (
+                                                <label key={term.id} className="flex items-center justify-between group cursor-pointer">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${getActiveAttr(attr.taxonomyName) === term.slug ? 'border-brand-DEFAULT' : 'border-gray-300'}`}>
+                                                            {getActiveAttr(attr.taxonomyName) === term.slug && <div className="w-2 h-2 bg-brand-DEFAULT rounded-full" />}
+                                                        </div>
+                                                        <input type="radio" name={attr.taxonomyName} className="hidden" checked={getActiveAttr(attr.taxonomyName) === term.slug} onChange={() => handleAttrChange(attr.taxonomyName, term.slug)} />
+                                                        <span className={`text-sm transition-colors ${getActiveAttr(attr.taxonomyName) === term.slug ? 'font-bold text-brand-dark' : 'text-gray-600'}`}>{term.name}</span>
                                                     </div>
-                                                    <input type="radio" name={attr.taxonomyName} className="hidden" checked={getActiveAttr(attr.taxonomyName) === term.slug} onChange={() => handleAttrChange(attr.taxonomyName, term.slug)} />
-                                                    <span className={`text-sm transition-colors ${getActiveAttr(attr.taxonomyName) === term.slug ? 'font-bold text-brand-dark' : 'text-gray-600'}`}>{term.name}</span>
-                                                </div>
-                                                <span className="text-[10px] text-gray-400 font-bold bg-gray-50 px-1.5 py-0.5 rounded">{term.count}</span>
-                                            </label>
-                                        ))}
+                                                    <span className="text-[10px] text-gray-400 font-bold bg-gray-50 px-1.5 py-0.5 rounded">{term.count}</span>
+                                                </label>
+                                            ))}
                                     </div>
                                 )}
                             </div>
@@ -591,14 +583,14 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
                 </div>
             )}
 
-            {/* ✅ გამოიყენება sortedProducts (დასორტირებული) სია, initialProducts-ის ნაცვლად */}
+            {/* ✅ Load More: ვიყენებთ დაჭრილ პროდუქტებს */}
             <div className={`grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-x-3 gap-y-6 md:gap-8 transition-opacity duration-300 ${isPending ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
-                {sortedProducts.map((product) => (
+                {visibleProducts.map((product) => (
                     <ProductCard 
                         key={product.databaseId || product.id}
                         id={product.databaseId}
                         name={product.name}
-                        price={product.price ? `${parsePrice(product.price)} ₾` : ''}
+                        price={product.price ? `${parsePrice(product.price)} ${tCommon('currency')}` : ''}
                         salePrice={product.salePrice}
                         regularPrice={product.regularPrice}
                         image={product.image?.sourceUrl}
@@ -613,12 +605,31 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
                 ))}
             </div>
             
-            {initialProducts.length === 0 && (
+            {initialProducts.length === 0 ? (
                 <div className="text-center py-20 text-gray-400 bg-gray-50 rounded-3xl mx-4 md:mx-0">
                     <ShoppingBag className="w-10 h-10 text-gray-300 mx-auto mb-3" />
                     <p className="text-sm font-medium">{t('notFound')}</p>
                     <button onClick={handleClearFilters} className="mt-3 text-brand-DEFAULT font-bold hover:underline text-xs cursor-pointer transition">{tCommon('clearFilters')}</button>
                 </div>
+            ) : (
+                /* ✅ Load More ღილაკი */
+                visibleCount < sortedProducts.length && (
+                    <div className="mt-12 flex flex-col items-center gap-4">
+                        <div className="w-full max-w-xs bg-gray-100 h-1 rounded-full overflow-hidden">
+                            <div className="bg-brand-dark h-full transition-all duration-500" style={{ width: `${(visibleCount / sortedProducts.length) * 100}%` }}></div>
+                        </div>
+                        <p className="text-xs text-gray-500 font-bold">
+                            {tCommon('showing').replace('{current}', String(visibleCount)).replace('{total}', String(sortedProducts.length))}
+                        </p>
+                        <button 
+                            onClick={() => setVisibleCount(prev => prev + PRODUCTS_PER_PAGE)}
+                            className="bg-white border-2 border-brand-dark text-brand-dark px-10 py-3 rounded-full font-bold uppercase text-xs tracking-widest hover:bg-brand-dark hover:text-white transition-all active:scale-95 shadow-sm flex items-center gap-2 cursor-pointer"
+                        >
+                            <ArrowDownCircle className="w-4 h-4" />
+                            {tCommon('loadMore')}
+                        </button>
+                    </div>
+                )
             )}
         </div>
       </div>
