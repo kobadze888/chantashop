@@ -24,7 +24,6 @@ interface CatalogClientProps {
 
 const PRODUCTS_PER_PAGE = 12;
 
-// ✅ 1. Color Map
 const colorMap: Record<string, string> = { 
     'shavi': '#000000', 'black': '#000000', 'chernyj': '#000000', 'chernyy': '#000000',
     'tetri': '#FFFFFF', 'white': '#FFFFFF', 'belyj': '#FFFFFF', 'belyy': '#FFFFFF',
@@ -226,14 +225,18 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
       setOpenSections(prev => ({ ...prev, [taxName]: !prev[taxName] }));
   };
 
-  // ✅ სქროლის ფუნქცია
+  // ✅ სქროლის ფუნქცია: Offset 110px (60px Header + 50px Filter Bar)
   const scrollToProducts = () => {
     setTimeout(() => {
         if (productsTopRef.current) {
             const isMobile = window.innerWidth < 768;
-            const offset = isMobile ? 120 : 100;
+            const offset = isMobile ? 180 : 150;
             const elementPosition = productsTopRef.current.getBoundingClientRect().top + window.pageYOffset;
-            window.scrollTo({ top: elementPosition - offset, behavior: "smooth" });
+            
+            window.scrollTo({ 
+                top: elementPosition - offset, 
+                behavior: "smooth" 
+            });
         }
     }, 100);
   };
@@ -339,20 +342,7 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
   
   return (
     <>
-      {/* ✅ FLOATING MOBILE FILTER BUTTON - FIX: Z-Index 80 (ტოასტზე და მენიუზე დაბლა) */}
-      {!mobileFiltersOpen && (
-        <div className="md:hidden fixed bottom-16 left-1/2 -translate-x-1/2 z-[80] pointer-events-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <button 
-            onClick={() => setMobileFiltersOpen(true)} 
-            className="bg-brand-dark text-white px-5 py-3 rounded-full shadow-2xl flex items-center gap-2 font-bold uppercase text-[10px] tracking-widest active:scale-95 transition-transform border border-white/10 backdrop-blur-sm cursor-pointer"
-            >
-            <SlidersHorizontal className="w-4 h-4" />
-            {t('filters.title')}
-            </button>
-        </div>
-      )}
-
-      {/* --- MOBILE FILTERS DRAWER (Z-INDEX 200) --- */}
+      {/* --- MOBILE FILTERS DRAWER (OVERLAY) --- */}
       <div className={`fixed inset-0 bg-black/60 z-[200] transition-opacity duration-300 md:hidden ${mobileFiltersOpen ? 'opacity-100 visible' : 'invisible'}`} onClick={() => setMobileFiltersOpen(false)}>
         <div className={`absolute right-0 top-0 bottom-0 w-[85%] max-w-[320px] bg-white shadow-2xl transform transition-transform duration-300 flex flex-col h-full ${mobileFiltersOpen ? 'translate-x-0' : 'translate-x-full'}`} onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-white">
@@ -442,47 +432,65 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
         </div>
       </div>
 
-      {/* --- PAGE HEADER --- */}
-      <div className="container mx-auto px-4 mb-6 md:mb-8 mt-4 md:mt-0" ref={productsTopRef}>
-          <div className="flex md:hidden items-center justify-between gap-4 mb-6">
-              <div>
-                  <h1 className="text-2xl font-serif font-black text-brand-dark">{t('title')}</h1>
-                  <p className="text-gray-400 text-xs mt-1">
+      {/* ✅ MOBILE HEADER (Sticky, One row) */}
+    
+      <div 
+        className="md:hidden sticky top-[72px] z-40 bg-white border-b border-gray-100 mb-4 transition-all duration-300"
+        ref={productsTopRef}
+      >
+          <div className="container mx-auto px-4 h-[50px] flex items-center justify-between">
+              {/* მარცხენა მხარე: სათაური და რაოდენობა */}
+              <div 
+                onClick={scrollToProducts}
+                className="flex flex-col justify-center cursor-pointer"
+              >
+                  <h1 className="text-lg font-serif font-black text-brand-dark leading-none">{t('title')}</h1>
+                  <span className="text-[10px] text-gray-500 font-medium mt-0.5">
                     {t('productsCount', { count: initialProducts.length })}
                     {isPending && <span className="text-brand-DEFAULT ml-2 animate-pulse">{tCommon('loading')}</span>}
-                  </p>
+                  </span>
               </div>
-          </div>
 
-          <div className="hidden md:flex flex-col md:flex-row justify-between items-end gap-6 border-b border-gray-100 pb-8">
-              <div>
-                  <h1 className="text-4xl md:text-6xl font-serif font-black text-brand-dark">{t('title')}</h1>
-                  <p className="text-gray-400 mt-2 text-sm">
-                    {t('productsCount', { count: initialProducts.length })}
-                    {isPending && <span className="text-brand-DEFAULT ml-2 animate-pulse">{tCommon('loading')}</span>}
-                  </p>
-              </div>
-              
-              <div className="relative flex-1 md:flex-none" ref={sortDropdownRef}> 
-                  <button onClick={() => setIsSortOpen(prev => !prev)} className="w-full md:w-auto bg-white border border-gray-200 text-brand-dark py-3 px-6 pr-10 rounded-xl font-bold outline-none focus:border-brand-DEFAULT cursor-pointer shadow-sm flex items-center justify-between hover:border-gray-300 transition">
-                      {sortOptions.find(o => o.value === activeSort)?.label || sortOptions[0].label}
-                      <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${isSortOpen ? 'rotate-180' : ''} ml-2`} />
-                  </button>
-                  {isSortOpen && (
-                      <div className="absolute right-0 mt-2 w-full bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-30 animate-fade-in"> 
-                          {sortOptions.map(option => (
-                              <button key={option.value} onClick={() => { handleSortChange(option.value); setIsSortOpen(false); }} className={`w-full px-5 py-3 text-sm text-left transition text-brand-dark cursor-pointer ${option.value === activeSort ? 'bg-brand-light font-bold text-brand-DEFAULT' : 'hover:bg-gray-50'}`}>{option.label}</button>
-                          ))}
-                      </div>
-                  )}
-              </div>
+              {/* მარჯვენა მხარე: ფილტრის ღილაკი */}
+              <button 
+                onClick={() => setMobileFiltersOpen(true)} 
+                className="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 text-brand-dark px-3 py-1.5 rounded-lg transition active:scale-95 border border-gray-200 cursor-pointer"
+              >
+                <SlidersHorizontal className="w-4 h-4" />
+                <span className="text-[10px] font-bold uppercase tracking-wide">{t('filters.title')}</span>
+              </button>
           </div>
       </div>
 
-      <div className="container mx-auto px-4 flex gap-12 relative mt-2 md:mt-8">
-        {/* --- SIDEBAR (Desktop) --- */}
-        <div className="hidden md:block w-1/4 sticky top-28 h-[calc(100vh-8rem)]"> 
-            <div className="bg-white pt-4 pb-4 border-b border-gray-100 px-4">
+      {/* ✅ DESKTOP HEADER (Static) */}
+      <div className="hidden md:flex container mx-auto px-4 mb-8 justify-between items-end border-b border-gray-100 pb-8 mt-8">
+          <div>
+              <h1 className="text-6xl font-serif font-black text-brand-dark">{t('title')}</h1>
+              <p className="text-gray-400 mt-2 text-sm">
+                {t('productsCount', { count: initialProducts.length })}
+                {isPending && <span className="text-brand-DEFAULT ml-2 animate-pulse">{tCommon('loading')}</span>}
+              </p>
+          </div>
+          
+          <div className="relative" ref={sortDropdownRef}> 
+              <button onClick={() => setIsSortOpen(prev => !prev)} className="bg-white border border-gray-200 text-brand-dark py-3 px-6 pr-10 rounded-xl font-bold outline-none focus:border-brand-DEFAULT cursor-pointer shadow-sm flex items-center justify-between hover:border-gray-300 transition">
+                  {sortOptions.find(o => o.value === activeSort)?.label || sortOptions[0].label}
+                  <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${isSortOpen ? 'rotate-180' : ''} ml-2`} />
+              </button>
+              {isSortOpen && (
+                  <div className="absolute right-0 mt-2 w-full min-w-[200px] bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-[110] animate-fade-in"> 
+                      {sortOptions.map(option => (
+                          <button key={option.value} onClick={() => { handleSortChange(option.value); setIsSortOpen(false); }} className={`w-full px-5 py-3 text-sm text-left transition text-brand-dark cursor-pointer ${option.value === activeSort ? 'bg-brand-light font-bold text-brand-DEFAULT' : 'hover:bg-gray-50'}`}>{option.label}</button>
+                      ))}
+                  </div>
+              )}
+          </div>
+      </div>
+
+      <div className="container mx-auto px-4 flex gap-12 relative mt-2 md:mt-0" ref={productsTopRef}>
+        {/* ... (დანარჩენი კოდი უცვლელია: Sidebar, Products Grid, etc.) ... */}
+        <div className="hidden md:block w-1/4 sticky top-32 h-[calc(100vh-10rem)]"> 
+            <div className="bg-white pb-4 border-b border-gray-100 px-4">
                 <button onClick={handleClearFilters} disabled={!filtersActive} className={`w-full py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 cursor-pointer ${filtersActive ? 'bg-brand-DEFAULT text-white hover:bg-brand-dark' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}><RefreshCcw className="w-4 h-4" /> {tCommon('clearFilters')}</button>
             </div>
             <aside className="space-y-10 overflow-y-auto pr-4 pt-6 pb-24 h-full hide-scrollbar"> 
