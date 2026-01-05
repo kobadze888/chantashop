@@ -22,7 +22,7 @@ interface CatalogClientProps {
   locale: string;
 }
 
-const PRODUCTS_PER_PAGE = 12; // ✅ პაგინაციის რაოდენობა
+const PRODUCTS_PER_PAGE = 12;
 
 // ✅ 1. Color Map
 const colorMap: Record<string, string> = { 
@@ -102,7 +102,7 @@ const PriceFilter = ({
                       value={minPrice === 0 ? '' : minPrice} 
                       onChange={handleMinChange}
                       onFocus={(e) => e.target.select()}
-                      className="w-full border border-gray-200 bg-gray-50 rounded-lg pl-6 pr-2 py-2 text-base md:text-sm font-bold text-brand-dark focus:border-brand-DEFAULT focus:ring-1 focus:ring-brand-DEFAULT outline-none transition cursor-text" 
+                      className="w-full border border-gray-200 bg-gray-50 rounded-lg pl-6 pr-2 py-2 text-sm font-bold text-brand-dark focus:border-brand-DEFAULT focus:ring-1 focus:ring-brand-DEFAULT outline-none transition cursor-text" 
                       placeholder="0"
                       min="0"
                       inputMode="numeric"
@@ -116,7 +116,7 @@ const PriceFilter = ({
                       value={maxPrice === maxLimit ? '' : maxPrice} 
                       onChange={handleMaxChange}
                       onFocus={(e) => e.target.select()}
-                      className="w-full border border-gray-200 bg-gray-50 rounded-lg pl-6 pr-2 py-2 text-base md:text-sm font-bold text-brand-dark focus:border-brand-DEFAULT focus:ring-1 focus:ring-brand-DEFAULT outline-none transition cursor-text" 
+                      className="w-full border border-gray-200 bg-gray-50 rounded-lg pl-6 pr-2 py-2 text-sm font-bold text-brand-dark focus:border-brand-DEFAULT focus:ring-1 focus:ring-brand-DEFAULT outline-none transition cursor-text" 
                       placeholder={String(maxLimit)}
                       max={maxLimit}
                       inputMode="numeric"
@@ -180,7 +180,6 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   const [isSortOpen, setIsSortOpen] = useState(false);
 
-  // ✅ პაგინაციის სთეითი
   const [visibleCount, setVisibleCount] = useState(PRODUCTS_PER_PAGE);
 
   useEffect(() => {
@@ -209,7 +208,6 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
       setOpenSections(defaults);
   }, [attributes]);
 
-  // ✅ ფილტრის შეცვლისას პაგინაციის განულება
   useEffect(() => {
       setVisibleCount(PRODUCTS_PER_PAGE);
   }, [activeCategory, urlMinPrice, urlMaxPrice, searchParams]);
@@ -222,20 +220,22 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
       return 0;
   });
 
-  // ✅ პროდუქტების დაჭრა პაგინაციისთვის
   const visibleProducts = sortedProducts.slice(0, visibleCount);
 
   const toggleSection = (taxName: string) => {
       setOpenSections(prev => ({ ...prev, [taxName]: !prev[taxName] }));
   };
 
-  // ✅ სქროლის ლოგიკა: ფილტრის გამოყენებისას ზემოთ დაბრუნება
+  // ✅ სქროლის ფუნქცია
   const scrollToProducts = () => {
-    if (productsTopRef.current) {
-        const offset = 100;
-        const elementPosition = productsTopRef.current.getBoundingClientRect().top + window.pageYOffset;
-        window.scrollTo({ top: elementPosition - offset, behavior: "smooth" });
-    }
+    setTimeout(() => {
+        if (productsTopRef.current) {
+            const isMobile = window.innerWidth < 768;
+            const offset = isMobile ? 120 : 100;
+            const elementPosition = productsTopRef.current.getBoundingClientRect().top + window.pageYOffset;
+            window.scrollTo({ top: elementPosition - offset, behavior: "smooth" });
+        }
+    }, 100);
   };
 
   const updateFilter = (key: string, value: string | number) => {
@@ -284,14 +284,14 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
       
       startTransition(() => {
           router.push(`${pathname}?${params.toString()}`, { scroll: false });
-          setMobileFiltersOpen(false);
-          scrollToProducts();
+          setMobileFiltersOpen(false); 
+          scrollToProducts(); 
       });
   };
   
   const handleCategoryChange = (slug: string) => {
       updateFilter('category', slug);
-      setMobileFiltersOpen(false); 
+      if (window.innerWidth < 768) setMobileFiltersOpen(false); 
   };
   
   const handleAttrChange = (taxName: string, slug: string) => updateFilter(taxName, slug);
@@ -304,7 +304,6 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
       return lower.includes('color') || lower.includes('feri') || lower.includes('colour');
   };
 
-  // ✅ ატრიბუტების თარგმნის ლოგიკა (Fallback-ით)
   const getTranslatedLabel = (attr: AttributeGroup) => {
     try {
         const translated = tAttr(attr.taxonomyName);
@@ -340,8 +339,21 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
   
   return (
     <>
-      {/* --- MOBILE FILTERS DRAWER --- */}
-      <div className={`fixed inset-0 bg-black/60 z-[110] transition-opacity duration-300 md:hidden ${mobileFiltersOpen ? 'opacity-100 visible' : 'invisible'}`} onClick={() => setMobileFiltersOpen(false)}>
+      {/* ✅ FLOATING MOBILE FILTER BUTTON - FIX: Z-Index 80 (ტოასტზე და მენიუზე დაბლა) */}
+      {!mobileFiltersOpen && (
+        <div className="md:hidden fixed bottom-16 left-1/2 -translate-x-1/2 z-[80] pointer-events-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <button 
+            onClick={() => setMobileFiltersOpen(true)} 
+            className="bg-brand-dark text-white px-5 py-3 rounded-full shadow-2xl flex items-center gap-2 font-bold uppercase text-[10px] tracking-widest active:scale-95 transition-transform border border-white/10 backdrop-blur-sm cursor-pointer"
+            >
+            <SlidersHorizontal className="w-4 h-4" />
+            {t('filters.title')}
+            </button>
+        </div>
+      )}
+
+      {/* --- MOBILE FILTERS DRAWER (Z-INDEX 200) --- */}
+      <div className={`fixed inset-0 bg-black/60 z-[200] transition-opacity duration-300 md:hidden ${mobileFiltersOpen ? 'opacity-100 visible' : 'invisible'}`} onClick={() => setMobileFiltersOpen(false)}>
         <div className={`absolute right-0 top-0 bottom-0 w-[85%] max-w-[320px] bg-white shadow-2xl transform transition-transform duration-300 flex flex-col h-full ${mobileFiltersOpen ? 'translate-x-0' : 'translate-x-full'}`} onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-white">
                 <h3 className="font-serif font-bold text-xl text-brand-dark">{t('filters.title')}</h3>
@@ -413,13 +425,24 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
             </div>
 
             <div className="p-4 border-t border-gray-100 bg-white space-y-3 z-10">
-                <button onClick={() => setMobileFiltersOpen(false)} className="w-full bg-brand-dark text-white py-3.5 rounded-xl font-bold cursor-pointer shadow-lg active:scale-95 transition text-sm">{tCommon('showResults')}</button>
-                <button onClick={handleClearFilters} disabled={!filtersActive} className={`w-full py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 text-sm cursor-pointer ${filtersActive ? 'bg-gray-100 text-red-500 hover:bg-red-50' : 'bg-gray-50 text-gray-300 cursor-not-allowed'}`}><RefreshCcw className="w-3.5 h-3.5" /> {tCommon('clearFilters')}</button>
+                <button 
+                    onClick={() => { applyPriceFilter(); scrollToProducts(); setMobileFiltersOpen(false); }} 
+                    className="w-full bg-brand-dark text-white py-3.5 rounded-xl font-bold cursor-pointer shadow-lg active:scale-95 transition text-sm"
+                >
+                    {tCommon('showResults')}
+                </button>
+                <button 
+                    onClick={() => { handleClearFilters(); setMobileFiltersOpen(false); }} 
+                    disabled={!filtersActive} 
+                    className={`w-full py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 text-sm cursor-pointer ${filtersActive ? 'bg-gray-100 text-red-500 hover:bg-red-50' : 'bg-gray-50 text-gray-300 cursor-not-allowed'}`}
+                >
+                    <RefreshCcw className="w-3.5 h-3.5" /> {tCommon('clearFilters')}
+                </button>
             </div>
         </div>
       </div>
 
-      {/* ✅ HEADER SECTION - დაბრუნებულია ორიგინალი პოზიცია */}
+      {/* --- PAGE HEADER --- */}
       <div className="container mx-auto px-4 mb-6 md:mb-8 mt-4 md:mt-0" ref={productsTopRef}>
           <div className="flex md:hidden items-center justify-between gap-4 mb-6">
               <div>
@@ -429,9 +452,6 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
                     {isPending && <span className="text-brand-DEFAULT ml-2 animate-pulse">{tCommon('loading')}</span>}
                   </p>
               </div>
-              <button onClick={() => setMobileFiltersOpen(true)} className="bg-brand-dark text-white p-3 rounded-xl shadow-lg active:scale-95 transition cursor-pointer flex items-center justify-center">
-                  <SlidersHorizontal className="w-5 h-5" />
-              </button>
           </div>
 
           <div className="hidden md:flex flex-col md:flex-row justify-between items-end gap-6 border-b border-gray-100 pb-8">
@@ -563,7 +583,7 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
             </aside>
         </div>
 
-        {/* --- MAIN CONTENT --- */}
+        {/* --- PRODUCTS --- */}
         <div className="flex-1">
             {activeBadges.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2 mb-6 animate-fade-in">

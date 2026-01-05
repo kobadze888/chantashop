@@ -31,7 +31,7 @@ export default function Toast() {
       onAnimationEnd={() => !isVisible && setShouldRender(false)}
       className={`
         fixed z-[9999] 
-        bottom-24 left-4 right-4 
+        bottom-30 left-4 right-4 
         md:bottom-auto md:top-28 md:right-8 md:left-auto 
         md:w-auto md:min-w-[320px] md:max-w-sm
         transition-all duration-500 ease-out
