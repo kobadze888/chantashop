@@ -16,7 +16,9 @@
     "success": "Success",
     "retry": "Retry",
     "close": "Close",
-    "share": "Share"
+    "share": "Share",
+    "loadMore": "Load more",
+    "showing": "Showing {current} of {total}"
   },
   "Header": {
     "promo": "Free shipping on orders over 200₾",
