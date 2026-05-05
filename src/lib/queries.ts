@@ -116,7 +116,16 @@ export const GET_HOME_DATA_QUERY = `
   ${PRODUCT_FRAGMENT}
   query GetHomeData($wpLang: String!) {
     categories: productCategories(first: 12, where: { hideEmpty: true, wpLang: $wpLang, orderby: COUNT, order: DESC }) {
-      nodes { id name slug count image { sourceUrl } }
+      nodes {
+        id name slug count
+        image { sourceUrl }
+        products(first: 1, where: { orderby: { field: DATE, order: DESC } }) {
+          nodes {
+            ... on SimpleProduct { image { sourceUrl } }
+            ... on VariableProduct { image { sourceUrl } }
+          }
+        }
+      }
     }
     newArrivals: products(first: 8, where: { wpLang: $wpLang, orderby: { field: DATE, order: DESC } }) {
       nodes { ...ProductFragment }

@@ -44,17 +44,17 @@
     "Hero": {
       "badge": "Новая Коллекция",
       "title": "Iconic Luxury.",
-      "subtitle": "Силуэт завтрашнего дня — сегодня",
+      "subtitle": "Сумки и аксессуары по лучшей цене — с доставкой",
       "cta": "Посмотреть коллекцию",
       "ctaSecondary": "Новинки"
     },
     "Promo": {
       "shipping": "Бесплатная доставка от 200₾",
       "shippingDesc": "Экспресс-доставка по Грузии",
-      "payment": "0% рассрочка",
-      "paymentDesc": "Банк Грузии / TBC",
-      "returns": "14 дней на возврат",
-      "returnsDesc": "Бесплатно, любая причина"
+      "courier": "Курьерская доставка",
+      "courierDesc": "Прямо к вашему адресу",
+      "card": "Онлайн-оплата картой",
+      "cardDesc": "VISA, Mastercard, AMEX"
     },
     "Categories": {
       "subtitle": "Эксклюзивная подборка",

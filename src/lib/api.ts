@@ -123,6 +123,7 @@ export interface HomeCategory {
   slug: string;
   count: number;
   image: { sourceUrl: string } | null;
+  products?: { nodes: Array<{ image?: { sourceUrl: string } | null }> };
 }
 
 export interface HomeData {

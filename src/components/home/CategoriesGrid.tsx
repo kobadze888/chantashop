@@ -36,7 +36,11 @@ export default function CategoriesGrid({ categories, fallbackImages }: Props) {
 
       <ul className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
         {visible.map((cat) => {
-          const img = cat.image?.sourceUrl || fallbackImages[cat.slug] || fallbackImages.default;
+          const img =
+            cat.image?.sourceUrl ||
+            cat.products?.nodes?.[0]?.image?.sourceUrl ||
+            fallbackImages[cat.slug] ||
+            fallbackImages.default;
           return (
             <li key={cat.id}>
               <Link

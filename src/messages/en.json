@@ -44,17 +44,17 @@
     "Hero": {
       "badge": "New Arrival",
       "title": "Iconic Luxury.",
-      "subtitle": "Tomorrow's silhouette — today",
+      "subtitle": "Bags and accessories at the best price — delivered to you",
       "cta": "Shop Collection",
       "ctaSecondary": "What's New"
     },
     "Promo": {
       "shipping": "Free shipping on 200₾+ orders",
       "shippingDesc": "Express delivery in Georgia",
-      "payment": "0% installments",
-      "paymentDesc": "Bank of Georgia / TBC",
-      "returns": "14-day returns",
-      "returnsDesc": "Free, any reason"
+      "courier": "Courier delivery",
+      "courierDesc": "Right to your address",
+      "card": "Online card payment",
+      "cardDesc": "VISA, Mastercard, AMEX"
     },
     "Categories": {
       "subtitle": "Exclusive Selection",

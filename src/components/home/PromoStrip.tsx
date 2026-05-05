@@ -1,4 +1,4 @@
-import { Truck, CreditCard, RefreshCcw } from 'lucide-react';
+import { Truck, Bike, CreditCard } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 export default function PromoStrip() {
@@ -6,8 +6,8 @@ export default function PromoStrip() {
 
   const items = [
     { Icon: Truck, label: t('shipping'), desc: t('shippingDesc') },
-    { Icon: CreditCard, label: t('payment'), desc: t('paymentDesc') },
-    { Icon: RefreshCcw, label: t('returns'), desc: t('returnsDesc') },
+    { Icon: Bike, label: t('courier'), desc: t('courierDesc') },
+    { Icon: CreditCard, label: t('card'), desc: t('cardDesc') },
   ];
 
   return (
