@@ -112,6 +112,24 @@ export const GET_FILTERS_QUERY = `
   }
 `;
 
+export const GET_HOME_DATA_QUERY = `
+  ${PRODUCT_FRAGMENT}
+  query GetHomeData($wpLang: String!) {
+    categories: productCategories(first: 12, where: { hideEmpty: true, wpLang: $wpLang, orderby: COUNT, order: DESC }) {
+      nodes { id name slug count image { sourceUrl } }
+    }
+    newArrivals: products(first: 8, where: { wpLang: $wpLang, orderby: { field: DATE, order: DESC } }) {
+      nodes { ...ProductFragment }
+    }
+    onSale: products(first: 8, where: { wpLang: $wpLang, onSale: true, orderby: { field: DATE, order: DESC } }) {
+      nodes { ...ProductFragment }
+    }
+    bestSellers: products(first: 4, where: { wpLang: $wpLang, orderby: { field: TOTAL_SALES, order: DESC } }) {
+      nodes { ...ProductFragment }
+    }
+  }
+`;
+
 export const GET_PRODUCT_BY_SLUG_QUERY = `
   ${PRODUCT_FRAGMENT} 
   ${SEO_FRAGMENT}

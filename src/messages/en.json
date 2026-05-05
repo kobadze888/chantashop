@@ -44,23 +44,61 @@
     "Hero": {
       "badge": "New Arrival",
       "title": "Iconic Luxury.",
-      "cta": "Discover Collection"
+      "subtitle": "Tomorrow's silhouette — today",
+      "cta": "Shop Collection",
+      "ctaSecondary": "What's New"
+    },
+    "Promo": {
+      "shipping": "Free shipping on 200₾+ orders",
+      "shippingDesc": "Express delivery in Georgia",
+      "payment": "0% installments",
+      "paymentDesc": "Bank of Georgia / TBC",
+      "returns": "14-day returns",
+      "returnsDesc": "Free, any reason"
+    },
+    "Categories": {
+      "subtitle": "Exclusive Selection",
+      "title": "Shop by Category",
+      "viewAll": "All Categories",
+      "products": "{count} items"
+    },
+    "NewArrivals": {
+      "subtitle": "Just Landed",
+      "title": "New Arrivals"
+    },
+    "Editorial": {
+      "luxuryLabel": "Premium Selection",
+      "luxuryTitle": "Luxury Collection",
+      "luxuryDesc": "World's finest brands",
+      "luxuryCta": "Explore",
+      "economyLabel": "Smart Choice",
+      "economyTitle": "Economy Line",
+      "economyDesc": "Quality at accessible prices",
+      "economyCta": "Explore"
+    },
+    "BestSellers": {
+      "subtitle": "Customer Favorites",
+      "title": "Best Sellers",
+      "rank": "#{rank}"
+    },
+    "Sale": {
+      "subtitle": "Limited Offer",
+      "title": "On Sale",
+      "viewAll": "View All Sale",
+      "off": "{percent}% off"
     },
     "Brands": {
       "label": "Premium Quality",
       "title": "Exclusive Brands"
     },
-    "Categories": {
-      "title": "Categories",
-      "mini": "Mini",
-      "tote": "Tote",
-      "leather": "Leather",
-      "travel": "Travel",
-      "sale": "Sale"
-    },
-    "Featured": {
-      "subtitle": "New Collection",
-      "title": "Featured Products"
+    "Newsletter": {
+      "subtitle": "Join Our Club",
+      "title": "Get Personal Offers",
+      "desc": "Subscribe to news and get -10% off your first order",
+      "placeholder": "Your email",
+      "cta": "Subscribe",
+      "success": "Thank you! Check your email to confirm.",
+      "agree": "I agree to the privacy policy"
     }
   },
   "Catalog": {

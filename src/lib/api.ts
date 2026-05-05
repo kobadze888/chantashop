@@ -1,9 +1,9 @@
 // src/lib/api.ts
 import { WORDPRESS_API_URL } from './constants';
-import { 
-  GET_PRODUCTS_QUERY, GET_FILTERS_QUERY, GET_PRODUCT_BY_SLUG_QUERY, 
+import {
+  GET_PRODUCTS_QUERY, GET_FILTERS_QUERY, GET_PRODUCT_BY_SLUG_QUERY,
   GET_PAGE_QUERY, GET_PAGE_BY_SLUG_NAME_QUERY, GET_SHOP_PAGE_WITH_TRANSLATIONS,
-  GET_SITEMAP_DATA_QUERY, TAXONOMY_SEO_FRAGMENT
+  GET_SITEMAP_DATA_QUERY, GET_HOME_DATA_QUERY, TAXONOMY_SEO_FRAGMENT
 } from './queries';
 import { Product, FilterTerm } from '@/types';
 
@@ -115,6 +115,36 @@ export async function getFilters(locale: string = 'ka'): Promise<FiltersData | n
 export async function getProductBySlug(slug: string, locale: string = 'ka'): Promise<Product | null> {
   const data = await fetchAPI(GET_PRODUCT_BY_SLUG_QUERY, { variables: { id: slug } }, 3600, ['products']);
   return data?.product || null;
+}
+
+export interface HomeCategory {
+  id: string;
+  name: string;
+  slug: string;
+  count: number;
+  image: { sourceUrl: string } | null;
+}
+
+export interface HomeData {
+  categories: HomeCategory[];
+  newArrivals: Product[];
+  onSale: Product[];
+  bestSellers: Product[];
+}
+
+export async function getHomeData(locale: string = 'ka'): Promise<HomeData> {
+  const data = await fetchAPI(
+    GET_HOME_DATA_QUERY,
+    { variables: { wpLang: locale.toUpperCase() } },
+    1800,
+    ['products', 'categories']
+  );
+  return {
+    categories: data?.categories?.nodes ?? [],
+    newArrivals: data?.newArrivals?.nodes ?? [],
+    onSale: data?.onSale?.nodes ?? [],
+    bestSellers: data?.bestSellers?.nodes ?? [],
+  };
 }
 
 export async function getPageByUri(uri: string) {

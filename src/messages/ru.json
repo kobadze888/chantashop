@@ -44,23 +44,61 @@
     "Hero": {
       "badge": "Новая Коллекция",
       "title": "Iconic Luxury.",
-      "cta": "Открыть коллекцию"
+      "subtitle": "Силуэт завтрашнего дня — сегодня",
+      "cta": "Посмотреть коллекцию",
+      "ctaSecondary": "Новинки"
+    },
+    "Promo": {
+      "shipping": "Бесплатная доставка от 200₾",
+      "shippingDesc": "Экспресс-доставка по Грузии",
+      "payment": "0% рассрочка",
+      "paymentDesc": "Банк Грузии / TBC",
+      "returns": "14 дней на возврат",
+      "returnsDesc": "Бесплатно, любая причина"
+    },
+    "Categories": {
+      "subtitle": "Эксклюзивная подборка",
+      "title": "Выбирайте по категории",
+      "viewAll": "Все категории",
+      "products": "{count} товаров"
+    },
+    "NewArrivals": {
+      "subtitle": "Только что поступили",
+      "title": "Новые поступления"
+    },
+    "Editorial": {
+      "luxuryLabel": "Premium Selection",
+      "luxuryTitle": "Люкс коллекция",
+      "luxuryDesc": "Лучшие мировые бренды",
+      "luxuryCta": "Смотреть",
+      "economyLabel": "Smart Choice",
+      "economyTitle": "Эконом линия",
+      "economyDesc": "Качество по доступной цене",
+      "economyCta": "Смотреть"
+    },
+    "BestSellers": {
+      "subtitle": "Выбор покупателей",
+      "title": "Бестселлеры",
+      "rank": "#{rank}"
+    },
+    "Sale": {
+      "subtitle": "Ограниченное предложение",
+      "title": "Распродажа",
+      "viewAll": "Все со скидкой",
+      "off": "Скидка {percent}%"
     },
     "Brands": {
       "label": "Премиум Качество",
       "title": "Эксклюзивные Бренды"
     },
-    "Categories": {
-      "title": "Категории",
-      "mini": "Мини",
-      "tote": "Тоут",
-      "leather": "Кожа",
-      "travel": "Travel",
-      "sale": "Распродажа"
-    },
-    "Featured": {
-      "subtitle": "Новая Коллекция",
-      "title": "Рекомендуемые Товары"
+    "Newsletter": {
+      "subtitle": "Присоединяйтесь",
+      "title": "Получайте персональные скидки",
+      "desc": "Подпишитесь и получите -10% на первый заказ",
+      "placeholder": "Ваш email",
+      "cta": "Подписаться",
+      "success": "Спасибо! Проверьте email для подтверждения.",
+      "agree": "Согласен с политикой конфиденциальности"
     }
   },
   "Catalog": {
