@@ -1,26 +1,28 @@
 #!/bin/bash
+# Local-side deploy script (run from your dev machine).
+# Requires a meaningful commit message as the first argument.
+set -e
 
-# 1. ფაილების მომზადება Git-ისთვის
-echo "🚀 Adding changes to Git..."
+if [ -z "$1" ]; then
+  echo "❌ Commit message is required."
+  echo "Usage: ./deploy.sh \"fix: footer translations\""
+  exit 1
+fi
+
+MSG="$1"
+
+echo "📦 Staging changes..."
 git add .
 
-# 2. ავტომატური კომიტის მესიჯი თარიღით
-# მაგალითად: "Auto-deploy: 2025-12-20 18:15"
-DEPLOY_DATE=$(date "+%Y-%m-%d %H:%M")
-echo "📝 Committing changes with message: Auto-deploy: $DEPLOY_DATE"
-git commit -m "Auto-deploy: $DEPLOY_DATE"
+if git diff --cached --quiet; then
+  echo "ℹ️  Nothing to commit. Skipping commit & push."
+else
+  echo "📝 Committing: $MSG"
+  git commit -m "$MSG"
+  echo "📤 Pushing to GitHub..."
+  git push origin main
+fi
 
-# 3. Push GitHub-ზე
-echo "📤 Pushing to GitHub..."
-git push origin main
-
-# 4. პროექტის აწყობა (Build)
-echo "🏗️ Starting Next.js Build..."
-rm -rf .next
-npm run build
-
-# 5. საიტის გადატვირთვა
-echo "🔄 Restarting PM2 process..."
-pm2 restart 0
-
-echo "✅ Done! Changes are live and pushed to GitHub at $DEPLOY_DATE."
+echo ""
+echo "✅ Local deploy step done. Now run on the server:"
+echo "   ssh chantashop '/home/chantashop/htdocs/chantashop.ge/pull-deploy.sh'"

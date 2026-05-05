@@ -35,7 +35,10 @@
     "aboutUs": "About Us",
     "customerService": "Customer Service",
     "quickLinks": "Quick Links",
-    "contactInfo": "Contact Information"
+    "contactInfo": "Contact Information",
+    "contact": "Contact",
+    "privacy": "Privacy Policy",
+    "terms": "Terms & Conditions"
   },
   "Home": {
     "Hero": {
