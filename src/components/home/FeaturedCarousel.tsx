@@ -9,18 +9,22 @@ import 'swiper/css';
 
 interface FeaturedCarouselProps {
   title: string;
+  subtitle?: string;
   products: any[];
   locale: string;
 }
 
-export default function FeaturedCarousel({ title, products, locale }: FeaturedCarouselProps) {
+export default function FeaturedCarousel({ title, subtitle, products, locale }: FeaturedCarouselProps) {
   const prevRef = useRef<HTMLButtonElement>(null);
   const nextRef = useRef<HTMLButtonElement>(null);
 
   return (
     <section className="py-12">
       <div className="flex items-center justify-between mb-8">
-        <h2 className="text-xl md:text-2xl font-serif font-bold text-brand-dark tracking-tight">{title}</h2>
+        <div>
+          {subtitle && <p className="text-xs uppercase tracking-widest text-brand-DEFAULT font-bold mb-1">{subtitle}</p>}
+          <h2 className="text-xl md:text-2xl font-serif font-bold text-brand-dark tracking-tight">{title}</h2>
+        </div>
         <div className="flex gap-2">
           <button ref={prevRef} className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-brand-dark hover:text-white transition-all active:scale-90">
             <ChevronLeft className="w-5 h-5" />

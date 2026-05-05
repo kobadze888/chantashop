@@ -31,9 +31,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   experimental: {
     optimizePackageImports: ['lucide-react', 'clsx', 'tailwind-merge', 'zustand'],
   },

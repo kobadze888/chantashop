@@ -339,7 +339,7 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
             const messages = {
                 added: tToast('added', { name: itemBase.name }),
                 increased: tToast('quantityIncreased', { name: itemBase.name }),
-                stockError: tToast('stockError', { quantity: displayStockQuantity })
+                stockError: tToast('stockError', { quantity: displayStockQuantity ?? 0 })
             };
 
             for (let i = 0; i < quantity; i++) {

@@ -21,6 +21,8 @@ export const routing = defineRouting({
     '/track-order/[id]': '/track-order/[id]',
     '/brands': '/brands',
     '/sale': '/sale',
+    '/about': '/about',
+    '/contact': '/contact',
     '/shop': {
       ka: '/shop',
       en: '/shop',

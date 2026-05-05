@@ -21,7 +21,6 @@ export default function TrackOrderContent() {
     setIsLoading(true);
     router.push({
         pathname: '/track-order/[id]',
-        // @ts-expect-error
         params: { id: orderId },
         query: { email: email }
     });

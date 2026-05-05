@@ -32,7 +32,7 @@ export default function AddToCartButton({ product, stockStatus, disabled = false
             const messages = {
                 added: tToast('added', { name: product.name }),
                 increased: tToast('quantityIncreased', { name: product.name }),
-                stockError: tToast('stockError', { quantity: product.stockQuantity })
+                stockError: tToast('stockError', { quantity: product.stockQuantity ?? 0 })
             };
             
             // ვამატებთ არჩეულ რაოდენობას ციკლით

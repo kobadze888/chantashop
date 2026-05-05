@@ -156,7 +156,7 @@ export default function ProductCard(props: ProductCardProps) {
     const messages = {
         added: tToast('added', { name }),
         increased: tToast('quantityIncreased', { name }),
-        stockError: tToast('stockError', { quantity: stockQuantity })
+        stockError: tToast('stockError', { quantity: stockQuantity ?? 0 })
     };
 
     addItem({ id, name, price: salePrice || price, image: imgSrc, slug, stockQuantity }, messages);
@@ -176,7 +176,7 @@ export default function ProductCard(props: ProductCardProps) {
     const messages = {
         added: tToast('added', { name }),
         increased: tToast('quantityIncreased', { name }),
-        stockError: tToast('stockError', { quantity: stockQuantity })
+        stockError: tToast('stockError', { quantity: stockQuantity ?? 0 })
     };
 
     addItem({ id, name, price: salePrice || price, image: imgSrc, slug, stockQuantity }, messages);

@@ -72,12 +72,13 @@ export interface Product {
   regularPrice?: string;
   salePrice?: string;
   stockStatus?: string;
+  stockStatusManual?: string;
   stockQuantity?: number;
   galleryImages?: { nodes: ProductImage[] };
-  seo?: SEO; // ✅ განახლებული SEO ტიპი
+  seo?: SEO;
   language?: { code: string };
-  translations?: Array<{ language: { code: string }; slug: string; }>; // ძველი (შეიძლება დატოვოთ)
-  available_translations?: Array<{ slug: string; lang: string; }>; // ✅ ეს ახალი დაამატეთ
+  translations?: Array<{ language: { code: string }; slug: string; }>;
+  availableTranslations?: Array<{ slug: string; lang: string; }>;
   attributes?: { nodes: Attribute[] };
   variations?: { nodes: Variation[] };
   productCategories?: { nodes: FilterTerm[] };
