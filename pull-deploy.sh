@@ -1,34 +1,31 @@
 #!/bin/bash
-# Server-side pull-and-deploy. Run on VPS.
+# Server-side pull-and-deploy. Run on VPS as root.
 set -e
 
 PROJECT_DIR=/home/chantashop/htdocs/chantashop.ge
 PM2_NAME=chantashop-front
+DEPLOY_USER=chantashop
 
 cd "$PROJECT_DIR"
 
-# Make pm2/node available regardless of how this script is invoked.
-export PATH=/root/.nvm/versions/node/v22.21.1/bin:$PATH
-
 echo "📥 [1/4] Pulling latest from origin/main..."
-git fetch origin main
-LOCAL=$(git rev-parse HEAD)
-REMOTE=$(git rev-parse origin/main)
+sudo -u "$DEPLOY_USER" git fetch origin main
+LOCAL=$(sudo -u "$DEPLOY_USER" git rev-parse HEAD)
+REMOTE=$(sudo -u "$DEPLOY_USER" git rev-parse origin/main)
 if [ "$LOCAL" = "$REMOTE" ]; then
   echo "ℹ️  Already up to date with origin/main."
 else
-  git reset --hard origin/main
+  sudo -u "$DEPLOY_USER" git reset --hard origin/main
 fi
 
 echo "📦 [2/4] Installing dependencies..."
-npm install --no-audit --no-fund
+su - "$DEPLOY_USER" -c "cd $PROJECT_DIR && npm install --no-audit --no-fund"
 
 echo "🏗️  [3/4] Building..."
-rm -rf .next
-npm run build
+su - "$DEPLOY_USER" -c "cd $PROJECT_DIR && rm -rf .next && npm run build"
 
-echo "🔄 [4/4] Restarting PM2 ($PM2_NAME)..."
-pm2 restart "$PM2_NAME" --update-env
+echo "🔄 [4/4] Restarting PM2 ($PM2_NAME) as $DEPLOY_USER..."
+su - "$DEPLOY_USER" -c "pm2 restart $PM2_NAME --update-env && pm2 save"
 
 echo "✅ Deploy complete."
-pm2 list | grep "$PM2_NAME" || true
+su - "$DEPLOY_USER" -c "pm2 list" | grep "$PM2_NAME" || true
