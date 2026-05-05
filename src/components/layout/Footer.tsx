@@ -116,8 +116,8 @@ export default function Footer() {
         <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-white/40 gap-4">
           <p>&copy; 2025 ChantaShop. {t('rights')}</p>
           <div className="flex gap-6">
-            <button className="hover:text-white transition">{t('privacy')}</button>
-            <button className="hover:text-white transition">{t('terms')}</button>
+            <Link href="/privacy" className="hover:text-white transition">{t('privacy')}</Link>
+            <Link href="/terms" className="hover:text-white transition">{t('terms')}</Link>
           </div>
         </div>
       </div>

@@ -2,13 +2,24 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getPageBySlug } from '@/lib/api';
 
+const SLUG_ALIASES: Record<string, string> = {
+  about: 'chvens_shesaxeb',
+  contact: 'kontakti',
+  privacy: 'konfidencialobis_politika',
+  terms: 'wesebi_da_pirobebi',
+  shipping: 'miwodeba',
+  returns: 'dabrunebis_politika',
+};
+
+const resolveSlug = (slug: string) => SLUG_ALIASES[slug] ?? slug;
+
 type Props = {
   params: Promise<{ slug: string; locale: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const page = await getPageBySlug(slug);
+  const page = await getPageBySlug(resolveSlug(slug));
 
   if (!page) return {};
 
@@ -20,7 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function DynamicPage({ params }: Props) {
   const { slug } = await params;
-  const page = await getPageBySlug(slug);
+  const page = await getPageBySlug(resolveSlug(slug));
 
   if (!page) {
     notFound();

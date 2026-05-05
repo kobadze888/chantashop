@@ -23,6 +23,10 @@ export const routing = defineRouting({
     '/sale': '/sale',
     '/about': '/about',
     '/contact': '/contact',
+    '/privacy': '/privacy',
+    '/terms': '/terms',
+    '/shipping': '/shipping',
+    '/returns': '/returns',
     '/shop': {
       ka: '/shop',
       en: '/shop',
