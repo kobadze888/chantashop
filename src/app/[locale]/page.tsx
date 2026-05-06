@@ -6,8 +6,6 @@ import NewArrivals from '@/components/home/NewArrivals';
 import EditorialBanner from '@/components/home/EditorialBanner';
 import BestSellers from '@/components/home/BestSellers';
 import SaleSection from '@/components/home/SaleSection';
-import Brands from '@/components/home/Brands';
-import Newsletter from '@/components/home/Newsletter';
 import { getHomeData, getPageByUri } from '@/lib/api';
 import type { Product } from '@/types';
 
@@ -82,8 +80,6 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       <EditorialBanner />
       <BestSellers products={bestSellersOrFallback} locale={locale} />
       {onSale.length > 0 && <SaleSection products={onSale} locale={locale} />}
-      <Brands />
-      <Newsletter />
     </main>
   );
 }
