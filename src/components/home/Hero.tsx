@@ -65,7 +65,7 @@ export default function Hero() {
         {/* ═══ Photo ═══ */}
         <div className="relative h-[52vh] md:h-auto order-1 md:order-2 overflow-hidden">
           <Image
-            src="/images/hero.jpg"
+            src="/images/hero.webp"
             alt="ChantaShop — ჩანთები და აქსესუარები"
             fill
             className="object-cover object-top"
