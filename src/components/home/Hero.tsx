@@ -63,16 +63,16 @@ export default function Hero() {
         </div>
 
         {/* ═══ Photo ═══ */}
-        <div className="relative h-[52vh] md:h-auto order-1 md:order-2 overflow-hidden bg-gradient-to-b from-[#e4cde4] to-[#c0a0c2]">
+        <div className="relative h-[52vh] md:h-auto md:aspect-[768/1376] order-1 md:order-2 overflow-hidden">
           <Image
             src="/images/hero.webp"
             alt="ChantaShop — ჩანთები და აქსესუარები"
             fill
-            className="object-contain object-center"
+            className="object-cover object-top md:object-center"
             priority
             sizes="(max-width: 768px) 100vw, 50vw"
           />
-          {/* Mobile only: გამუქება ქვემოდან */}
+          {/* Mobile only: gradient */}
           <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/60 via-transparent to-transparent md:hidden" />
         </div>
 
