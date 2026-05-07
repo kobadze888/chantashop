@@ -55,11 +55,6 @@ export default function EditorialBanner() {
                 tile.tone === 'dark' ? 'text-white' : 'text-brand-dark'
               }`}
             >
-              <span
-                className="text-[10px] font-medium uppercase tracking-[0.15em] text-brand-DEFAULT mb-2 md:mb-3 block"
-              >
-                {tile.label}
-              </span>
               <h3 className="text-2xl md:text-[2.2rem] font-sans font-bold tracking-tight leading-[1.1] mb-2 md:mb-3">
                 {tile.title}
               </h3>

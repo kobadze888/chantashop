@@ -74,7 +74,7 @@ export default function Header() {
   return (
     <>
       {/* სარეკლამო ზოლი (PROMO BAR) */}
-      <div className="hidden md:flex fixed top-0 w-full bg-black text-white text-[10px] md:text-xs font-bold text-center py-2.5 z-[60] tracking-widest uppercase justify-center items-center gap-2">
+      <div className="hidden md:flex fixed top-0 w-full bg-black text-white text-[11px] md:text-xs font-medium text-center py-2.5 z-[60] tracking-[0.08em] justify-center items-center gap-2">
           <span>{tHeader('promo')}</span>
       </div>
 
@@ -88,7 +88,7 @@ export default function Header() {
             {/* ლოგოს გამოყენება კომპონენტის სახით */}
             <Logo />
 
-            <nav className="hidden md:flex gap-10 text-sm font-bold tracking-widest text-black uppercase">
+            <nav className="hidden md:flex gap-10 text-[15px] font-medium text-black">
                 <Link href="/" className={`hover:text-[#db2777] transition-colors py-2 relative group ${pathname === '/' ? 'text-[#db2777]' : ''}`}>
                     {t('home')}
                     <span className={`absolute bottom-0 left-0 h-0.5 bg-[#db2777] transition-all ${pathname === '/' ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
@@ -207,42 +207,42 @@ export default function Header() {
                 <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="p-4 bg-white border border-gray-100 rounded-xl active:bg-gray-50 transition flex items-center justify-between shadow-sm cursor-pointer group">
                     <div className="flex items-center gap-3">
                         <Home className="w-5 h-5 text-gray-400 group-hover:text-[#db2777] transition" />
-                        <span className="font-bold text-sm uppercase tracking-wide">{t('home')}</span>
+                        <span className="font-medium text-sm">{t('home')}</span>
                     </div>
                     <ChevronRight className="w-4 h-4 opacity-30" />
                 </Link>
                 <Link href="/shop" onClick={() => setIsMobileMenuOpen(false)} className="p-4 bg-white border border-gray-100 rounded-xl active:bg-gray-50 transition flex items-center justify-between shadow-sm cursor-pointer group">
                     <div className="flex items-center gap-3">
                         <LayoutGrid className="w-5 h-5 text-gray-400 group-hover:text-[#db2777] transition" />
-                        <span className="font-bold text-sm uppercase tracking-wide">{t('shop')}</span>
+                        <span className="font-medium text-sm">{t('shop')}</span>
                     </div>
                     <ChevronRight className="w-4 h-4 opacity-30" />
                 </Link>
                 <Link href="/wishlist" onClick={() => setIsMobileMenuOpen(false)} className="p-4 bg-white border border-gray-100 rounded-xl active:bg-gray-50 transition flex items-center justify-between shadow-sm cursor-pointer group">
                     <div className="flex items-center gap-3">
                         <Heart className="w-5 h-5 text-gray-400 group-hover:text-[#db2777] transition" />
-                        <span className="font-bold text-sm uppercase tracking-wide">{t('wishlist')}</span>
+                        <span className="font-medium text-sm">{t('wishlist')}</span>
                     </div>
                     <ChevronRight className="w-4 h-4 opacity-30" />
                 </Link>
                 <Link href="/about" onClick={() => setIsMobileMenuOpen(false)} className="p-4 bg-white border border-gray-100 rounded-xl active:bg-gray-50 transition flex items-center justify-between shadow-sm cursor-pointer group">
                     <div className="flex items-center gap-3">
                         <Info className="w-5 h-5 text-gray-400 group-hover:text-[#db2777] transition" />
-                        <span className="font-bold text-sm uppercase tracking-wide">{t('about')}</span>
+                        <span className="font-medium text-sm">{t('about')}</span>
                     </div>
                     <ChevronRight className="w-4 h-4 opacity-30" />
                 </Link>
                 <Link href="/contact" onClick={() => setIsMobileMenuOpen(false)} className="p-4 bg-white border border-gray-100 rounded-xl active:bg-gray-50 transition flex items-center justify-between shadow-sm cursor-pointer group">
                     <div className="flex items-center gap-3">
                         <Phone className="w-5 h-5 text-gray-400 group-hover:text-[#db2777] transition" />
-                        <span className="font-bold text-sm uppercase tracking-wide">{t('contact')}</span>
+                        <span className="font-medium text-sm">{t('contact')}</span>
                     </div>
                     <ChevronRight className="w-4 h-4 opacity-30" />
                 </Link>
                 <Link href="/track-order" onClick={() => setIsMobileMenuOpen(false)} className="p-4 bg-white border border-gray-100 rounded-xl active:bg-gray-50 transition flex items-center justify-between shadow-sm cursor-pointer group">
                     <div className="flex items-center gap-3">
                         <Truck className="w-5 h-5 text-gray-400 group-hover:text-[#db2777] transition" />
-                        <span className="font-bold text-sm uppercase tracking-wide">{t('trackOrder')}</span>
+                        <span className="font-medium text-sm">{t('trackOrder')}</span>
                     </div>
                     <ChevronRight className="w-4 h-4 opacity-30" />
                 </Link>

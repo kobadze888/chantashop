@@ -13,11 +13,8 @@ export default function BestSellers({ products, locale }: Props) {
 
   return (
     <section className="container mx-auto px-3 md:px-6 mt-12 md:mt-16">
-      <header className="text-center mb-8 md:mb-12">
-        <p className="text-[11px] uppercase tracking-[0.12em] text-brand-DEFAULT font-medium mb-1.5">
-          {t('subtitle')}
-        </p>
-        <h2 className="text-xl md:text-[1.75rem] font-sans font-semibold text-brand-dark tracking-tight leading-snug">
+      <header className="mb-5 md:mb-7">
+        <h2 className="text-lg md:text-xl font-semibold text-brand-dark">
           {t('title')}
         </h2>
       </header>

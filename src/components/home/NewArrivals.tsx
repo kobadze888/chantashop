@@ -24,12 +24,9 @@ export default function NewArrivals({ products, locale }: Props) {
 
   return (
     <section className="container mx-auto px-3 md:px-6 mt-12 md:mt-16">
-      <header className="flex items-end justify-between mb-7 md:mb-10">
+      <header className="flex items-center justify-between mb-5 md:mb-7">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.12em] text-brand-DEFAULT font-medium mb-1.5">
-            {t('subtitle')}
-          </p>
-          <h2 className="text-xl md:text-[1.75rem] font-sans font-semibold text-brand-dark tracking-tight leading-snug">
+          <h2 className="text-lg md:text-xl font-semibold text-brand-dark">
             {t('title')}
           </h2>
         </div>

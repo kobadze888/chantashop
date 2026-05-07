@@ -18,14 +18,10 @@ export default function SaleSection({ products, locale }: Props) {
   return (
     <section className="mt-12 md:mt-16 bg-gradient-to-br from-brand-light via-white to-brand-medium/40 py-12 md:py-20">
       <div className="container mx-auto px-3 md:px-6">
-        <header className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-7 md:mb-10">
+        <header className="flex items-center justify-between mb-5 md:mb-7">
           <div>
-            <p className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.12em] text-brand-DEFAULT font-medium mb-1.5">
-              <Flame className="w-3 h-3" />
-              {t('subtitle')}
-            </p>
-            <h2 className="text-xl md:text-[1.75rem] font-sans font-semibold text-brand-dark tracking-tight leading-snug">
-              {t('title')}
+            <h2 className="inline-flex items-center gap-2 text-lg md:text-xl font-semibold text-brand-dark">
+              {t('title')} <Flame className="w-4 h-4 text-brand-DEFAULT" />
             </h2>
           </div>
           <Link
