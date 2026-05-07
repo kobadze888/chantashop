@@ -127,9 +127,7 @@ export default function CategoriesGrid({ categories }: Props) {
                   Image zooms inside the rounded crop on hover.
                 */}
                 <div
-                  className="w-full aspect-square rounded-full overflow-hidden relative
-                    transition-shadow duration-200
-                    group-hover:shadow-[inset_0_0_0_3px_#db2777]"
+                  className="w-full aspect-square rounded-full overflow-hidden relative"
                   style={!imgSrc ? { background: bg } : undefined}
                 >
                   {imgSrc ? (
@@ -154,6 +152,8 @@ export default function CategoriesGrid({ categories }: Props) {
                       {ini}
                     </span>
                   )}
+                  {/* Ring overlay — sits above image so inset shadow is visible */}
+                  <div className="absolute inset-0 rounded-full pointer-events-none transition-shadow duration-200 group-hover:shadow-[inset_0_0_0_3px_#db2777] z-10" />
                 </div>
 
                 <span className="text-[10px] md:text-[11px] font-medium text-gray-600 text-center leading-snug line-clamp-2 w-full px-0.5 group-hover:text-brand-dark transition-colors duration-200">
