@@ -17,7 +17,7 @@ export default function Hero() {
         <div className="order-2 md:order-1 flex flex-col justify-center
           flex-1 min-w-0
           px-7 sm:px-10 md:px-10 lg:px-14
-          py-10 md:py-12 lg:py-14
+          py-10 md:py-20 lg:py-24
           text-white">
 
           {/* Badge */}
