@@ -30,11 +30,11 @@ export default function Hero() {
           </span>
 
           {/* Title */}
-          <h1 className="font-serif font-black uppercase tracking-wider leading-[1.15] mb-4 md:mb-5
-            text-[1.7rem] sm:text-[2rem] md:text-[1.9rem] lg:text-[2.4rem] xl:text-[2.8rem]">
+          <h1 className="font-sans font-semibold uppercase tracking-[0.04em] leading-[1.2] mb-4 md:mb-5
+            text-[1.55rem] sm:text-[1.8rem] md:text-[1.75rem] lg:text-[2.1rem] xl:text-[2.5rem]">
             ჩანთებისა და
             <br />
-            <span className="text-brand-DEFAULT">აქსესუარების</span>
+            <span className="text-brand-DEFAULT font-bold">აქსესუარების</span>
             <br />
             ონლაინ მაღაზია
           </h1>
@@ -67,7 +67,7 @@ export default function Hero() {
               { num: '6₾',    label: 'მიწოდება' },
             ].map(({ num, label }) => (
               <div key={label}>
-                <div className="text-xl md:text-2xl lg:text-3xl font-serif font-black">{num}</div>
+                <div className="text-xl md:text-2xl lg:text-3xl font-sans font-bold">{num}</div>
                 <div className="text-[9px] md:text-[10px] text-white/40 uppercase tracking-widest mt-0.5">{label}</div>
               </div>
             ))}

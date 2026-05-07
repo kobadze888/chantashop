@@ -1,4 +1,5 @@
 'use client';
+import Image from 'next/image';
 import { Link } from '@/navigation';
 import { useTranslations } from 'next-intl';
 import { ShoppingBag, Crown, Tag, Layers, Umbrella } from 'lucide-react';
@@ -6,7 +7,7 @@ import type { HomeCategory } from '@/lib/api';
 
 interface Props {
   categories: HomeCategory[];
-  fallbackImages?: Record<string, string>; // kept for backward compat
+  fallbackImages?: Record<string, string>;
 }
 
 /* ── Brand monogram configs ── */
@@ -36,23 +37,24 @@ export default function CategoriesGrid({ categories }: Props) {
   const t = useTranslations('Home.Categories');
 
   return (
-    <section className="container mx-auto px-3 md:px-6 mt-16 md:mt-24">
+    <section className="container mx-auto px-3 md:px-6 mt-10 md:mt-14">
 
       {/* Header */}
-      <header className="flex items-end justify-between mb-8 md:mb-10">
+      <header className="flex items-end justify-between mb-6 md:mb-8">
         <div>
-          <p className="text-xs uppercase tracking-[0.25em] text-brand-DEFAULT font-bold mb-2">
+          <p className="text-xs uppercase tracking-[0.25em] text-brand-DEFAULT font-bold mb-1.5">
             {t('subtitle')}
           </p>
-          <h2 className="text-2xl md:text-4xl font-serif font-black text-brand-dark tracking-tight">
+          <h2 className="text-xl md:text-3xl font-sans font-semibold text-brand-dark tracking-tight">
             {t('title')}
           </h2>
         </div>
       </header>
 
       {/* Grid — 4 cols mobile → 5 tablet → 6 md → 8 lg */}
-      <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-3 md:gap-4 lg:gap-5">
+      <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-3 md:gap-4">
         {categories.map((cat) => {
+          const imgSrc = cat.image?.sourceUrl;
           const b  = BRAND[cat.slug];
           const ic = ICON[cat.slug];
           const shortMono = b && b.mono.length <= 2;
@@ -61,15 +63,29 @@ export default function CategoriesGrid({ categories }: Props) {
             <Link
               key={cat.id}
               href={{ pathname: '/product-category/[slug]', params: { slug: cat.slug } }}
-              className="group flex flex-col items-center gap-2"
+              className="group flex flex-col items-center gap-1.5"
             >
               {/* Square card */}
               <div
-                className="w-full aspect-square rounded-2xl md:rounded-3xl flex items-center justify-center shadow-sm
+                className="w-full aspect-square rounded-2xl md:rounded-3xl flex items-center justify-center
+                  overflow-hidden relative shadow-sm
                   group-hover:shadow-xl group-hover:-translate-y-1 transition-all duration-300"
-                style={{ background: b?.bg ?? ic?.bg ?? '#18181b' }}
+                style={!imgSrc ? { background: b?.bg ?? ic?.bg ?? '#18181b' } : undefined}
               >
-                {b ? (
+                {imgSrc ? (
+                  /* WP category photo */
+                  <>
+                    <Image
+                      src={imgSrc}
+                      alt={cat.name}
+                      fill
+                      className="object-cover object-center"
+                      sizes="(max-width: 640px) 25vw, (max-width: 768px) 20vw, (max-width: 1024px) 16vw, 12vw"
+                    />
+                    {/* subtle overlay for legibility */}
+                    <div className="absolute inset-0 bg-black/15 group-hover:bg-black/5 transition-colors duration-300" />
+                  </>
+                ) : b ? (
                   /* Brand monogram */
                   <span
                     className={`font-serif font-black leading-none tracking-tighter select-none ${
@@ -95,7 +111,7 @@ export default function CategoriesGrid({ categories }: Props) {
               </div>
 
               {/* Category name */}
-              <p className="text-[10px] sm:text-[11px] md:text-xs font-bold text-center uppercase
+              <p className="text-[10px] sm:text-[11px] md:text-xs font-semibold text-center uppercase
                 tracking-wide text-brand-dark/60 leading-tight line-clamp-2 w-full">
                 {cat.name}
               </p>

@@ -7,8 +7,8 @@
   --color-brand-dark: #000000;
   --color-brand-gray: #F9FAFB;
   
-  --font-sans: var(--font-noto-georgian), "Inter", sans-serif;
-  --font-serif: var(--font-ka-serif), "Playfair Display", serif;
+  --font-sans: var(--font-firago), "FiraGO", sans-serif;
+  --font-serif: var(--font-ka-serif), var(--font-playfair), "Playfair Display", serif;
 }
 
 /* Base Styles */
