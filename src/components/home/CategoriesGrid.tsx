@@ -42,10 +42,10 @@ export default function CategoriesGrid({ categories }: Props) {
       {/* Header */}
       <header className="flex items-end justify-between mb-6 md:mb-8">
         <div>
-          <p className="text-xs uppercase tracking-[0.25em] text-brand-DEFAULT font-bold mb-1.5">
+          <p className="text-[11px] uppercase tracking-[0.12em] text-brand-DEFAULT font-medium mb-1.5">
             {t('subtitle')}
           </p>
-          <h2 className="text-xl md:text-3xl font-sans font-semibold text-brand-dark tracking-tight">
+          <h2 className="text-xl md:text-[1.75rem] font-sans font-semibold text-brand-dark tracking-tight leading-snug">
             {t('title')}
           </h2>
         </div>

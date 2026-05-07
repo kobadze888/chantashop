@@ -23,13 +23,13 @@ export default function NewArrivals({ products, locale }: Props) {
   if (!products?.length) return null;
 
   return (
-    <section className="container mx-auto px-3 md:px-6 mt-16 md:mt-24">
+    <section className="container mx-auto px-3 md:px-6 mt-12 md:mt-16">
       <header className="flex items-end justify-between mb-7 md:mb-10">
         <div>
-          <p className="text-xs uppercase tracking-[0.25em] text-brand-DEFAULT font-bold mb-2">
+          <p className="text-[11px] uppercase tracking-[0.12em] text-brand-DEFAULT font-medium mb-1.5">
             {t('subtitle')}
           </p>
-          <h2 className="text-2xl md:text-4xl font-serif font-black text-brand-dark tracking-tight">
+          <h2 className="text-xl md:text-[1.75rem] font-sans font-semibold text-brand-dark tracking-tight leading-snug">
             {t('title')}
           </h2>
         </div>

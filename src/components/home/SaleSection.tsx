@@ -16,15 +16,15 @@ export default function SaleSection({ products, locale }: Props) {
   const visible = products.slice(0, 4);
 
   return (
-    <section className="mt-16 md:mt-24 bg-gradient-to-br from-brand-light via-white to-brand-medium/40 py-12 md:py-20">
+    <section className="mt-12 md:mt-16 bg-gradient-to-br from-brand-light via-white to-brand-medium/40 py-12 md:py-20">
       <div className="container mx-auto px-3 md:px-6">
         <header className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-7 md:mb-10">
           <div>
-            <p className="inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.25em] text-brand-DEFAULT font-bold mb-2">
-              <Flame className="w-3.5 h-3.5" />
+            <p className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.12em] text-brand-DEFAULT font-medium mb-1.5">
+              <Flame className="w-3 h-3" />
               {t('subtitle')}
             </p>
-            <h2 className="text-2xl md:text-4xl font-serif font-black text-brand-dark tracking-tight">
+            <h2 className="text-xl md:text-[1.75rem] font-sans font-semibold text-brand-dark tracking-tight leading-snug">
               {t('title')}
             </h2>
           </div>

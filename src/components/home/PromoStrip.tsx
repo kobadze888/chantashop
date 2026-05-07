@@ -22,7 +22,7 @@ export default function PromoStrip() {
               <Icon className="w-5 h-5 md:w-6 md:h-6 text-brand-DEFAULT" />
             </div>
             <div className="text-center md:text-left min-w-0">
-              <div className="font-bold text-[11px] md:text-sm text-brand-dark leading-tight">
+              <div className="font-semibold text-[11px] md:text-sm text-brand-dark leading-tight">
                 {label}
               </div>
               <div className="hidden md:block text-xs text-gray-500 mt-1">{desc}</div>

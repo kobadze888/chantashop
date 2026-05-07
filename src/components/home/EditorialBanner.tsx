@@ -28,7 +28,7 @@ export default function EditorialBanner() {
   ];
 
   return (
-    <section className="container mx-auto px-3 md:px-6 mt-16 md:mt-24">
+    <section className="container mx-auto px-3 md:px-6 mt-12 md:mt-16">
       <div className="grid md:grid-cols-2 gap-3 md:gap-5">
         {tiles.map((tile) => (
           <Link
@@ -56,13 +56,11 @@ export default function EditorialBanner() {
               }`}
             >
               <span
-                className={`text-[10px] md:text-xs font-bold uppercase tracking-[0.3em] mb-2 md:mb-3 ${
-                  tile.tone === 'dark' ? 'text-brand-DEFAULT' : 'text-brand-DEFAULT'
-                }`}
+                className="text-[10px] font-medium uppercase tracking-[0.15em] text-brand-DEFAULT mb-2 md:mb-3 block"
               >
                 {tile.label}
               </span>
-              <h3 className="text-3xl md:text-5xl font-serif font-black tracking-tight leading-[1] mb-2 md:mb-3">
+              <h3 className="text-2xl md:text-[2.2rem] font-sans font-bold tracking-tight leading-[1.1] mb-2 md:mb-3">
                 {tile.title}
               </h3>
               <p className={`text-sm md:text-base mb-5 md:mb-7 max-w-xs ${tile.tone === 'dark' ? 'text-white/80' : 'text-brand-dark/70'}`}>

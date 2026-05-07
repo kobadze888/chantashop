@@ -23,8 +23,8 @@ export default function Hero() {
           {/* Badge */}
           <span className="inline-flex items-center gap-2 self-start
             bg-white/10 backdrop-blur-md border border-white/15
-            text-[10px] font-bold px-4 py-1.5 rounded-full
-            uppercase tracking-[0.2em] mb-5 md:mb-6">
+            text-[10px] font-medium px-4 py-1.5 rounded-full
+            uppercase tracking-[0.12em] mb-5 md:mb-6">
             <span className="w-1.5 h-1.5 rounded-full bg-brand-DEFAULT shrink-0" />
             {t('badge')}
           </span>
