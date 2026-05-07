@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display, Noto_Sans_Georgian } from "next/font/google";
+import { Inter, Playfair_Display, Noto_Sans_Georgian, Noto_Serif_Georgian } from "next/font/google";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import Header from '@/components/layout/Header'; 
@@ -22,12 +22,20 @@ const playfair = Playfair_Display({
   display: 'swap' 
 });
 
-// 3. Noto Sans Georgian - ქართული ტექსტისთვის
+// 3. Noto Sans Georgian - ქართული ძირითადი ტექსტი
 const notoGeorgian = Noto_Sans_Georgian({
   subsets: ["georgian", "latin"],
   variable: '--font-noto-georgian',
   display: 'swap',
-  weight: ['400', '700'],
+  weight: ['300', '400', '500', '700'],
+});
+
+// 4. Noto Serif Georgian - ქართული სათაურები (700, 800, 900)
+const notoSerifGeorgian = Noto_Serif_Georgian({
+  subsets: ["georgian", "latin"],
+  variable: '--font-ka-serif',
+  display: 'swap',
+  weight: ['700', '800', '900'],
 });
 
 export const metadata: Metadata = {
@@ -54,7 +62,7 @@ export default async function RootLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className={`${inter.variable} ${playfair.variable} ${notoGeorgian.variable}`}>
+    <html lang={locale} className={`${inter.variable} ${playfair.variable} ${notoGeorgian.variable} ${notoSerifGeorgian.variable}`}>
       <body className="font-sans antialiased selection:bg-brand-DEFAULT selection:text-white pb-24 md:pb-0 bg-white text-brand-dark">
         <NextIntlClientProvider messages={messages}>
           <Header />

@@ -18,8 +18,8 @@ const config: Config = {
         }
       },
       fontFamily: {
-        sans: ['var(--font-bpg)', 'var(--font-inter)', 'sans-serif'],
-        serif: ['var(--font-playfair)', 'serif'],
+        sans:  ['var(--font-noto-georgian)', 'var(--font-inter)', 'sans-serif'],
+        serif: ['var(--font-ka-serif)', 'var(--font-playfair)', 'serif'],
       },
       animation: {
         'infinite-scroll': 'infinite-scroll 25s linear infinite',

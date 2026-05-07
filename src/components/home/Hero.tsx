@@ -30,8 +30,8 @@ export default function Hero() {
           </span>
 
           {/* Title */}
-          <h1 className="font-serif font-black leading-[1.05] tracking-tight mb-4 md:mb-5
-            text-[2.2rem] sm:text-[2.6rem] md:text-[2.4rem] lg:text-[3rem] xl:text-[3.4rem]">
+          <h1 className="font-serif font-black uppercase tracking-wider leading-[1.15] mb-4 md:mb-5
+            text-[1.7rem] sm:text-[2rem] md:text-[1.9rem] lg:text-[2.4rem] xl:text-[2.8rem]">
             ჩანთებისა და
             <br />
             <span className="text-brand-DEFAULT">აქსესუარების</span>
