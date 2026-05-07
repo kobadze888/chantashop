@@ -108,35 +108,36 @@ export default function CategoriesGrid({ categories }: Props) {
                 href={{ pathname: '/product-category/[slug]', params: { slug: cat.slug } }}
                 className="group flex flex-col items-center gap-1.5 select-none"
               >
-                {/* Circle — fills the slide width proportionally */}
-                <div
-                  className="w-full aspect-square rounded-full overflow-hidden relative
-                    ring-[2.5px] ring-gray-100 group-hover:ring-brand-DEFAULT
-                    transition-all duration-200 group-hover:scale-[1.06]"
-                  style={!imgSrc ? { background: bg } : undefined}
-                >
-                  {imgSrc ? (
-                    <Image
-                      src={imgSrc}
-                      alt={cat.name}
-                      fill
-                      className="object-cover object-center"
-                      sizes="(max-width: 480px) 20vw, (max-width: 768px) 15vw, 11vw"
-                    />
-                  ) : (
-                    <span
-                      className="absolute inset-0 flex items-center justify-center font-bold select-none"
-                      style={{
-                        color: fg,
-                        fontSize: ini.length <= 2
-                          ? 'clamp(0.85rem, 2.5vw, 1.25rem)'
-                          : 'clamp(0.55rem, 1.6vw, 0.8rem)',
-                        letterSpacing: '0.02em',
-                      }}
-                    >
-                      {ini}
-                    </span>
-                  )}
+                {/* Outer: scale + ring (no overflow-hidden so clip doesn't cut the scaled edge) */}
+                <div className="w-full aspect-square rounded-full ring-[2.5px] ring-gray-100 group-hover:ring-brand-DEFAULT transition-all duration-200 group-hover:scale-[1.06]">
+                  {/* Inner: overflow-hidden for image crop */}
+                  <div
+                    className="w-full h-full rounded-full overflow-hidden relative"
+                    style={!imgSrc ? { background: bg } : undefined}
+                  >
+                    {imgSrc ? (
+                      <Image
+                        src={imgSrc}
+                        alt={cat.name}
+                        fill
+                        className="object-cover object-center"
+                        sizes="(max-width: 480px) 20vw, (max-width: 768px) 15vw, 11vw"
+                      />
+                    ) : (
+                      <span
+                        className="absolute inset-0 flex items-center justify-center font-bold select-none"
+                        style={{
+                          color: fg,
+                          fontSize: ini.length <= 2
+                            ? 'clamp(0.85rem, 2.5vw, 1.25rem)'
+                            : 'clamp(0.55rem, 1.6vw, 0.8rem)',
+                          letterSpacing: '0.02em',
+                        }}
+                      >
+                        {ini}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Name below */}
