@@ -1,72 +1,118 @@
 'use client';
+import { useRef } from 'react';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation } from 'swiper/modules';
 import Image from 'next/image';
 import { Link } from '@/navigation';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { HomeCategory } from '@/lib/api';
+import 'swiper/css';
 
 interface Props {
   categories: HomeCategory[];
   fallbackImages?: Record<string, string>;
 }
 
-/* ── Fallback colours when WP has no photo ── */
+/* ── Fallback colours + initials (when WP has no photo) ── */
 const FALLBACK: Record<string, { initial: string; bg: string; fg: string }> = {
-  'chanel':                     { initial: 'C',  bg: '#0a0a0a', fg: '#fff' },
-  'christian-dior':             { initial: 'D',  bg: '#111',    fg: '#fff' },
-  'dolce-gabbana':              { initial: 'D&G',bg: '#1c1c1c', fg: '#D4AF37' },
-  'fendi':                      { initial: 'F',  bg: '#F5E6C8', fg: '#3D2B1F' },
-  'gucci':                      { initial: 'G',  bg: '#1B4332', fg: '#D4AF37' },
-  'guess':                      { initial: 'GU', bg: '#111',    fg: '#fff' },
-  'luis-vuitton':               { initial: 'LV', bg: '#5C3317', fg: '#D4AF37' },
-  'michael-kors':               { initial: 'MK', bg: '#1a1a1a', fg: '#C9A96E' },
-  'prada':                      { initial: 'P',  bg: '#000',    fg: '#fff' },
-  'ysl':                        { initial: 'YSL',bg: '#0a0a0a', fg: '#D4AF37' },
-  'luqsi':                      { initial: 'L',  bg: '#1a0a2e', fg: '#fff' },
-  'ekonomi':                    { initial: 'E',  bg: '#064e3b', fg: '#fff' },
-  'qalis_chantebi':             { initial: 'Q',  bg: '#4c1d95', fg: '#fff' },
-  'naturaluri-tyavis-chantebi': { initial: 'N',  bg: '#78350f', fg: '#fff' },
-  'kolgebi':                    { initial: 'K',  bg: '#0c4a6e', fg: '#fff' },
+  'chanel':                     { initial: 'C',   bg: '#0a0a0a', fg: '#fff'    },
+  'christian-dior':             { initial: 'D',   bg: '#111',    fg: '#fff'    },
+  'dolce-gabbana':              { initial: 'D&G', bg: '#1c1c1c', fg: '#D4AF37' },
+  'fendi':                      { initial: 'F',   bg: '#F5E6C8', fg: '#3D2B1F' },
+  'gucci':                      { initial: 'G',   bg: '#1B4332', fg: '#D4AF37' },
+  'guess':                      { initial: 'GU',  bg: '#111',    fg: '#fff'    },
+  'luis-vuitton':               { initial: 'LV',  bg: '#5C3317', fg: '#D4AF37' },
+  'michael-kors':               { initial: 'MK',  bg: '#1a1a1a', fg: '#C9A96E' },
+  'prada':                      { initial: 'P',   bg: '#000',    fg: '#fff'    },
+  'ysl':                        { initial: 'YSL', bg: '#0a0a0a', fg: '#D4AF37' },
+  'luqsi':                      { initial: 'L',   bg: '#1a0a2e', fg: '#fff'    },
+  'ekonomi':                    { initial: 'E',   bg: '#064e3b', fg: '#fff'    },
+  'qalis_chantebi':             { initial: 'Q',   bg: '#4c1d95', fg: '#fff'    },
+  'naturaluri-tyavis-chantebi': { initial: 'N',   bg: '#78350f', fg: '#fff'    },
+  'kolgebi':                    { initial: 'K',   bg: '#0c4a6e', fg: '#fff'    },
 };
 
 export default function CategoriesGrid({ categories }: Props) {
   const t = useTranslations('Home.Categories');
+  const prevRef = useRef<HTMLButtonElement>(null);
+  const nextRef = useRef<HTMLButtonElement>(null);
+
+  if (!categories?.length) return null;
 
   return (
-    <section className="mt-10 md:mt-14">
-      {/* hide scrollbar cross-browser */}
-      <style>{`.cats-scroll{scrollbar-width:none}.cats-scroll::-webkit-scrollbar{display:none}`}</style>
+    <section className="container mx-auto px-3 md:px-6 mt-10 md:mt-14">
 
-      <div className="container mx-auto px-3 md:px-6">
-        <header className="mb-5 md:mb-6">
-          <h2 className="text-lg md:text-xl font-semibold text-brand-dark">
-            {t('title')}
-          </h2>
-        </header>
-      </div>
+      {/* Header */}
+      <header className="flex items-center justify-between mb-5 md:mb-6">
+        <h2 className="text-lg md:text-xl font-semibold text-brand-dark">
+          {t('title')}
+        </h2>
+        {/* Arrow buttons — desktop only */}
+        <div className="hidden md:flex items-center gap-2">
+          <button
+            ref={prevRef}
+            aria-label="Previous"
+            className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-500
+              hover:bg-brand-dark hover:border-brand-dark hover:text-white transition-all duration-150 active:scale-90"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button
+            ref={nextRef}
+            aria-label="Next"
+            className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-500
+              hover:bg-brand-dark hover:border-brand-dark hover:text-white transition-all duration-150 active:scale-90"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      </header>
 
       {/*
-        Mobile  → single scrollable row (overflow-x-auto)
-        Desktop → flex-wrap, left-aligned, auto-flow
+        Swiper fills the full width on every breakpoint.
+        slidesPerView = N means each slide = containerWidth / N, so circles
+        are always proportional and no empty space remains on the right.
+        Swipe works on all devices; arrows show on desktop.
       */}
-      <div className="cats-scroll px-3 md:px-6 md:container md:mx-auto overflow-x-auto md:overflow-visible">
-        <div className="flex flex-nowrap gap-3 md:gap-4 md:flex-wrap pb-1 md:pb-0">
-          {categories.map((cat) => {
-            const imgSrc = cat.image?.sourceUrl;
-            const fb = FALLBACK[cat.slug];
-            const bg  = fb?.bg  ?? '#18181b';
-            const fg  = fb?.fg  ?? '#fff';
-            const ini = fb?.initial ?? cat.name.slice(0, 2).toUpperCase();
+      <Swiper
+        modules={[Navigation]}
+        slidesPerView={5}
+        spaceBetween={10}
+        navigation={{ prevEl: prevRef.current, nextEl: nextRef.current }}
+        onBeforeInit={(swiper) => {
+          // @ts-expect-error swiper navigation refs assigned post-init
+          swiper.params.navigation.prevEl = prevRef.current;
+          // @ts-expect-error swiper navigation refs assigned post-init
+          swiper.params.navigation.nextEl = nextRef.current;
+        }}
+        breakpoints={{
+          480:  { slidesPerView: 6,  spaceBetween: 10 },
+          640:  { slidesPerView: 7,  spaceBetween: 12 },
+          768:  { slidesPerView: 8,  spaceBetween: 14 },
+          1024: { slidesPerView: 9,  spaceBetween: 14 },
+          1280: { slidesPerView: 10, spaceBetween: 16 },
+        }}
+        className="pb-1"
+      >
+        {categories.map((cat) => {
+          const imgSrc = cat.image?.sourceUrl;
+          const fb  = FALLBACK[cat.slug];
+          const bg  = fb?.bg  ?? '#18181b';
+          const fg  = fb?.fg  ?? '#ffffff';
+          const ini = fb?.initial ?? cat.name.slice(0, 2).toUpperCase();
 
-            return (
+          return (
+            <SwiperSlide key={cat.id}>
               <Link
-                key={cat.id}
                 href={{ pathname: '/product-category/[slug]', params: { slug: cat.slug } }}
-                className="group flex-none flex flex-col items-center gap-1.5"
-                style={{ width: '68px' }}
+                className="group flex flex-col items-center gap-1.5 select-none"
               >
-                {/* ── Circle ── */}
+                {/* Circle — fills the slide width proportionally */}
                 <div
-                  className="w-[68px] h-[68px] md:w-[72px] md:h-[72px] rounded-full overflow-hidden relative flex-shrink-0 ring-[2.5px] ring-gray-100 group-hover:ring-brand-DEFAULT transition-all duration-200 group-hover:scale-105"
+                  className="w-full aspect-square rounded-full overflow-hidden relative
+                    ring-[2.5px] ring-gray-100 group-hover:ring-brand-DEFAULT
+                    transition-all duration-200 group-hover:scale-[1.06]"
                   style={!imgSrc ? { background: bg } : undefined}
                 >
                   {imgSrc ? (
@@ -75,15 +121,17 @@ export default function CategoriesGrid({ categories }: Props) {
                       alt={cat.name}
                       fill
                       className="object-cover object-center"
-                      sizes="72px"
+                      sizes="(max-width: 480px) 20vw, (max-width: 768px) 15vw, 11vw"
                     />
                   ) : (
                     <span
                       className="absolute inset-0 flex items-center justify-center font-bold select-none"
                       style={{
                         color: fg,
-                        fontSize: ini.length <= 2 ? '1.1rem' : '0.75rem',
-                        letterSpacing: '0.03em',
+                        fontSize: ini.length <= 2
+                          ? 'clamp(0.85rem, 2.5vw, 1.25rem)'
+                          : 'clamp(0.55rem, 1.6vw, 0.8rem)',
+                        letterSpacing: '0.02em',
                       }}
                     >
                       {ini}
@@ -91,15 +139,15 @@ export default function CategoriesGrid({ categories }: Props) {
                   )}
                 </div>
 
-                {/* ── Name ── */}
-                <span className="text-[10px] md:text-[11px] font-medium text-gray-600 text-center leading-snug line-clamp-2 w-full">
+                {/* Name below */}
+                <span className="text-[10px] md:text-[11px] font-medium text-gray-600 text-center leading-snug line-clamp-2 w-full px-0.5">
                   {cat.name}
                 </span>
               </Link>
-            );
-          })}
-        </div>
-      </div>
+            </SwiperSlide>
+          );
+        })}
+      </Swiper>
     </section>
   );
 }
