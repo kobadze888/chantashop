@@ -6,6 +6,7 @@ import type { HomeCategory } from '@/lib/api';
 
 interface Props {
   categories: HomeCategory[];
+  fallbackImages?: Record<string, string>; // kept for API compat, unused
 }
 
 /* ── Fallback brand configs (used when WP has no photo) ── */
