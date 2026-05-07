@@ -1,5 +1,5 @@
 'use client';
-import { useRef } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import Image from 'next/image';
@@ -38,6 +38,10 @@ export default function CategoriesGrid({ categories }: Props) {
   const prevRef = useRef<HTMLButtonElement>(null);
   const nextRef = useRef<HTMLButtonElement>(null);
 
+  // Prevent SSR flash: render placeholder until Swiper hydrates on client
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   if (!categories?.length) return null;
 
   return (
@@ -48,7 +52,6 @@ export default function CategoriesGrid({ categories }: Props) {
         <h2 className="text-lg md:text-xl font-semibold text-brand-dark">
           {t('title')}
         </h2>
-        {/* Arrow buttons — all screen sizes */}
         <div className="flex items-center gap-1.5 md:gap-2">
           <button
             ref={prevRef}
@@ -69,86 +72,98 @@ export default function CategoriesGrid({ categories }: Props) {
         </div>
       </header>
 
-      {/*
-        Swiper fills the full width on every breakpoint.
-        slidesPerView = N means each slide = containerWidth / N, so circles
-        are always proportional and no empty space remains on the right.
-        Swipe works on all devices; arrows show on desktop.
-      */}
-      <Swiper
-        modules={[Navigation]}
-        slidesPerView={5}
-        spaceBetween={10}
-        navigation={{ prevEl: prevRef.current, nextEl: nextRef.current }}
-        onBeforeInit={(swiper) => {
-          // @ts-expect-error swiper navigation refs assigned post-init
-          swiper.params.navigation.prevEl = prevRef.current;
-          // @ts-expect-error swiper navigation refs assigned post-init
-          swiper.params.navigation.nextEl = nextRef.current;
-        }}
-        breakpoints={{
-          480:  { slidesPerView: 6,  spaceBetween: 10 },
-          640:  { slidesPerView: 7,  spaceBetween: 12 },
-          768:  { slidesPerView: 8,  spaceBetween: 14 },
-          1024: { slidesPerView: 9,  spaceBetween: 14 },
-          1280: { slidesPerView: 10, spaceBetween: 16 },
-        }}
-        className="pb-1"
-      >
-        {categories.map((cat) => {
-          const imgSrc = cat.image?.sourceUrl;
-          const fb  = FALLBACK[cat.slug];
-          const bg  = fb?.bg  ?? '#18181b';
-          const fg  = fb?.fg  ?? '#ffffff';
-          const ini = fb?.initial ?? cat.name.slice(0, 2).toUpperCase();
+      {/* Skeleton while Swiper hydrates — same height, no flash */}
+      {!mounted ? (
+        <div className="flex gap-2.5">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="flex-1 flex flex-col items-center gap-1.5">
+              <div className="w-full aspect-square rounded-full bg-gray-100 animate-pulse" />
+              <div className="h-2.5 w-3/4 rounded bg-gray-100 animate-pulse" />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <Swiper
+          modules={[Navigation]}
+          slidesPerView={5}
+          spaceBetween={10}
+          navigation={{ prevEl: prevRef.current, nextEl: nextRef.current }}
+          onBeforeInit={(swiper) => {
+            // @ts-expect-error swiper navigation refs assigned post-init
+            swiper.params.navigation.prevEl = prevRef.current;
+            // @ts-expect-error swiper navigation refs assigned post-init
+            swiper.params.navigation.nextEl = nextRef.current;
+          }}
+          breakpoints={{
+            480:  { slidesPerView: 6,  spaceBetween: 10 },
+            640:  { slidesPerView: 7,  spaceBetween: 12 },
+            768:  { slidesPerView: 8,  spaceBetween: 14 },
+            1024: { slidesPerView: 9,  spaceBetween: 14 },
+            1280: { slidesPerView: 10, spaceBetween: 16 },
+          }}
+          className="pb-1"
+        >
+          {categories.map((cat) => {
+            const imgSrc = cat.image?.sourceUrl;
+            const fb  = FALLBACK[cat.slug];
+            const bg  = fb?.bg  ?? '#18181b';
+            const fg  = fb?.fg  ?? '#ffffff';
+            const ini = fb?.initial ?? cat.name.slice(0, 2).toUpperCase();
 
-          return (
-            <SwiperSlide key={cat.id}>
-              <Link
-                href={{ pathname: '/product-category/[slug]', params: { slug: cat.slug } }}
-                className="group flex flex-col items-center gap-1.5 select-none cursor-pointer"
-              >
-                {/* Outer: scale + ring (no overflow-hidden so clip doesn't cut the scaled edge) */}
-                <div className="w-full aspect-square rounded-full ring-[2.5px] ring-gray-100 group-hover:ring-brand-DEFAULT transition-all duration-200 group-hover:scale-[1.06]">
-                  {/* Inner: overflow-hidden for image crop */}
-                  <div
-                    className="w-full h-full rounded-full overflow-hidden relative"
-                    style={!imgSrc ? { background: bg } : undefined}
-                  >
-                    {imgSrc ? (
-                      <Image
-                        src={imgSrc}
-                        alt={cat.name}
-                        fill
-                        className="object-cover object-center"
-                        sizes="(max-width: 480px) 20vw, (max-width: 768px) 15vw, 11vw"
-                      />
-                    ) : (
-                      <span
-                        className="absolute inset-0 flex items-center justify-center font-bold select-none"
-                        style={{
-                          color: fg,
-                          fontSize: ini.length <= 2
-                            ? 'clamp(0.85rem, 2.5vw, 1.25rem)'
-                            : 'clamp(0.55rem, 1.6vw, 0.8rem)',
-                          letterSpacing: '0.02em',
-                        }}
-                      >
-                        {ini}
-                      </span>
-                    )}
+            return (
+              <SwiperSlide key={cat.id} className="!overflow-visible">
+                {/*
+                  Scale on the Link (whole item: circle + text scale together)
+                  → text never gets covered by the growing circle.
+                  overflow-visible on SwiperSlide so scaled item isn't clipped by it.
+                */}
+                <Link
+                  href={{ pathname: '/product-category/[slug]', params: { slug: cat.slug } }}
+                  className="group flex flex-col items-center gap-1.5 select-none cursor-pointer
+                    transition-transform duration-200 hover:scale-[1.07]"
+                >
+                  {/* Ring on outer div (no overflow-hidden here) */}
+                  <div className="w-full aspect-square rounded-full ring-[2.5px] ring-gray-100 group-hover:ring-brand-DEFAULT transition-colors duration-200">
+                    {/* overflow-hidden only on inner div for image crop */}
+                    <div
+                      className="w-full h-full rounded-full overflow-hidden relative"
+                      style={!imgSrc ? { background: bg } : undefined}
+                    >
+                      {imgSrc ? (
+                        <Image
+                          src={imgSrc}
+                          alt={cat.name}
+                          fill
+                          className="object-cover object-center"
+                          sizes="(max-width: 480px) 20vw, (max-width: 768px) 15vw, 11vw"
+                        />
+                      ) : (
+                        <span
+                          className="absolute inset-0 flex items-center justify-center font-bold select-none"
+                          style={{
+                            color: fg,
+                            fontSize: ini.length <= 2
+                              ? 'clamp(0.85rem, 2.5vw, 1.25rem)'
+                              : 'clamp(0.55rem, 1.6vw, 0.8rem)',
+                            letterSpacing: '0.02em',
+                          }}
+                        >
+                          {ini}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
 
-                {/* Name below */}
-                <span className="text-[10px] md:text-[11px] font-medium text-gray-600 text-center leading-snug line-clamp-2 w-full px-0.5">
-                  {cat.name}
-                </span>
-              </Link>
-            </SwiperSlide>
-          );
-        })}
-      </Swiper>
+                  {/* Name — scales with the circle, never hidden */}
+                  <span className="text-[10px] md:text-[11px] font-medium text-gray-600 text-center leading-snug line-clamp-2 w-full px-0.5">
+                    {cat.name}
+                  </span>
+                </Link>
+              </SwiperSlide>
+            );
+          })}
+        </Swiper>
+      )}
     </section>
   );
 }
