@@ -1,5 +1,5 @@
 'use client';
-import { useRef, useEffect, useState } from 'react';
+import { useRef } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import Image from 'next/image';
@@ -38,14 +38,30 @@ export default function CategoriesGrid({ categories }: Props) {
   const prevRef = useRef<HTMLButtonElement>(null);
   const nextRef = useRef<HTMLButtonElement>(null);
 
-  // Prevent SSR flash: render placeholder until Swiper hydrates on client
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-
   if (!categories?.length) return null;
 
   return (
     <section className="container mx-auto px-3 md:px-6 mt-10 md:mt-14">
+      {/*
+        Pre-init slide sizing: the selector targets Swiper BEFORE its JS adds
+        `.swiper-initialized`. So on SSR / first paint slides already have
+        correct widths → no flash, no skeleton needed. After init, Swiper's
+        inline styles win (specificity).
+      */}
+      <style>{`
+        .cats-swiper:not(.swiper-initialized) .swiper-wrapper { display: flex; }
+        .cats-swiper:not(.swiper-initialized) .swiper-slide {
+          flex: 0 0 auto;
+          width: calc((100% - 40px) / 5);
+          margin-right: 10px;
+        }
+        .cats-swiper:not(.swiper-initialized) .swiper-slide:last-child { margin-right: 0; }
+        @media (min-width: 480px)  { .cats-swiper:not(.swiper-initialized) .swiper-slide { width: calc((100% - 50px) / 6);  margin-right: 10px; } }
+        @media (min-width: 640px)  { .cats-swiper:not(.swiper-initialized) .swiper-slide { width: calc((100% - 72px) / 7);  margin-right: 12px; } }
+        @media (min-width: 768px)  { .cats-swiper:not(.swiper-initialized) .swiper-slide { width: calc((100% - 98px) / 8);  margin-right: 14px; } }
+        @media (min-width: 1024px) { .cats-swiper:not(.swiper-initialized) .swiper-slide { width: calc((100% - 112px) / 9); margin-right: 14px; } }
+        @media (min-width: 1280px) { .cats-swiper:not(.swiper-initialized) .swiper-slide { width: calc((100% - 144px) / 10); margin-right: 16px; } }
+      `}</style>
 
       {/* Header */}
       <header className="flex items-center justify-between mb-5 md:mb-6">
@@ -72,97 +88,82 @@ export default function CategoriesGrid({ categories }: Props) {
         </div>
       </header>
 
-      {/* Skeleton while Swiper hydrates — same height, no flash */}
-      {!mounted ? (
-        <div className="flex gap-2.5">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="flex-1 flex flex-col items-center gap-1.5">
-              <div className="w-full aspect-square rounded-full bg-gray-100 animate-pulse" />
-              <div className="h-2.5 w-3/4 rounded bg-gray-100 animate-pulse" />
-            </div>
-          ))}
-        </div>
-      ) : (
-        <Swiper
-          modules={[Navigation]}
-          slidesPerView={5}
-          spaceBetween={10}
-          navigation={{ prevEl: prevRef.current, nextEl: nextRef.current }}
-          onBeforeInit={(swiper) => {
-            // @ts-expect-error swiper navigation refs assigned post-init
-            swiper.params.navigation.prevEl = prevRef.current;
-            // @ts-expect-error swiper navigation refs assigned post-init
-            swiper.params.navigation.nextEl = nextRef.current;
-          }}
-          breakpoints={{
-            480:  { slidesPerView: 6,  spaceBetween: 10 },
-            640:  { slidesPerView: 7,  spaceBetween: 12 },
-            768:  { slidesPerView: 8,  spaceBetween: 14 },
-            1024: { slidesPerView: 9,  spaceBetween: 14 },
-            1280: { slidesPerView: 10, spaceBetween: 16 },
-          }}
-          className="pb-1"
-        >
-          {categories.map((cat) => {
-            const imgSrc = cat.image?.sourceUrl;
-            const fb  = FALLBACK[cat.slug];
-            const bg  = fb?.bg  ?? '#18181b';
-            const fg  = fb?.fg  ?? '#ffffff';
-            const ini = fb?.initial ?? cat.name.slice(0, 2).toUpperCase();
+      <Swiper
+        modules={[Navigation]}
+        slidesPerView={5}
+        spaceBetween={10}
+        navigation={{ prevEl: prevRef.current, nextEl: nextRef.current }}
+        onBeforeInit={(swiper) => {
+          // @ts-expect-error swiper navigation refs assigned post-init
+          swiper.params.navigation.prevEl = prevRef.current;
+          // @ts-expect-error swiper navigation refs assigned post-init
+          swiper.params.navigation.nextEl = nextRef.current;
+        }}
+        breakpoints={{
+          480:  { slidesPerView: 6,  spaceBetween: 10 },
+          640:  { slidesPerView: 7,  spaceBetween: 12 },
+          768:  { slidesPerView: 8,  spaceBetween: 14 },
+          1024: { slidesPerView: 9,  spaceBetween: 14 },
+          1280: { slidesPerView: 10, spaceBetween: 16 },
+        }}
+        className="cats-swiper pb-1"
+      >
+        {categories.map((cat) => {
+          const imgSrc = cat.image?.sourceUrl;
+          const fb  = FALLBACK[cat.slug];
+          const bg  = fb?.bg  ?? '#18181b';
+          const fg  = fb?.fg  ?? '#ffffff';
+          const ini = fb?.initial ?? cat.name.slice(0, 2).toUpperCase();
 
-            return (
-              <SwiperSlide key={cat.id}>
+          return (
+            <SwiperSlide key={cat.id}>
+              <Link
+                href={{ pathname: '/product-category/[slug]', params: { slug: cat.slug } }}
+                className="group flex flex-col items-center gap-1.5 select-none cursor-pointer"
+              >
                 {/*
-                  Scale on the Link (whole item: circle + text scale together)
-                  → text never gets covered by the growing circle.
-                  overflow-visible on SwiperSlide so scaled item isn't clipped by it.
+                  Inset box-shadow for hover ring — renders INSIDE the circle's
+                  border, physically cannot be clipped by parent overflow:hidden.
+                  Image zooms inside the rounded crop on hover.
                 */}
-                <Link
-                  href={{ pathname: '/product-category/[slug]', params: { slug: cat.slug } }}
-                  className="group flex flex-col items-center gap-1.5 select-none cursor-pointer"
+                <div
+                  className="w-full aspect-square rounded-full overflow-hidden relative
+                    transition-shadow duration-200
+                    group-hover:shadow-[inset_0_0_0_3px_#db2777]"
+                  style={!imgSrc ? { background: bg } : undefined}
                 >
-                  {/*
-                    No scale on the container — avoids Swiper overflow clipping.
-                    Hover effect: ring highlights + image zooms inside the circle.
-                  */}
-                  <div className="w-full aspect-square rounded-full overflow-hidden relative
-                    outline outline-2 outline-offset-[3px] outline-transparent group-hover:outline-brand-DEFAULT
-                    transition-all duration-200"
-                    style={!imgSrc ? { background: bg } : undefined}
-                  >
-                    {imgSrc ? (
-                      <Image
-                        src={imgSrc}
-                        alt={cat.name}
-                        fill
-                        className="object-cover object-center transition-transform duration-300 group-hover:scale-110"
-                        sizes="(max-width: 480px) 20vw, (max-width: 768px) 15vw, 11vw"
-                      />
-                    ) : (
-                      <span
-                        className="absolute inset-0 flex items-center justify-center font-bold select-none"
-                        style={{
-                          color: fg,
-                          fontSize: ini.length <= 2
-                            ? 'clamp(0.85rem, 2.5vw, 1.25rem)'
-                            : 'clamp(0.55rem, 1.6vw, 0.8rem)',
-                          letterSpacing: '0.02em',
-                        }}
-                      >
-                        {ini}
-                      </span>
-                    )}
-                  </div>
+                  {imgSrc ? (
+                    <Image
+                      src={imgSrc}
+                      alt={cat.name}
+                      fill
+                      className="object-cover object-center transition-transform duration-300 group-hover:scale-110"
+                      sizes="(max-width: 480px) 20vw, (max-width: 768px) 15vw, 11vw"
+                    />
+                  ) : (
+                    <span
+                      className="absolute inset-0 flex items-center justify-center font-bold select-none transition-transform duration-300 group-hover:scale-110"
+                      style={{
+                        color: fg,
+                        fontSize: ini.length <= 2
+                          ? 'clamp(0.85rem, 2.5vw, 1.25rem)'
+                          : 'clamp(0.55rem, 1.6vw, 0.8rem)',
+                        letterSpacing: '0.02em',
+                      }}
+                    >
+                      {ini}
+                    </span>
+                  )}
+                </div>
 
-                  <span className="text-[10px] md:text-[11px] font-medium text-gray-600 text-center leading-snug line-clamp-2 w-full px-0.5 group-hover:text-brand-dark transition-colors duration-200">
-                    {cat.name}
-                  </span>
-                </Link>
-              </SwiperSlide>
-            );
-          })}
-        </Swiper>
-      )}
+                <span className="text-[10px] md:text-[11px] font-medium text-gray-600 text-center leading-snug line-clamp-2 w-full px-0.5 group-hover:text-brand-dark transition-colors duration-200">
+                  {cat.name}
+                </span>
+              </Link>
+            </SwiperSlide>
+          );
+        })}
+      </Swiper>
     </section>
   );
 }
