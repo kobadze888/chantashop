@@ -80,7 +80,8 @@ export default function Hero() {
             desktop-ზე flex stretch — სიმაღლე = ტექსტის column
         ════════════════════════════════════════ */}
         {/* Mobile */}
-        <div className="order-1 md:hidden relative w-full aspect-[2048/1881]">
+        <div className="order-1 md:hidden relative w-full aspect-[2048/1881]"
+          style={{ background: '#ecc7ba' }}>
           <Image
             src="/images/banner.webp"
             alt="ChantaShop — ჩანთები და აქსესუარები"
@@ -94,7 +95,8 @@ export default function Hero() {
         {/* Desktop / Tablet */}
         <div className="order-2 hidden md:block relative
           flex-shrink-0
-          md:w-[46%] lg:w-[48%] xl:w-[50%]">
+          md:w-[46%] lg:w-[48%] xl:w-[50%]"
+          style={{ background: '#ecc7ba' }}>
           <Image
             src="/images/banner.webp"
             alt="ChantaShop — ჩანთები და აქსესუარები"
