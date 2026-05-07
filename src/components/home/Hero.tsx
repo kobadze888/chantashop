@@ -103,6 +103,8 @@ export default function Hero() {
             priority
             sizes="(max-width: 1024px) 46vw, (max-width: 1280px) 48vw, 50vw"
           />
+          {/* smooth fade from text column → photo */}
+          <div className="absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-black to-transparent pointer-events-none z-10" />
         </div>
 
       </div>
