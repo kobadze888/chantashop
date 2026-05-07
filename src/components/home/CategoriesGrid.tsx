@@ -126,8 +126,8 @@ export default function CategoriesGrid({ categories }: Props) {
                     Hover effect: ring highlights + image zooms inside the circle.
                   */}
                   <div className="w-full aspect-square rounded-full overflow-hidden relative
-                    ring-[2.5px] ring-gray-100 group-hover:ring-brand-DEFAULT
-                    transition-all duration-200 group-hover:shadow-md"
+                    outline outline-2 outline-offset-[3px] outline-transparent group-hover:outline-brand-DEFAULT
+                    transition-all duration-200"
                     style={!imgSrc ? { background: bg } : undefined}
                   >
                     {imgSrc ? (
