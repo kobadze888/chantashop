@@ -7,8 +7,8 @@
   --color-brand-dark: #000000;
   --color-brand-gray: #F9FAFB;
   
-  --font-sans: "Inter", "BPG Nino Mtavruli", sans-serif;
-  --font-serif: "Playfair Display", serif;
+  --font-sans: var(--font-noto-georgian), "Inter", sans-serif;
+  --font-serif: var(--font-ka-serif), "Playfair Display", serif;
 }
 
 /* Base Styles */
