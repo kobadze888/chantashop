@@ -1,22 +1,45 @@
-import Image from 'next/image';
+'use client';
 import { Link } from '@/navigation';
-import { ArrowRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { ShoppingBag, Crown, Tag, Layers, Umbrella } from 'lucide-react';
 import type { HomeCategory } from '@/lib/api';
 
 interface Props {
   categories: HomeCategory[];
-  fallbackImages: Record<string, string>;
+  fallbackImages?: Record<string, string>; // kept for backward compat
 }
 
-export default function CategoriesGrid({ categories, fallbackImages }: Props) {
-  const t = useTranslations('Home.Categories');
+/* ── Brand monogram configs ── */
+const BRAND: Record<string, { mono: string; bg: string; fg: string }> = {
+  'chanel':          { mono: 'CC',  bg: '#000000', fg: '#FFFFFF' },
+  'christian-dior':  { mono: 'CD',  bg: '#0D0D0D', fg: '#FFFFFF' },
+  'dolce-gabbana':   { mono: 'D&G', bg: '#1C1C1C', fg: '#D4AF37' },
+  'fendi':           { mono: 'FF',  bg: '#F5E6C8', fg: '#3D2B1F' },
+  'gucci':           { mono: 'GG',  bg: '#1B4332', fg: '#D4AF37' },
+  'guess':           { mono: '?',   bg: '#111111', fg: '#FFFFFF' },
+  'luis-vuitton':    { mono: 'LV',  bg: '#5C3317', fg: '#D4AF37' },
+  'michael-kors':    { mono: 'MK',  bg: '#222222', fg: '#C9A96E' },
+  'prada':           { mono: '▲',   bg: '#000000', fg: '#FFFFFF' },
+  'ysl':             { mono: 'YSL', bg: '#0A0A0A', fg: '#D4AF37' },
+};
 
-  const visible = categories.slice(0, 8);
+/* ── Generic category icon configs ── */
+const ICON: Record<string, { Icon: React.ElementType; bg: string; fg: string }> = {
+  'luqsi':                       { Icon: Crown,       bg: '#DB2777', fg: '#FFFFFF' },
+  'ekonomi':                     { Icon: Tag,         bg: '#059669', fg: '#FFFFFF' },
+  'qalis_chantebi':              { Icon: ShoppingBag, bg: '#7C3AED', fg: '#FFFFFF' },
+  'naturaluri-tyavis-chantebi':  { Icon: Layers,      bg: '#92400E', fg: '#FFFFFF' },
+  'kolgebi':                     { Icon: Umbrella,    bg: '#0284C7', fg: '#FFFFFF' },
+};
+
+export default function CategoriesGrid({ categories }: Props) {
+  const t = useTranslations('Home.Categories');
 
   return (
     <section className="container mx-auto px-3 md:px-6 mt-16 md:mt-24">
-      <header className="flex items-end justify-between mb-7 md:mb-10">
+
+      {/* Header */}
+      <header className="flex items-end justify-between mb-8 md:mb-10">
         <div>
           <p className="text-xs uppercase tracking-[0.25em] text-brand-DEFAULT font-bold mb-2">
             {t('subtitle')}
@@ -25,63 +48,62 @@ export default function CategoriesGrid({ categories, fallbackImages }: Props) {
             {t('title')}
           </h2>
         </div>
-        <Link
-          href="/shop"
-          className="hidden md:inline-flex items-center gap-2 text-sm font-bold text-brand-dark hover:text-brand-DEFAULT transition-colors"
-        >
-          {t('viewAll')}
-          <ArrowRight className="w-4 h-4" />
-        </Link>
       </header>
 
-      <ul className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
-        {visible.map((cat) => {
-          const img =
-            cat.image?.sourceUrl ||
-            cat.products?.nodes?.[0]?.image?.sourceUrl ||
-            fallbackImages[cat.slug] ||
-            fallbackImages.default;
+      {/* Grid — 4 cols mobile → 5 tablet → 6 md → 8 lg */}
+      <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-3 md:gap-4 lg:gap-5">
+        {categories.map((cat) => {
+          const b  = BRAND[cat.slug];
+          const ic = ICON[cat.slug];
+          const shortMono = b && b.mono.length <= 2;
+
           return (
-            <li key={cat.id}>
-              <Link
-                href={{ pathname: '/product-category/[slug]', params: { slug: cat.slug } }}
-                className="group block aspect-[3/4] relative rounded-2xl md:rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 to-zinc-200"
+            <Link
+              key={cat.id}
+              href={{ pathname: '/product-category/[slug]', params: { slug: cat.slug } }}
+              className="group flex flex-col items-center gap-2"
+            >
+              {/* Square card */}
+              <div
+                className="w-full aspect-square rounded-2xl md:rounded-3xl flex items-center justify-center shadow-sm
+                  group-hover:shadow-xl group-hover:-translate-y-1 transition-all duration-300"
+                style={{ background: b?.bg ?? ic?.bg ?? '#18181b' }}
               >
-                <Image
-                  src={img}
-                  alt={cat.name}
-                  fill
-                  sizes="(max-width: 768px) 50vw, 25vw"
-                  className="object-cover transition-transform duration-700 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                <div className="absolute inset-0 p-4 md:p-6 flex flex-col justify-end text-white">
-                  <h3 className="text-base md:text-xl font-serif font-bold leading-tight tracking-tight">
-                    {cat.name}
-                  </h3>
-                  <p className="text-[10px] md:text-xs text-white/80 mt-1 uppercase tracking-widest">
-                    {t('products', { count: cat.count })}
-                  </p>
-                </div>
-                <span className="absolute top-3 right-3 md:top-4 md:right-4 w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/90 backdrop-blur flex items-center justify-center opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all">
-                  <ArrowRight className="w-4 h-4 text-brand-dark" />
-                </span>
-              </Link>
-            </li>
+                {b ? (
+                  /* Brand monogram */
+                  <span
+                    className={`font-serif font-black leading-none tracking-tighter select-none ${
+                      shortMono
+                        ? 'text-2xl sm:text-3xl md:text-4xl'
+                        : 'text-base sm:text-lg md:text-xl'
+                    }`}
+                    style={{ color: b.fg }}
+                  >
+                    {b.mono}
+                  </span>
+                ) : ic ? (
+                  /* Generic icon */
+                  <ic.Icon
+                    className="w-[44%] h-[44%]"
+                    style={{ color: ic.fg }}
+                    strokeWidth={1.5}
+                    aria-hidden="true"
+                  />
+                ) : (
+                  <ShoppingBag className="w-[44%] h-[44%] text-white" strokeWidth={1.5} />
+                )}
+              </div>
+
+              {/* Category name */}
+              <p className="text-[10px] sm:text-[11px] md:text-xs font-bold text-center uppercase
+                tracking-wide text-brand-dark/60 leading-tight line-clamp-2 w-full">
+                {cat.name}
+              </p>
+            </Link>
           );
         })}
-      </ul>
-
-      {/* Mobile View All */}
-      <div className="md:hidden mt-5 text-center">
-        <Link
-          href="/shop"
-          className="inline-flex items-center gap-2 text-sm font-bold text-brand-dark hover:text-brand-DEFAULT transition-colors"
-        >
-          {t('viewAll')}
-          <ArrowRight className="w-4 h-4" />
-        </Link>
       </div>
+
     </section>
   );
 }
