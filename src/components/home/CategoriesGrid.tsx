@@ -111,7 +111,7 @@ export default function CategoriesGrid({ categories }: Props) {
             const ini = fb?.initial ?? cat.name.slice(0, 2).toUpperCase();
 
             return (
-              <SwiperSlide key={cat.id} className="!overflow-visible">
+              <SwiperSlide key={cat.id}>
                 {/*
                   Scale on the Link (whole item: circle + text scale together)
                   → text never gets covered by the growing circle.
@@ -119,43 +119,42 @@ export default function CategoriesGrid({ categories }: Props) {
                 */}
                 <Link
                   href={{ pathname: '/product-category/[slug]', params: { slug: cat.slug } }}
-                  className="group flex flex-col items-center gap-1.5 select-none cursor-pointer
-                    transition-transform duration-200 hover:scale-[1.07]"
+                  className="group flex flex-col items-center gap-1.5 select-none cursor-pointer"
                 >
-                  {/* Ring on outer div (no overflow-hidden here) */}
-                  <div className="w-full aspect-square rounded-full ring-[2.5px] ring-gray-100 group-hover:ring-brand-DEFAULT transition-colors duration-200">
-                    {/* overflow-hidden only on inner div for image crop */}
-                    <div
-                      className="w-full h-full rounded-full overflow-hidden relative"
-                      style={!imgSrc ? { background: bg } : undefined}
-                    >
-                      {imgSrc ? (
-                        <Image
-                          src={imgSrc}
-                          alt={cat.name}
-                          fill
-                          className="object-cover object-center"
-                          sizes="(max-width: 480px) 20vw, (max-width: 768px) 15vw, 11vw"
-                        />
-                      ) : (
-                        <span
-                          className="absolute inset-0 flex items-center justify-center font-bold select-none"
-                          style={{
-                            color: fg,
-                            fontSize: ini.length <= 2
-                              ? 'clamp(0.85rem, 2.5vw, 1.25rem)'
-                              : 'clamp(0.55rem, 1.6vw, 0.8rem)',
-                            letterSpacing: '0.02em',
-                          }}
-                        >
-                          {ini}
-                        </span>
-                      )}
-                    </div>
+                  {/*
+                    No scale on the container — avoids Swiper overflow clipping.
+                    Hover effect: ring highlights + image zooms inside the circle.
+                  */}
+                  <div className="w-full aspect-square rounded-full overflow-hidden relative
+                    ring-[2.5px] ring-gray-100 group-hover:ring-brand-DEFAULT
+                    transition-all duration-200 group-hover:shadow-md"
+                    style={!imgSrc ? { background: bg } : undefined}
+                  >
+                    {imgSrc ? (
+                      <Image
+                        src={imgSrc}
+                        alt={cat.name}
+                        fill
+                        className="object-cover object-center transition-transform duration-300 group-hover:scale-110"
+                        sizes="(max-width: 480px) 20vw, (max-width: 768px) 15vw, 11vw"
+                      />
+                    ) : (
+                      <span
+                        className="absolute inset-0 flex items-center justify-center font-bold select-none"
+                        style={{
+                          color: fg,
+                          fontSize: ini.length <= 2
+                            ? 'clamp(0.85rem, 2.5vw, 1.25rem)'
+                            : 'clamp(0.55rem, 1.6vw, 0.8rem)',
+                          letterSpacing: '0.02em',
+                        }}
+                      >
+                        {ini}
+                      </span>
+                    )}
                   </div>
 
-                  {/* Name — scales with the circle, never hidden */}
-                  <span className="text-[10px] md:text-[11px] font-medium text-gray-600 text-center leading-snug line-clamp-2 w-full px-0.5">
+                  <span className="text-[10px] md:text-[11px] font-medium text-gray-600 text-center leading-snug line-clamp-2 w-full px-0.5 group-hover:text-brand-dark transition-colors duration-200">
                     {cat.name}
                   </span>
                 </Link>
