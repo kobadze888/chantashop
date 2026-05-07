@@ -32,17 +32,17 @@ const CATEGORY: Record<string, { bg: string; fg: string }> = {
 };
 
 /**
- * Find the column count (4–6) that divides `total` most evenly.
- * Prefers 5 → 4 → 6 when checking for exact fit, otherwise picks
+ * Find the column count (6–8) that divides `total` most evenly.
+ * Prefers 7 → 6 → 8 when checking for exact fit, otherwise picks
  * the count with fewest leftover cards in the last row.
  */
 function bestCols(total: number): number {
-  for (const c of [5, 4, 6]) {
+  for (const c of [7, 6, 8, 5]) {
     if (total % c === 0) return c;
   }
-  let best = 5;
+  let best = 7;
   let bestRem = total;
-  for (let c = 4; c <= 6; c++) {
+  for (let c = 5; c <= 8; c++) {
     const rem = total % c;
     if (rem < bestRem) { bestRem = rem; best = c; }
   }
@@ -64,7 +64,7 @@ export default function CategoriesGrid({ categories }: Props) {
         </h2>
       </header>
 
-      <div className="cats-grid grid grid-cols-4 gap-x-2 gap-y-4 md:gap-x-4 md:gap-y-6">
+      <div className="cats-grid grid grid-cols-5 gap-x-2 gap-y-3 md:gap-x-3 md:gap-y-5">
         {categories.map((cat) => {
           const imgSrc = cat.image?.sourceUrl;
           const b = BRAND[cat.slug];
@@ -81,7 +81,7 @@ export default function CategoriesGrid({ categories }: Props) {
             >
               {/* ── Square card ── */}
               <div
-                className="w-full aspect-square rounded-2xl md:rounded-3xl overflow-hidden relative shadow-sm group-hover:shadow-md group-hover:-translate-y-0.5 transition-all duration-300"
+                className="w-full aspect-square rounded-xl md:rounded-2xl overflow-hidden relative shadow-sm group-hover:shadow-md group-hover:-translate-y-0.5 transition-all duration-300"
                 style={!imgSrc ? { background: bgColor } : undefined}
               >
                 {imgSrc ? (
@@ -113,7 +113,7 @@ export default function CategoriesGrid({ categories }: Props) {
               </div>
 
               {/* ── Name below card ── */}
-              <p className="mt-2 text-[11px] md:text-[12px] font-medium text-gray-700 text-center leading-tight line-clamp-2 w-full px-0.5">
+              <p className="mt-1.5 text-[10px] md:text-[11px] font-medium text-gray-600 text-center leading-tight line-clamp-2 w-full px-0.5">
                 {cat.name}
               </p>
             </Link>
