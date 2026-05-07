@@ -9,19 +9,40 @@ export default function Hero() {
 
   return (
     <section className="relative mx-3 md:container md:mx-auto mt-24 md:mt-32 rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-2xl bg-gradient-to-br from-brand-dark via-zinc-900 to-brand-dark">
-      <div className="grid md:grid-cols-2 min-h-[78vh] md:min-h-[640px]">
+      <div className="flex flex-col md:flex-row md:items-stretch">
 
-        {/* ═══ Text ═══ */}
-        <div className="relative z-20 flex flex-col justify-center px-7 md:px-16 py-14 md:py-20 text-white order-2 md:order-1">
+        {/* ══════════════════════════════════════
+            MOBILE PHOTO  (hidden on md+)
+            full-width, portrait cropped to ~60vw
+            ══════════════════════════════════════ */}
+        <div className="relative h-[62vw] max-h-[420px] md:hidden overflow-hidden">
+          <Image
+            src="/images/hero.webp"
+            alt="ChantaShop"
+            fill
+            className="object-cover object-[center_20%]"
+            priority
+            sizes="100vw"
+          />
+          {/* bottom fade into dark text section */}
+          <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/80 via-brand-dark/20 to-transparent" />
+        </div>
+
+        {/* ══════════════════════════════════════
+            TEXT COLUMN
+            mobile: below photo / desktop: left flex-1
+            ══════════════════════════════════════ */}
+        <div className="flex flex-col justify-center flex-1 min-w-0 px-7 md:px-10 lg:px-14 py-10 md:py-14 text-white">
 
           {/* Badge */}
-          <span className="inline-flex items-center gap-2 self-start bg-white/10 backdrop-blur-md border border-white/15 text-[10px] md:text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-[0.2em] mb-6 md:mb-8">
-            <span className="w-1.5 h-1.5 rounded-full bg-brand-DEFAULT" />
+          <span className="inline-flex items-center gap-2 self-start bg-white/10 backdrop-blur-md border border-white/15 text-[10px] md:text-[11px] font-bold px-4 py-1.5 rounded-full uppercase tracking-[0.2em] mb-5 md:mb-7">
+            <span className="w-1.5 h-1.5 rounded-full bg-brand-DEFAULT shrink-0" />
             {t('badge')}
           </span>
 
           {/* Title */}
-          <h1 className="font-serif font-black leading-[1.05] tracking-tight text-[2.4rem] sm:text-5xl md:text-[3.6rem] lg:text-[4.2rem] mb-5 md:mb-6">
+          <h1 className="font-serif font-black leading-[1.05] tracking-tight mb-4 md:mb-5
+            text-[2.35rem] sm:text-[2.8rem] md:text-[2.4rem] lg:text-[3rem] xl:text-[3.4rem]">
             ჩანთებისა და
             <br />
             <span className="text-brand-DEFAULT">აქსესუარების</span>
@@ -30,50 +51,53 @@ export default function Hero() {
           </h1>
 
           {/* Subtitle */}
-          <p className="text-white/65 text-sm md:text-base max-w-sm mb-8 md:mb-10 leading-relaxed">
+          <p className="text-white/60 text-sm md:text-[0.9rem] leading-relaxed max-w-xs md:max-w-sm mb-7 md:mb-9">
             {t('subtitle')}
           </p>
 
           {/* CTA */}
-          <div>
-            <Link
-              href="/shop"
-              className="group inline-flex items-center justify-center gap-2.5 bg-white text-brand-dark px-8 py-4 rounded-full font-bold text-sm hover:bg-brand-DEFAULT hover:text-white transition-all shadow-xl shadow-black/30 w-full sm:w-auto"
-            >
-              {t('cta')}
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
+          <Link
+            href="/shop"
+            className="group inline-flex items-center justify-center gap-2.5
+              bg-white text-brand-dark px-8 py-3.5 rounded-full font-bold text-sm
+              hover:bg-brand-DEFAULT hover:text-white transition-all
+              shadow-lg shadow-black/25 w-full sm:w-auto self-start"
+          >
+            {t('cta')}
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </Link>
 
           {/* Stats */}
-          <div className="flex gap-6 md:gap-10 mt-10 md:mt-12 pt-7 border-t border-white/10">
-            <div>
-              <div className="text-2xl md:text-3xl font-serif font-black">10+</div>
-              <div className="text-[10px] text-white/45 uppercase tracking-widest mt-0.5">ბრენდი</div>
-            </div>
-            <div>
-              <div className="text-2xl md:text-3xl font-serif font-black">1-2 დ.</div>
-              <div className="text-[10px] text-white/45 uppercase tracking-widest mt-0.5">ჩაბარება</div>
-            </div>
-            <div>
-              <div className="text-2xl md:text-3xl font-serif font-black">6₾</div>
-              <div className="text-[10px] text-white/45 uppercase tracking-widest mt-0.5">მიწოდება</div>
-            </div>
+          <div className="flex gap-5 md:gap-8 mt-8 md:mt-10 pt-6 border-t border-white/10">
+            {[
+              { num: '10+',    label: 'ბრენდი'    },
+              { num: '1-2 დ.', label: 'ჩაბარება'  },
+              { num: '6₾',    label: 'მიწოდება'  },
+            ].map(({ num, label }) => (
+              <div key={label}>
+                <div className="text-xl md:text-2xl lg:text-3xl font-serif font-black">{num}</div>
+                <div className="text-[9px] md:text-[10px] text-white/40 uppercase tracking-widest mt-0.5">{label}</div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* ═══ Photo ═══ */}
-        <div className="relative h-[52vh] md:h-auto md:aspect-[768/1376] order-1 md:order-2 overflow-hidden">
+        {/* ══════════════════════════════════════
+            DESKTOP PHOTO  (hidden on mobile)
+            Fixed width — height stretches with flex to
+            match text column. object-cover fills it,
+            photo is portrait so nearly all of it shows.
+            ══════════════════════════════════════ */}
+        <div className="hidden md:block relative flex-shrink-0
+          md:w-[320px] lg:w-[380px] xl:w-[420px]">
           <Image
             src="/images/hero.webp"
             alt="ChantaShop — ჩანთები და აქსესუარები"
             fill
-            className="object-cover object-top md:object-center"
+            className="object-cover object-center"
             priority
-            sizes="(max-width: 768px) 100vw, 50vw"
+            sizes="(max-width: 1024px) 320px, (max-width: 1280px) 380px, 420px"
           />
-          {/* Mobile only: gradient */}
-          <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/60 via-transparent to-transparent md:hidden" />
         </div>
 
       </div>
