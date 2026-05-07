@@ -41,14 +41,14 @@ export default function NewArrivals({ products, locale }: Props) {
           <button
             ref={prevRef}
             aria-label="Previous"
-            className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-brand-dark hover:border-brand-dark hover:text-white transition-all active:scale-90"
+            className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-brand-dark hover:border-brand-dark hover:text-white transition-all active:scale-90 cursor-pointer"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <button
             ref={nextRef}
             aria-label="Next"
-            className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-brand-dark hover:border-brand-dark hover:text-white transition-all active:scale-90"
+            className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-brand-dark hover:border-brand-dark hover:text-white transition-all active:scale-90 cursor-pointer"
           >
             <ChevronRight className="w-5 h-5" />
           </button>

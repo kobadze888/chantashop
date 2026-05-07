@@ -48,12 +48,12 @@ export default function CategoriesGrid({ categories }: Props) {
         <h2 className="text-lg md:text-xl font-semibold text-brand-dark">
           {t('title')}
         </h2>
-        {/* Arrow buttons — desktop only */}
-        <div className="hidden md:flex items-center gap-2">
+        {/* Arrow buttons — all screen sizes */}
+        <div className="flex items-center gap-1.5 md:gap-2">
           <button
             ref={prevRef}
             aria-label="Previous"
-            className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-500
+            className="w-8 h-8 md:w-9 md:h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 cursor-pointer
               hover:bg-brand-dark hover:border-brand-dark hover:text-white transition-all duration-150 active:scale-90"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -61,7 +61,7 @@ export default function CategoriesGrid({ categories }: Props) {
           <button
             ref={nextRef}
             aria-label="Next"
-            className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-500
+            className="w-8 h-8 md:w-9 md:h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 cursor-pointer
               hover:bg-brand-dark hover:border-brand-dark hover:text-white transition-all duration-150 active:scale-90"
           >
             <ChevronRight className="w-4 h-4" />
@@ -106,7 +106,7 @@ export default function CategoriesGrid({ categories }: Props) {
             <SwiperSlide key={cat.id}>
               <Link
                 href={{ pathname: '/product-category/[slug]', params: { slug: cat.slug } }}
-                className="group flex flex-col items-center gap-1.5 select-none"
+                className="group flex flex-col items-center gap-1.5 select-none cursor-pointer"
               >
                 {/* Outer: scale + ring (no overflow-hidden so clip doesn't cut the scaled edge) */}
                 <div className="w-full aspect-square rounded-full ring-[2.5px] ring-gray-100 group-hover:ring-brand-DEFAULT transition-all duration-200 group-hover:scale-[1.06]">
