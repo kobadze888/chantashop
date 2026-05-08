@@ -86,7 +86,7 @@ export default function Hero() {
             src="/images/chantashopge_banner2.png"
             alt="ChantaShop — ჩანთები და აქსესუარები"
             fill
-            className="object-contain object-center"
+            className="object-cover object-center"
             priority
             quality={80}
             sizes="100vw"
@@ -102,7 +102,7 @@ export default function Hero() {
             src="/images/chantashopge_banner2.png"
             alt="ChantaShop — ჩანთები და აქსესუარები"
             fill
-            className="object-contain object-center"
+            className="object-cover object-center"
             priority
             quality={80}
             sizes="(max-width: 1024px) 46vw, (max-width: 1280px) 48vw, 50vw"
