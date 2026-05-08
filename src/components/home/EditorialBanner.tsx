@@ -14,7 +14,6 @@ export default function EditorialBanner() {
       desc: t('luxuryDesc'),
       cta: t('luxuryCta'),
       img: '/images/chantashop_ge_banner_premium.png',
-      tone: 'dark' as const,
     },
     {
       slug: 'ekonomi',
@@ -23,102 +22,91 @@ export default function EditorialBanner() {
       desc: t('economyDesc'),
       cta: t('economyCta'),
       img: '/images/chantashop_ge_banner_econom.png',
-      tone: 'light' as const,
     },
   ];
 
   return (
-    <section className="relative mt-12 md:mt-16 py-10 md:py-16
+    <section className="relative mt-12 md:mt-16 py-8 md:py-12
       bg-gradient-to-b from-rose-50/40 via-stone-50/30 to-white">
 
-      {/* Subtle decorative dots — top right */}
-      <div className="absolute top-6 right-6 w-32 h-32 rounded-full bg-brand-DEFAULT/5 blur-3xl pointer-events-none" />
-      <div className="absolute bottom-6 left-6 w-40 h-40 rounded-full bg-brand-dark/5 blur-3xl pointer-events-none" />
+      {/* Decorative blurs */}
+      <div className="absolute top-8 right-10 w-40 h-40 rounded-full bg-brand-DEFAULT/5 blur-3xl pointer-events-none" />
+      <div className="absolute bottom-8 left-10 w-48 h-48 rounded-full bg-brand-dark/5 blur-3xl pointer-events-none" />
 
       <div className="container mx-auto px-3 md:px-6 relative">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-          {tiles.map((tile) => {
-            const isDark = tile.tone === 'dark';
-            return (
+        {/* Narrower than container — keeps cards compact */}
+        <div className="max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 gap-3 md:gap-5">
+            {tiles.map((tile) => (
               <Link
                 key={tile.slug}
                 href={{ pathname: '/product-category/[slug]', params: { slug: tile.slug } }}
-                className={`group relative overflow-hidden
-                  rounded-2xl md:rounded-3xl
-                  ${isDark
-                    ? 'bg-gradient-to-br from-zinc-900 via-zinc-800 to-black text-white'
-                    : 'bg-gradient-to-br from-white via-stone-50 to-stone-100 text-brand-dark border border-stone-200/70'}
-                  shadow-md hover:shadow-2xl
-                  transition-all duration-500
-                  aspect-[5/3]`}
+                className="group relative
+                  aspect-[5/6]
+                  rounded-2xl md:rounded-3xl overflow-hidden
+                  block bg-zinc-100
+                  shadow-md hover:shadow-2xl transition-all duration-500"
               >
-                <div className="grid grid-cols-2 h-full">
+                {/* Photo — fills card, exact 5:6 match (no cropping) */}
+                <Image
+                  src={tile.img}
+                  alt={tile.title}
+                  fill
+                  sizes="(max-width: 1024px) 50vw, 440px"
+                  className="object-cover object-center transition-transform duration-700 group-hover:scale-[1.04]"
+                  quality={92}
+                />
 
-                  {/* Photo column — 50% width × full height = 5:6 (exact match for source) */}
-                  <div className="relative h-full overflow-hidden">
-                    <Image
-                      src={tile.img}
-                      alt={tile.title}
-                      fill
-                      sizes="(max-width: 768px) 50vw, 25vw"
-                      className="object-cover object-center transition-transform duration-700 group-hover:scale-[1.04]"
-                      quality={90}
-                    />
-                  </div>
+                {/* Bottom dark gradient — text readability without overpowering photo */}
+                <div className="absolute inset-x-0 bottom-0 h-3/5
+                  bg-gradient-to-t from-black/90 via-black/40 to-transparent
+                  pointer-events-none" />
 
-                  {/* Content column */}
-                  <div className="flex flex-col justify-between p-4 sm:p-5 md:p-6 lg:p-8">
+                {/* Top-left label pill */}
+                <span className="absolute top-3 left-3 md:top-4 md:left-4
+                  inline-flex items-center
+                  bg-white/95 backdrop-blur-sm text-brand-dark
+                  text-[9px] md:text-[10px] font-bold uppercase tracking-[0.18em]
+                  px-2.5 md:px-3 py-1 md:py-1.5 rounded-full shadow-lg">
+                  {tile.label}
+                </span>
 
-                    <div>
-                      {/* Top label badge */}
-                      <span className={`inline-flex items-center
-                        ${isDark
-                          ? 'bg-white/10 border-white/20 text-white/95'
-                          : 'bg-brand-dark/5 border-brand-dark/15 text-brand-dark/80'}
-                        border backdrop-blur-sm
-                        text-[9px] md:text-[10px] font-bold uppercase tracking-[0.18em]
-                        px-2.5 md:px-3 py-1 rounded-full
-                        mb-2.5 md:mb-4`}>
-                        {tile.label}
-                      </span>
+                {/* Bottom content — title + (description) + CTA */}
+                <div className="absolute inset-x-0 bottom-0
+                  p-3 sm:p-4 md:p-5 lg:p-6
+                  text-white">
+                  <h3 className="font-sans font-bold tracking-tight leading-[1.05]
+                    text-base sm:text-lg md:text-xl lg:text-[1.55rem]
+                    mb-1 md:mb-1.5
+                    drop-shadow-md">
+                    {tile.title}
+                  </h3>
 
-                      {/* Title */}
-                      <h3 className="font-sans font-bold tracking-tight leading-[1.05]
-                        text-base sm:text-lg md:text-xl lg:text-[1.65rem] xl:text-[1.9rem]
-                        mb-1.5 md:mb-2.5">
-                        {tile.title}
-                      </h3>
+                  <p className="hidden md:block
+                    text-[11px] lg:text-xs
+                    text-white/80 leading-relaxed
+                    mb-3 lg:mb-4
+                    max-w-[220px]">
+                    {tile.desc}
+                  </p>
 
-                      {/* Description — hidden on mobile/sm for compactness */}
-                      <p className={`hidden md:block
-                        text-xs lg:text-[13px] leading-relaxed
-                        ${isDark ? 'text-white/65' : 'text-brand-dark/60'}
-                        max-w-[260px]`}>
-                        {tile.desc}
-                      </p>
-                    </div>
-
-                    {/* CTA */}
-                    <span className={`inline-flex items-center gap-1.5
-                      self-start
-                      ${isDark
-                        ? 'bg-white text-brand-dark'
-                        : 'bg-brand-dark text-white'}
-                      text-[10px] sm:text-xs md:text-sm font-bold
-                      px-3 sm:px-4 md:px-5
-                      py-1.5 sm:py-2 md:py-2.5
-                      rounded-full shadow-md
-                      group-hover:bg-brand-DEFAULT group-hover:text-white group-hover:gap-2.5
-                      transition-all duration-300
-                      mt-2`}>
-                      {tile.cta}
-                      <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" />
-                    </span>
-                  </div>
+                  <span className="inline-flex items-center gap-1.5
+                    self-start
+                    bg-white text-brand-dark
+                    text-[10px] sm:text-xs md:text-sm font-bold
+                    px-3 sm:px-3.5 md:px-4
+                    py-1.5 sm:py-2 md:py-2.5
+                    rounded-full shadow-xl
+                    group-hover:bg-brand-DEFAULT group-hover:text-white group-hover:gap-2.5
+                    transition-all duration-300
+                    mt-1.5">
+                    {tile.cta}
+                    <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" />
+                  </span>
                 </div>
               </Link>
-            );
-          })}
+            ))}
+          </div>
         </div>
       </div>
     </section>
