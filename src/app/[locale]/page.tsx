@@ -77,7 +77,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       <PromoStrip />
       <CategoriesGrid categories={data.categories} fallbackImages={CATEGORY_FALLBACK_IMAGES} />
       <NewArrivals products={newArrivals} locale={locale} />
-      <EditorialBanner />
+      <EditorialBanner categories={data.categories} />
       <BestSellers products={bestSellersOrFallback} locale={locale} />
       {onSale.length > 0 && <SaleSection products={onSale} locale={locale} />}
     </main>
