@@ -39,7 +39,8 @@ function FeaturedCard({ card }: { card: CardData }) {
   return (
     <Link
       href={{ pathname: '/product-category/[slug]', params: { slug: card.slug } }}
-      className="group relative aspect-[50/59]
+      style={{ aspectRatio: '5 / 6' }}
+      className="group relative
         rounded-2xl md:rounded-3xl overflow-hidden block
         bg-stone-100
         shadow-sm hover:shadow-2xl
@@ -52,7 +53,7 @@ function FeaturedCard({ card }: { card: CardData }) {
           alt={card.name}
           fill
           sizes="(max-width: 1024px) 50vw, 50vw"
-          className="object-cover object-top transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+          className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.04]"
           quality={92}
           priority
         />
@@ -106,7 +107,8 @@ function SmallCard({ card }: { card: CardData }) {
   return (
     <Link
       href={{ pathname: '/product-category/[slug]', params: { slug: card.slug } }}
-      className="group relative aspect-square
+      style={{ aspectRatio: '1 / 1' }}
+      className="group relative
         rounded-xl md:rounded-2xl overflow-hidden block
         bg-stone-100
         shadow-sm hover:shadow-xl
@@ -210,7 +212,7 @@ export default function EditorialBanner({ categories }: Props) {
         </header>
 
         {/* Top row — LUQSI + EKONOMI side by side, aspect 5:6 matches banners */}
-        <div className="grid grid-cols-2 gap-3 md:gap-5 mb-3 md:mb-5">
+        <div className="grid grid-cols-2 gap-4 md:gap-8 lg:gap-10 mb-3 md:mb-6 md:px-4 lg:px-8">
           {luqsi && (
             <FeaturedCard card={{
               ...toCard(luqsi),
