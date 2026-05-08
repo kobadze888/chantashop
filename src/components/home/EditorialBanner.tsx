@@ -23,17 +23,17 @@ interface CardData {
   featured?: boolean;
 }
 
-/* ─── Featured (large 2×2) card — Luxury / Economy ─────────────────── */
-function FeaturedCard({ card }: { card: CardData }) {
+/* ─── Featured (large) card — Luxury / Economy ─────────────────────── */
+function FeaturedCard({ card, className = '' }: { card: CardData; className?: string }) {
   return (
     <Link
       href={{ pathname: '/product-category/[slug]', params: { slug: card.slug } }}
-      className="group relative aspect-[3/4] sm:aspect-[4/5] md:aspect-[5/4] lg:aspect-[16/11]
+      className={`group relative h-full w-full min-h-[260px]
         rounded-2xl md:rounded-3xl overflow-hidden block
         bg-stone-100
         shadow-sm hover:shadow-2xl
         ring-1 ring-black/5 hover:ring-black/10
-        transition-all duration-500"
+        transition-all duration-500 ${className}`}
     >
       {card.img && (
         <Image
@@ -173,6 +173,11 @@ export default function EditorialBanner({ categories }: Props) {
   // Sort small cards: ones with products first, then empty ones
   const smalls = [...others].sort((a, b) => (b.count ?? 0) - (a.count ?? 0)).map(toCard);
 
+  // Split into halves so each block (LUQSI / EKONOMI) gets equal smalls beside it
+  const half = Math.ceil(smalls.length / 2);
+  const firstHalf  = smalls.slice(0, half);
+  const secondHalf = smalls.slice(half);
+
   return (
     <section className="relative mt-12 md:mt-20 py-10 md:py-16
       bg-gradient-to-b from-rose-50/40 via-stone-50/30 to-white">
@@ -204,29 +209,42 @@ export default function EditorialBanner({ categories }: Props) {
           </Link>
         </header>
 
-        {/* Top row — Luxury & Economy side by side */}
-        <div className="grid grid-cols-2 gap-2.5 sm:gap-3 md:gap-4 mb-2.5 sm:mb-3 md:mb-4">
+        {/*
+          Asymmetric grid — full responsive
+          Mobile (2 cols): LUQSI cs2 rs2 → smalls 2-col stack → EKONOMI cs2 rs2
+          Desktop (3 cols): LUQSI cs1 rs2 + 2x2 smalls (cols 2-3, rows 1-2)
+                            then 2x2 smalls (cols 1-2, rows 3-4) + EKONOMI cs1 rs2 (col 3, rows 3-4)
+        */}
+        <div className="grid grid-cols-2 md:grid-cols-3 auto-rows-fr gap-2.5 sm:gap-3 md:gap-4">
           {luqsi && (
-            <FeaturedCard card={{
-              ...toCard(luqsi),
-              img:    FEATURED.luqsi.img,
-              ribbon: FEATURED.luqsi.ribbon,
-              featured: true,
-            }} />
+            <FeaturedCard
+              className="col-span-2 row-span-2 md:col-span-1 md:col-start-1 md:row-start-1"
+              card={{
+                ...toCard(luqsi),
+                img:    FEATURED.luqsi.img,
+                ribbon: FEATURED.luqsi.ribbon,
+                featured: true,
+              }}
+            />
           )}
-          {ekonomi && (
-            <FeaturedCard card={{
-              ...toCard(ekonomi),
-              img:    FEATURED.ekonomi.img,
-              ribbon: FEATURED.ekonomi.ribbon,
-              featured: true,
-            }} />
-          )}
-        </div>
 
-        {/* Bottom grid — all other product categories */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3 md:gap-4">
-          {smalls.map(card => <SmallCard key={card.slug} card={card} />)}
+          {/* First half of smalls — beside LUQSI on desktop */}
+          {firstHalf.map(card => <SmallCard key={card.slug} card={card} />)}
+
+          {/* Second half of smalls — beside EKONOMI on desktop */}
+          {secondHalf.map(card => <SmallCard key={card.slug} card={card} />)}
+
+          {ekonomi && (
+            <FeaturedCard
+              className="col-span-2 row-span-2 md:col-span-1 md:col-start-3 md:row-start-3"
+              card={{
+                ...toCard(ekonomi),
+                img:    FEATURED.ekonomi.img,
+                ribbon: FEATURED.ekonomi.ribbon,
+                featured: true,
+              }}
+            />
+          )}
         </div>
 
         {/* Mobile-only "view all" */}
