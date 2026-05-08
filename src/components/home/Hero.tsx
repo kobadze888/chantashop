@@ -79,15 +79,16 @@ export default function Hero() {
             კვადრატული: aspect-[2048/1881] ≈ 1:1
             desktop-ზე flex stretch — სიმაღლე = ტექსტის column
         ════════════════════════════════════════ */}
-        {/* Mobile */}
-        <div className="order-1 md:hidden relative w-full aspect-[2048/1881]"
+        {/* Mobile — aspect ratio matches 2162×1984 source */}
+        <div className="order-1 md:hidden relative w-full aspect-[2162/1984]"
           style={{ background: '#ecc7ba' }}>
           <Image
-            src="/images/banner.webp"
+            src="/images/chantashopge_banner2.png"
             alt="ChantaShop — ჩანთები და აქსესუარები"
             fill
             className="object-cover object-center"
             priority
+            quality={80}
             sizes="100vw"
           />
         </div>
@@ -98,11 +99,12 @@ export default function Hero() {
           md:w-[46%] lg:w-[48%] xl:w-[50%]"
           style={{ background: '#ecc7ba' }}>
           <Image
-            src="/images/banner.webp"
+            src="/images/chantashopge_banner2.png"
             alt="ChantaShop — ჩანთები და აქსესუარები"
             fill
             className="object-cover object-center"
             priority
+            quality={80}
             sizes="(max-width: 1024px) 46vw, (max-width: 1280px) 48vw, 50vw"
           />
         </div>
