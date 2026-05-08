@@ -115,7 +115,7 @@ export const GET_FILTERS_QUERY = `
 export const GET_HOME_DATA_QUERY = `
   ${PRODUCT_FRAGMENT}
   query GetHomeData($wpLang: String!) {
-    categories: productCategories(first: 30, where: { hideEmpty: true, wpLang: $wpLang, orderby: COUNT, order: DESC }) {
+    categories: productCategories(first: 30, where: { hideEmpty: false, wpLang: $wpLang, orderby: COUNT, order: DESC }) {
       nodes {
         id name slug count
         image { sourceUrl }

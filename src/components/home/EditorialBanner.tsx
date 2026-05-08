@@ -28,9 +28,9 @@ function FeaturedCard({ card }: { card: CardData }) {
   return (
     <Link
       href={{ pathname: '/product-category/[slug]', params: { slug: card.slug } }}
-      className="group relative aspect-[4/5] md:aspect-[5/4]
+      className="group relative aspect-[3/4] md:aspect-[4/5]
         rounded-2xl md:rounded-3xl overflow-hidden block
-        bg-gradient-to-br from-stone-100 via-rose-50/40 to-stone-200
+        bg-stone-100
         shadow-sm hover:shadow-2xl
         ring-1 ring-black/5 hover:ring-black/10
         transition-all duration-500"
@@ -41,15 +41,15 @@ function FeaturedCard({ card }: { card: CardData }) {
           alt={card.name}
           fill
           sizes="(max-width: 640px) 50vw, 50vw"
-          className="object-contain object-center p-2 md:p-3 transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+          className="object-cover object-top transition-transform duration-700 ease-out group-hover:scale-[1.04]"
           quality={92}
           priority
         />
       )}
 
-      {/* Bottom gradient — smaller since image is contained */}
+      {/* Bottom gradient */}
       <div className="absolute inset-x-0 bottom-0 h-2/5
-        bg-gradient-to-t from-brand-dark/95 via-brand-dark/50 to-transparent pointer-events-none" />
+        bg-gradient-to-t from-black/85 via-black/35 to-transparent pointer-events-none" />
 
       {/* Ribbon */}
       {card.ribbon && (
@@ -225,7 +225,7 @@ export default function EditorialBanner({ categories }: Props) {
         </div>
 
         {/* Bottom grid — all other product categories */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 sm:gap-3 md:gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3 md:gap-4">
           {smalls.map(card => <SmallCard key={card.slug} card={card} />)}
         </div>
 
