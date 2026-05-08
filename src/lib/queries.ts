@@ -119,7 +119,7 @@ export const GET_HOME_DATA_QUERY = `
       nodes {
         id name slug count
         image { sourceUrl }
-        products(first: 1, where: { orderby: { field: DATE, order: DESC } }) {
+        products(first: 5, where: { orderby: { field: DATE, order: DESC } }) {
           nodes {
             ... on SimpleProduct { image { sourceUrl } }
             ... on VariableProduct { image { sourceUrl } }
