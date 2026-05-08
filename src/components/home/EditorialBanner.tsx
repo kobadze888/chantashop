@@ -28,7 +28,7 @@ function FeaturedCard({ card }: { card: CardData }) {
   return (
     <Link
       href={{ pathname: '/product-category/[slug]', params: { slug: card.slug } }}
-      className="group relative aspect-[3/4] md:aspect-[4/5]
+      className="group relative aspect-[3/4] sm:aspect-[4/5] md:aspect-[5/4] lg:aspect-[16/11]
         rounded-2xl md:rounded-3xl overflow-hidden block
         bg-stone-100
         shadow-sm hover:shadow-2xl
