@@ -28,7 +28,7 @@ function FeaturedCard({ card, className = '' }: { card: CardData; className?: st
   return (
     <Link
       href={{ pathname: '/product-category/[slug]', params: { slug: card.slug } }}
-      className={`group relative h-full w-full min-h-[260px]
+      className={`group relative h-full w-full
         rounded-2xl md:rounded-3xl overflow-hidden block
         bg-stone-100
         shadow-sm hover:shadow-2xl
@@ -94,7 +94,7 @@ function SmallCard({ card }: { card: CardData }) {
   return (
     <Link
       href={{ pathname: '/product-category/[slug]', params: { slug: card.slug } }}
-      className="group relative aspect-square
+      className="group relative h-full w-full
         rounded-xl md:rounded-2xl overflow-hidden block
         bg-gradient-to-br from-stone-100 to-stone-200
         shadow-sm hover:shadow-xl
@@ -215,7 +215,9 @@ export default function EditorialBanner({ categories }: Props) {
           Desktop (3 cols): LUQSI cs1 rs2 + 2x2 smalls (cols 2-3, rows 1-2)
                             then 2x2 smalls (cols 1-2, rows 3-4) + EKONOMI cs1 rs2 (col 3, rows 3-4)
         */}
-        <div className="grid grid-cols-2 md:grid-cols-3 auto-rows-fr gap-2.5 sm:gap-3 md:gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3
+          auto-rows-[120px] sm:auto-rows-[140px] md:auto-rows-[150px] lg:auto-rows-[170px]
+          gap-2.5 sm:gap-3 md:gap-4">
           {luqsi && (
             <FeaturedCard
               className="col-span-2 row-span-2 md:col-span-1 md:col-start-1 md:row-start-1"
