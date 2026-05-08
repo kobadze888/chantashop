@@ -140,11 +140,24 @@ export async function getHomeData(locale: string = 'ka'): Promise<HomeData> {
     1800,
     ['products', 'categories']
   );
+  // Sort new arrivals: in-stock products first, then out-of-stock
+  const rawArrivals: any[] = data?.newArrivals?.nodes ?? [];
+  const inStock  = rawArrivals.filter(p =>
+    p.stockStatusManual === 'instock' ||
+    (!p.stockStatusManual && p.stockStatus === 'IN_STOCK') ||
+    (!p.stockStatusManual && !p.stockStatus)
+  );
+  const outStock = rawArrivals.filter(p =>
+    p.stockStatusManual === 'outofstock' ||
+    (!p.stockStatusManual && p.stockStatus === 'OUT_OF_STOCK')
+  );
+  const newArrivals = [...inStock, ...outStock];
+
   return {
-    categories: data?.categories?.nodes ?? [],
-    newArrivals: data?.newArrivals?.nodes ?? [],
-    onSale: data?.onSale?.nodes ?? [],
-    bestSellers: data?.bestSellers?.nodes ?? [],
+    categories:   data?.categories?.nodes ?? [],
+    newArrivals,
+    onSale:       data?.onSale?.nodes ?? [],
+    bestSellers:  data?.bestSellers?.nodes ?? [],
   };
 }
 

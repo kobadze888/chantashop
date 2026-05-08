@@ -127,7 +127,7 @@ export const GET_HOME_DATA_QUERY = `
         }
       }
     }
-    newArrivals: products(first: 8, where: { wpLang: $wpLang, orderby: { field: DATE, order: DESC } }) {
+    newArrivals: products(first: 24, where: { wpLang: $wpLang, orderby: { field: DATE, order: DESC } }) {
       nodes { ...ProductFragment }
     }
     onSale: products(first: 8, where: { wpLang: $wpLang, onSale: true, orderby: { field: DATE, order: DESC } }) {
