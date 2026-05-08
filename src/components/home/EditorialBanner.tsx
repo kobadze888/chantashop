@@ -28,9 +28,10 @@ function FeaturedCard({ card }: { card: CardData }) {
   return (
     <Link
       href={{ pathname: '/product-category/[slug]', params: { slug: card.slug } }}
-      className="group relative col-span-2 row-span-2 aspect-square
+      className="group relative aspect-[4/5] md:aspect-[5/4]
         rounded-2xl md:rounded-3xl overflow-hidden block
-        bg-zinc-100 shadow-sm hover:shadow-2xl
+        bg-gradient-to-br from-stone-100 via-rose-50/40 to-stone-200
+        shadow-sm hover:shadow-2xl
         ring-1 ring-black/5 hover:ring-black/10
         transition-all duration-500"
     >
@@ -39,16 +40,16 @@ function FeaturedCard({ card }: { card: CardData }) {
           src={card.img}
           alt={card.name}
           fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 50vw"
-          className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.04]"
-          quality={90}
+          sizes="(max-width: 640px) 50vw, 50vw"
+          className="object-contain object-center p-2 md:p-3 transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+          quality={92}
           priority
         />
       )}
 
-      {/* Bottom gradient */}
-      <div className="absolute inset-x-0 bottom-0 h-3/5
-        bg-gradient-to-t from-black/85 via-black/30 to-transparent pointer-events-none" />
+      {/* Bottom gradient — smaller since image is contained */}
+      <div className="absolute inset-x-0 bottom-0 h-2/5
+        bg-gradient-to-t from-brand-dark/95 via-brand-dark/50 to-transparent pointer-events-none" />
 
       {/* Ribbon */}
       {card.ribbon && (
@@ -62,21 +63,21 @@ function FeaturedCard({ card }: { card: CardData }) {
       )}
 
       {/* Bottom content */}
-      <div className="absolute inset-x-0 bottom-0 p-4 md:p-5 lg:p-6 text-white">
+      <div className="absolute inset-x-0 bottom-0 p-3 md:p-4 lg:p-5 text-white">
         <h3 className="font-sans font-bold tracking-tight leading-tight
-          text-lg sm:text-xl md:text-2xl lg:text-3xl
+          text-base sm:text-lg md:text-xl lg:text-2xl
           mb-1 drop-shadow-md">
           {card.name}
         </h3>
         <div className="flex items-center justify-between gap-3">
           {card.count !== undefined && card.count > 0 && (
-            <span className="text-xs md:text-sm text-white/80">
+            <span className="text-[11px] md:text-sm text-white/85">
               {card.count} პროდუქტი
             </span>
           )}
-          <span className="ml-auto inline-flex items-center gap-1.5 text-xs md:text-sm font-medium
+          <span className="ml-auto inline-flex items-center gap-1.5 text-[11px] md:text-sm font-medium
             text-white/90 group-hover:text-white
-            translate-x-0 group-hover:translate-x-1 transition-transform duration-300">
+            group-hover:translate-x-1 transition-transform duration-300">
             ნახვა
             <ArrowRight className="w-3.5 h-3.5 md:w-4 md:h-4" />
           </span>
@@ -172,11 +173,6 @@ export default function EditorialBanner({ categories }: Props) {
   // Sort small cards: ones with products first, then empty ones
   const smalls = [...others].sort((a, b) => (b.count ?? 0) - (a.count ?? 0)).map(toCard);
 
-  // Split smalls into two halves around the two featured cards
-  const half = Math.ceil(smalls.length / 2);
-  const firstHalf  = smalls.slice(0, half);
-  const secondHalf = smalls.slice(half);
-
   return (
     <section className="relative mt-12 md:mt-20 py-10 md:py-16
       bg-gradient-to-b from-rose-50/40 via-stone-50/30 to-white">
@@ -208,8 +204,8 @@ export default function EditorialBanner({ categories }: Props) {
           </Link>
         </header>
 
-        {/* Asymmetric grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 auto-rows-fr gap-2.5 sm:gap-3 md:gap-4">
+        {/* Top row — Luxury & Economy side by side */}
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-3 md:gap-4 mb-2.5 sm:mb-3 md:mb-4">
           {luqsi && (
             <FeaturedCard card={{
               ...toCard(luqsi),
@@ -218,9 +214,6 @@ export default function EditorialBanner({ categories }: Props) {
               featured: true,
             }} />
           )}
-
-          {firstHalf.map(card => <SmallCard key={card.slug} card={card} />)}
-
           {ekonomi && (
             <FeaturedCard card={{
               ...toCard(ekonomi),
@@ -229,8 +222,11 @@ export default function EditorialBanner({ categories }: Props) {
               featured: true,
             }} />
           )}
+        </div>
 
-          {secondHalf.map(card => <SmallCard key={card.slug} card={card} />)}
+        {/* Bottom grid — all other product categories */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 sm:gap-3 md:gap-4">
+          {smalls.map(card => <SmallCard key={card.slug} card={card} />)}
         </div>
 
         {/* Mobile-only "view all" */}
