@@ -39,8 +39,7 @@ function FeaturedCard({ card }: { card: CardData }) {
   return (
     <Link
       href={{ pathname: '/product-category/[slug]', params: { slug: card.slug } }}
-      style={{ aspectRatio: '10 / 9' }}
-      className="group relative
+      className="group relative aspect-[5/6] md:aspect-[10/9]
         rounded-2xl md:rounded-3xl overflow-hidden block
         bg-stone-100
         shadow-sm hover:shadow-2xl
