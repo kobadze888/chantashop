@@ -39,7 +39,7 @@ function FeaturedCard({ card }: { card: CardData }) {
   return (
     <Link
       href={{ pathname: '/product-category/[slug]', params: { slug: card.slug } }}
-      style={{ aspectRatio: '5 / 6' }}
+      style={{ aspectRatio: '10 / 9' }}
       className="group relative
         rounded-2xl md:rounded-3xl overflow-hidden block
         bg-stone-100
@@ -211,34 +211,27 @@ export default function EditorialBanner({ categories }: Props) {
           </Link>
         </header>
 
-        {/*
-          Both rows wrapped in a centered narrower max-width container so
-          featured cards stay compact on wide desktops and smalls below align
-          to the same width — proportional, balanced section.
-        */}
-        <div className="max-w-[1000px] mx-auto">
-          {/* Top row — LUQSI + EKONOMI side by side, aspect 5:6 matches banners */}
-          <div className="grid grid-cols-2 gap-3 md:gap-5 mb-3 md:mb-5">
-            {luqsi && (
-              <FeaturedCard card={{
-                ...toCard(luqsi),
-                img:    FEATURED.luqsi.img,
-                ribbon: FEATURED.luqsi.ribbon,
-              }} />
-            )}
-            {ekonomi && (
-              <FeaturedCard card={{
-                ...toCard(ekonomi),
-                img:    FEATURED.ekonomi.img,
-                ribbon: FEATURED.ekonomi.ribbon,
-              }} />
-            )}
-          </div>
+        {/* Top row — LUQSI + EKONOMI side by side */}
+        <div className="grid grid-cols-2 gap-3 md:gap-5 mb-3 md:mb-5">
+          {luqsi && (
+            <FeaturedCard card={{
+              ...toCard(luqsi),
+              img:    FEATURED.luqsi.img,
+              ribbon: FEATURED.luqsi.ribbon,
+            }} />
+          )}
+          {ekonomi && (
+            <FeaturedCard card={{
+              ...toCard(ekonomi),
+              img:    FEATURED.ekonomi.img,
+              ribbon: FEATURED.ekonomi.ribbon,
+            }} />
+          )}
+        </div>
 
-          {/* Bottom grid — 8 small categories: 2 cols mobile, 4 cols desktop */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
-            {smalls.map(card => <SmallCard key={card.slug} card={card} />)}
-          </div>
+        {/* Bottom grid — 8 small categories: 2 cols mobile, 4 cols desktop */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
+          {smalls.map(card => <SmallCard key={card.slug} card={card} />)}
         </div>
 
         {/* Mobile-only "view all" */}
