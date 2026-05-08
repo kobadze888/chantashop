@@ -94,7 +94,7 @@ function SmallCard({ card }: { card: CardData }) {
   return (
     <Link
       href={{ pathname: '/product-category/[slug]', params: { slug: card.slug } }}
-      className="group relative h-full w-full
+      className="group relative h-full w-full aspect-square
         rounded-xl md:rounded-2xl overflow-hidden block
         bg-gradient-to-br from-stone-100 to-stone-200
         shadow-sm hover:shadow-xl
@@ -210,17 +210,17 @@ export default function EditorialBanner({ categories }: Props) {
         </header>
 
         {/*
-          Asymmetric grid — full responsive
-          Mobile (2 cols): LUQSI cs2 rs2 → smalls 2-col stack → EKONOMI cs2 rs2
-          Desktop (3 cols): LUQSI cs1 rs2 + 2x2 smalls (cols 2-3, rows 1-2)
-                            then 2x2 smalls (cols 1-2, rows 3-4) + EKONOMI cs1 rs2 (col 3, rows 3-4)
+          Bento-style grid (mockup-driven)
+          Mobile  (2 cols): LUQSI cs2 rs2 → 4 smalls 2x2 → 4 smalls 2x2 → EKONOMI cs2 rs2
+          Desktop (4 cols): LUQSI top-left (cs2 rs2)
+                            + 4 smalls top-right (2x2 area)
+                            + 4 smalls bottom-left (2x2 area)
+                            + EKONOMI bottom-right (cs2 rs2)
         */}
-        <div className="grid grid-cols-2 md:grid-cols-3
-          auto-rows-[120px] sm:auto-rows-[140px] md:auto-rows-[150px] lg:auto-rows-[170px]
-          gap-2.5 sm:gap-3 md:gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3 md:gap-4">
           {luqsi && (
             <FeaturedCard
-              className="col-span-2 row-span-2 md:col-span-1 md:col-start-1 md:row-start-1"
+              className="col-span-2 row-span-2"
               card={{
                 ...toCard(luqsi),
                 img:    FEATURED.luqsi.img,
@@ -230,15 +230,15 @@ export default function EditorialBanner({ categories }: Props) {
             />
           )}
 
-          {/* First half of smalls — beside LUQSI on desktop */}
+          {/* First 4 smalls — top-right of LUQSI on desktop */}
           {firstHalf.map(card => <SmallCard key={card.slug} card={card} />)}
 
-          {/* Second half of smalls — beside EKONOMI on desktop */}
+          {/* Next 4 smalls — bottom-left on desktop */}
           {secondHalf.map(card => <SmallCard key={card.slug} card={card} />)}
 
           {ekonomi && (
             <FeaturedCard
-              className="col-span-2 row-span-2 md:col-span-1 md:col-start-3 md:row-start-3"
+              className="col-span-2 row-span-2 md:col-start-3"
               card={{
                 ...toCard(ekonomi),
                 img:    FEATURED.ekonomi.img,
