@@ -39,7 +39,7 @@ function FeaturedCard({ card }: { card: CardData }) {
   return (
     <Link
       href={{ pathname: '/product-category/[slug]', params: { slug: card.slug } }}
-      className="group relative aspect-[5/6]
+      className="group relative aspect-[50/59]
         rounded-2xl md:rounded-3xl overflow-hidden block
         bg-stone-100
         shadow-sm hover:shadow-2xl
@@ -52,7 +52,7 @@ function FeaturedCard({ card }: { card: CardData }) {
           alt={card.name}
           fill
           sizes="(max-width: 1024px) 50vw, 50vw"
-          className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+          className="object-cover object-top transition-transform duration-700 ease-out group-hover:scale-[1.04]"
           quality={92}
           priority
         />
