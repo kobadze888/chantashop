@@ -1,4 +1,10 @@
 {
+  "Search": {
+    "placeholder": "Search products, brands, categories...",
+    "hint": "Start typing — bags, brands, categories",
+    "examples": "e.g., chanta, gucci, ჩანთა, prada",
+    "noResults": "No results — try a different keyword"
+  },
   "Common": {
     "home": "Home",
     "collection": "Collection",
