@@ -43,7 +43,8 @@ function snakeToCamel(str: string) { return str.replace(/_([a-z])/g, (g) => g[1]
 
 export async function getProducts(filters: any = {}, locale: string = 'ka'): Promise<Product[]> {
   const { category, minPrice, maxPrice, limit = 50, sort = 'DATE_DESC', dynamicAttributes } = filters;
-  const whereArgs: any = { wpLang: locale.toUpperCase() }; 
+  // Always query KA — content (products/categories/brands) is unified across all UI locales
+  const whereArgs: any = { wpLang: 'KA' };
 
   const taxonomyFilter: any = { relation: 'AND', filters: [] };
   if (category && category !== 'all') {
@@ -71,7 +72,8 @@ export async function getProducts(filters: any = {}, locale: string = 'ka'): Pro
 
 export async function getFilters(locale: string = 'ka'): Promise<FiltersData | null> {
   // 🕵️‍♂️ ვაყენებთ 0-ს, რომ არ დაიმახსოვროს კეში და ყოველ ჯერზე გვაჩვენოს რეალური "ლაივ" შედეგი
-  const data = await fetchAPI(GET_FILTERS_QUERY, { variables: { wpLang: locale.toUpperCase() } }, 0, ['filters']); 
+  // Always query KA — filters (categories/colors/materials) are unified across all UI locales
+  const data = await fetchAPI(GET_FILTERS_QUERY, { variables: { wpLang: 'KA' } }, 0, ['filters']);
   if (!data) return null;
   
   const allCategories = data.productCategories?.nodes || [];
@@ -134,9 +136,10 @@ export interface HomeData {
 }
 
 export async function getHomeData(locale: string = 'ka'): Promise<HomeData> {
+  // Always query KA — home content (categories/brands/products) is unified across all UI locales
   const data = await fetchAPI(
     GET_HOME_DATA_QUERY,
-    { variables: { wpLang: locale.toUpperCase() } },
+    { variables: { wpLang: 'KA' } },
     1800,
     ['products', 'categories']
   );
