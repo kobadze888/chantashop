@@ -44,9 +44,20 @@
     "Hero": {
       "badge": "Высокое качество, низкая цена",
       "title": "Iconic Luxury.",
+      "titleLine1": "Сумки и",
+      "titleHighlight": "Аксессуары",
+      "titleLine3": "Онлайн магазин",
       "subtitle": "Лучшие реплики мировых брендов — только у нас 🩷",
       "cta": "Посмотреть коллекцию",
-      "ctaSecondary": "Новинки"
+      "ctaSecondary": "Новинки",
+      "stats": {
+        "brandsNum": "10+",
+        "brandsLabel": "Бренды",
+        "deliveryNum": "1-2 д.",
+        "deliveryLabel": "Доставка",
+        "shippingNum": "6₾",
+        "shippingLabel": "Отправка"
+      }
     },
     "Promo": {
       "shipping": "Бесплатная доставка от 200₾",
@@ -67,6 +78,12 @@
       "title": "Новая коллекция"
     },
     "Editorial": {
+      "sectionLabel": "КОЛЛЕКЦИЯ",
+      "sectionTitle": "Категории",
+      "viewAllCategories": "Все категории",
+      "products": "{count} товаров",
+      "view": "Смотреть",
+      "comingSoon": "Скоро",
       "luxuryLabel": "Premium Selection",
       "luxuryTitle": "Люкс коллекция",
       "luxuryDesc": "Лучшие мировые бренды",

@@ -32,11 +32,11 @@ export default function Hero() {
           {/* Title */}
           <h1 className="font-sans font-semibold uppercase tracking-[0.04em] leading-[1.2] mb-4 md:mb-5
             text-[1.55rem] sm:text-[1.8rem] md:text-[1.75rem] lg:text-[2.1rem] xl:text-[2.5rem]">
-            ჩანთებისა და
+            {t('titleLine1')}
             <br />
-            <span className="text-brand-DEFAULT font-bold">აქსესუარების</span>
+            <span className="text-brand-DEFAULT font-bold">{t('titleHighlight')}</span>
             <br />
-            ონლაინ მაღაზია
+            {t('titleLine3')}
           </h1>
 
           {/* Subtitle */}
@@ -62,9 +62,9 @@ export default function Hero() {
           <div className="flex gap-5 md:gap-7 lg:gap-10
             mt-8 md:mt-9 pt-6 md:pt-7 border-t border-white/10">
             {[
-              { num: '10+',    label: 'ბრენდი'   },
-              { num: '1-2 დ.', label: 'ჩაბარება' },
-              { num: '6₾',    label: 'მიწოდება' },
+              { num: t('stats.brandsNum'),   label: t('stats.brandsLabel')   },
+              { num: t('stats.deliveryNum'), label: t('stats.deliveryLabel') },
+              { num: t('stats.shippingNum'), label: t('stats.shippingLabel') },
             ].map(({ num, label }) => (
               <div key={label}>
                 <div className="text-xl md:text-2xl lg:text-3xl font-sans font-bold">{num}</div>

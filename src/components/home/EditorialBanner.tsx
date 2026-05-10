@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { Link } from '@/navigation';
 import { ArrowRight } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import type { HomeCategory } from '@/lib/api';
 
 const BRAND_SLUGS = new Set([
@@ -36,6 +37,7 @@ interface CardData {
 
 /* ─── Featured card — Luxury / Economy (aspect 5:6 matches banner photos) ── */
 function FeaturedCard({ card }: { card: CardData }) {
+  const t = useTranslations('Home.Editorial');
   return (
     <Link
       href={{ pathname: '/product-category/[slug]', params: { slug: card.slug } }}
@@ -83,13 +85,13 @@ function FeaturedCard({ card }: { card: CardData }) {
         <div className="flex items-center justify-between gap-3">
           {card.count !== undefined && card.count > 0 && (
             <span className="text-xs md:text-sm text-white/85">
-              {card.count} პროდუქტი
+              {t('products', { count: card.count })}
             </span>
           )}
           <span className="ml-auto inline-flex items-center gap-1.5 text-xs md:text-sm font-medium
             text-white/90 group-hover:text-white
             group-hover:translate-x-1 transition-transform duration-300">
-            ნახვა
+            {t('view')}
             <ArrowRight className="w-3.5 h-3.5 md:w-4 md:h-4" />
           </span>
         </div>
@@ -100,6 +102,7 @@ function FeaturedCard({ card }: { card: CardData }) {
 
 /* ─── Small uniform category card — image-only, aspect-square ──────── */
 function SmallCard({ card }: { card: CardData }) {
+  const t = useTranslations('Home.Editorial');
   const isEmpty = !card.count;
   const img = card.img ?? FALLBACK_IMAGES[card.slug];
 
@@ -136,7 +139,7 @@ function SmallCard({ card }: { card: CardData }) {
           bg-white/90 backdrop-blur-sm text-brand-dark/80
           text-[8px] md:text-[9px] font-semibold uppercase tracking-wider
           px-2 py-0.5 rounded-full shadow-sm">
-          მალე
+          {t('comingSoon')}
         </span>
       )}
 
@@ -149,7 +152,7 @@ function SmallCard({ card }: { card: CardData }) {
         </h3>
         {!isEmpty && (
           <span className="text-[10px] md:text-[11px] text-white/75 inline-block mt-0.5">
-            {card.count} პროდუქტი
+            {t('products', { count: card.count! })}
           </span>
         )}
       </div>
@@ -163,6 +166,7 @@ interface Props {
 }
 
 export default function EditorialBanner({ categories }: Props) {
+  const t = useTranslations('Home.Editorial');
   const productCats = categories.filter(c => !BRAND_SLUGS.has(c.slug));
 
   const luqsi   = productCats.find(c => c.slug === 'luqsi');
@@ -193,10 +197,10 @@ export default function EditorialBanner({ categories }: Props) {
         <header className="flex items-end justify-between mb-6 md:mb-10">
           <div>
             <span className="block text-[10px] md:text-xs font-semibold uppercase tracking-[0.25em] text-brand-DEFAULT/80 mb-2">
-              COLLECTION
+              {t('sectionLabel')}
             </span>
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight text-brand-dark">
-              კატეგორიები
+              {t('sectionTitle')}
             </h2>
           </div>
           <Link
@@ -205,7 +209,7 @@ export default function EditorialBanner({ categories }: Props) {
               text-sm font-medium text-brand-dark/70 hover:text-brand-dark
               transition-colors group"
           >
-            ყველა კატეგორია
+            {t('viewAllCategories')}
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </header>
@@ -241,7 +245,7 @@ export default function EditorialBanner({ categories }: Props) {
               bg-brand-dark text-white text-sm font-medium
               hover:bg-brand-DEFAULT transition-colors"
           >
-            ყველა კატეგორია
+            {t('viewAllCategories')}
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>

@@ -44,9 +44,20 @@
     "Hero": {
       "badge": "ხარისხი მაღალი, ფასი დაბალი",
       "title": "Iconic Luxury.",
+      "titleLine1": "ჩანთებისა და",
+      "titleHighlight": "აქსესუარების",
+      "titleLine3": "ონლაინ მაღაზია",
       "subtitle": "მსოფლიო ბრენდების საუკეთესო ხარისხის რეპლიკები მხოლოდ ჩვენთან 🩷",
       "cta": "კოლექციის ნახვა",
-      "ctaSecondary": "სიახლეები"
+      "ctaSecondary": "სიახლეები",
+      "stats": {
+        "brandsNum": "10+",
+        "brandsLabel": "ბრენდი",
+        "deliveryNum": "1-2 დ.",
+        "deliveryLabel": "ჩაბარება",
+        "shippingNum": "6₾",
+        "shippingLabel": "მიწოდება"
+      }
     },
     "Promo": {
       "shipping": "უფასო მიწოდება 200₾+ შეკვეთებზე",
@@ -67,6 +78,12 @@
       "title": "ახალი კოლექცია"
     },
     "Editorial": {
+      "sectionLabel": "კოლექცია",
+      "sectionTitle": "კატეგორიები",
+      "viewAllCategories": "ყველა კატეგორია",
+      "products": "{count} პროდუქტი",
+      "view": "ნახვა",
+      "comingSoon": "მალე",
       "luxuryLabel": "Premium Selection",
       "luxuryTitle": "ლუქს კოლექცია",
       "luxuryDesc": "მსოფლიოს უმაღლესი ბრენდები",

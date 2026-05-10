@@ -44,9 +44,20 @@
     "Hero": {
       "badge": "High Quality, Low Price",
       "title": "Iconic Luxury.",
+      "titleLine1": "Bags &",
+      "titleHighlight": "Accessories",
+      "titleLine3": "Online Store",
       "subtitle": "The best quality replicas of world brands — only at our store 🩷",
       "cta": "Shop Collection",
-      "ctaSecondary": "What's New"
+      "ctaSecondary": "What's New",
+      "stats": {
+        "brandsNum": "10+",
+        "brandsLabel": "Brands",
+        "deliveryNum": "1-2 d.",
+        "deliveryLabel": "Delivery",
+        "shippingNum": "6₾",
+        "shippingLabel": "Shipping"
+      }
     },
     "Promo": {
       "shipping": "Free shipping on 200₾+ orders",
@@ -67,6 +78,12 @@
       "title": "New Collection"
     },
     "Editorial": {
+      "sectionLabel": "COLLECTION",
+      "sectionTitle": "Categories",
+      "viewAllCategories": "All Categories",
+      "products": "{count} items",
+      "view": "View",
+      "comingSoon": "Soon",
       "luxuryLabel": "Premium Selection",
       "luxuryTitle": "Luxury Collection",
       "luxuryDesc": "World's finest brands",
