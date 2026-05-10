@@ -1,8 +1,9 @@
 import Image from 'next/image';
 import { Link } from '@/navigation';
 import { ArrowRight } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import type { HomeCategory } from '@/lib/api';
+import { getCategoryName } from '@/lib/categoryTranslations';
 
 const BRAND_SLUGS = new Set([
   'chanel', 'christian-dior', 'dolce-gabbana', 'fendi', 'gucci',
@@ -167,6 +168,7 @@ interface Props {
 
 export default function EditorialBanner({ categories }: Props) {
   const t = useTranslations('Home.Editorial');
+  const locale = useLocale();
   const productCats = categories.filter(c => !BRAND_SLUGS.has(c.slug));
 
   const luqsi   = productCats.find(c => c.slug === 'luqsi');
@@ -175,7 +177,7 @@ export default function EditorialBanner({ categories }: Props) {
 
   const toCard = (c: HomeCategory): CardData => ({
     slug:  c.slug,
-    name:  c.name,
+    name:  getCategoryName(c.slug, c.name, locale),
     count: c.count ?? 0,
     img:   c.image?.sourceUrl ?? c.products?.nodes?.[0]?.image?.sourceUrl,
   });
