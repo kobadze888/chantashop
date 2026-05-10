@@ -1,15 +1,44 @@
 import { NextResponse } from 'next/server';
-import { getProducts } from '@/lib/api';
+import { WORDPRESS_API_URL } from '@/lib/constants';
+import { GET_PRODUCTS_QUERY } from '@/lib/queries';
 
 /**
- * Search index: returns minimal product data for client-side fuzzy filtering.
- * Cached for 1 hour at the edge.
+ * Locale-aware search index.
+ * GET /api/search?locale=ka|en|ru
+ *
+ * Fetches products in the requested WP language only — so users on the EN site
+ * never see Georgian-only products in search results, and vice-versa.
+ *
+ * Edge-cached per locale for 1 hour.
  */
 export const revalidate = 3600;
 
-export async function GET() {
+const ALLOWED_LOCALES = new Set(['ka', 'en', 'ru']);
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const raw = (searchParams.get('locale') ?? 'ka').toLowerCase();
+  const locale = ALLOWED_LOCALES.has(raw) ? raw : 'ka';
+  const wpLang = locale.toUpperCase();
+
   try {
-    const products = await getProducts({ limit: 500 }, 'ka');
+    const res = await fetch(WORDPRESS_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: GET_PRODUCTS_QUERY,
+        variables: {
+          first: 500,
+          where: { wpLang, status: 'PUBLISH' },
+        },
+      }),
+      next: { revalidate: 3600, tags: [`products-search-${locale}`] },
+    });
+
+    const json = await res.json();
+    if (json?.errors) console.error('search graphql errors', json.errors);
+
+    const products = json?.data?.products?.nodes ?? [];
 
     const index = products.map((p: any) => ({
       id:           p.databaseId,
@@ -25,6 +54,7 @@ export async function GET() {
     return NextResponse.json(index, {
       headers: {
         'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=600',
+        'X-Search-Locale': locale,
       },
     });
   } catch (err) {

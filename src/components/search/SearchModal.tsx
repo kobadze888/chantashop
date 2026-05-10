@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import Image from 'next/image';
 import { Link } from '@/navigation';
 import { Search, X, Loader2, ArrowRight } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { searchProducts, type SearchableProduct } from '@/lib/transliterate';
 
 interface Props {
@@ -23,24 +23,28 @@ function fmt(price?: string | null): string | null {
 export default function SearchModal({ open, onClose }: Props) {
   const t       = useTranslations('Common');
   const tSearch = useTranslations('Search');
+  const locale  = useLocale();
   const [query, setQuery] = useState('');
   const [debouncedQ, setDebouncedQ] = useState('');
   const [products, setProducts] = useState<SearchableProduct[]>([]);
   const [loading, setLoading] = useState(false);
-  const [fetched, setFetched] = useState(false);
+  const [fetchedLocale, setFetchedLocale] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  /* Fetch search index lazily on first open */
+  /* Fetch search index lazily on open; refetch if locale changed */
   useEffect(() => {
-    if (open && !fetched) {
+    if (open && fetchedLocale !== locale) {
       setLoading(true);
-      fetch('/api/search')
+      fetch(`/api/search?locale=${encodeURIComponent(locale)}`)
         .then(r => r.json())
-        .then(data => { setProducts(Array.isArray(data) ? data : []); setFetched(true); })
+        .then(data => {
+          setProducts(Array.isArray(data) ? data : []);
+          setFetchedLocale(locale);
+        })
         .catch(() => setProducts([]))
         .finally(() => setLoading(false));
     }
-  }, [open, fetched]);
+  }, [open, fetchedLocale, locale]);
 
   /* Auto-focus input when modal opens */
   useEffect(() => {
