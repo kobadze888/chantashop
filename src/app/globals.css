@@ -1,5 +1,18 @@
 @import "tailwindcss";
 
+/* ── ManropeNum: Manrope digits + punctuation only ──
+   Placed FIRST in display/serif stacks so Playfair's old-style serif
+   numerals don't appear in a Georgian context. Every other glyph falls
+   through to the next font in the stack. */
+@font-face {
+  font-family: 'ManropeNum';
+  src: url('/fonts/manrope-latin.woff2') format('woff2');
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0030-0039, U+0024, U+0025, U+002B-002F, U+003A;
+}
+
 @theme {
   --breakpoint-xs: 400px;
 
@@ -8,9 +21,13 @@
   --color-brand-DEFAULT: #DB2777;
   --color-brand-dark: #000000;
   --color-brand-gray: #F9FAFB;
-  
-  --font-sans: var(--font-firago), "FiraGO", sans-serif;
-  --font-serif: var(--font-ka-serif), var(--font-playfair), "Playfair Display", serif;
+
+  /* Typography (NBI Tower scheme) */
+  --font-sans:    'ManropeNum', var(--font-manrope), var(--font-ka-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'ManropeNum', var(--font-playfair), var(--font-ka-serif), Georgia, serif;
+  --font-geo:     'ManropeNum', var(--font-ka-sans), ui-sans-serif, sans-serif;
+  /* Back-compat: existing font-serif usages map to display */
+  --font-serif:   'ManropeNum', var(--font-playfair), var(--font-ka-serif), Georgia, serif;
 }
 
 /* Base Styles */
@@ -22,6 +39,14 @@ body {
 /* --- Utilities --- */
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Georgian Mtavruli: Tailwind's `uppercase` only affects Latin (Georgian has
+   no separate capital codepoints). The OpenType 'case' feature maps Mkhedruli
+   → Mtavruli, so we enable it on every `uppercase` element — Latin caps via
+   text-transform, Georgian caps via 'case'. `.mtavruli` is also exposed for
+   manual use without text-transform. */
+.uppercase { font-feature-settings: 'case' on; }
+.mtavruli  { font-feature-settings: 'case' on; }
 
 /* Range Slider */
 input[type=range] { -webkit-appearance: none; width: 100%; height: 4px; background: transparent; cursor: pointer; }

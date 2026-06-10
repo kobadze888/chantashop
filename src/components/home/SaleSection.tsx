@@ -20,7 +20,7 @@ export default function SaleSection({ products, locale }: Props) {
       <div className="container mx-auto px-3 md:px-6">
         <header className="flex items-center justify-between mb-5 md:mb-7">
           <div>
-            <h2 className="inline-flex items-center gap-2 text-lg md:text-xl font-semibold text-brand-dark">
+            <h2 className="inline-flex items-center gap-2 font-display text-xl md:text-2xl font-bold text-brand-dark">
               {t('title')} <Flame className="w-4 h-4 text-brand-DEFAULT" />
             </h2>
           </div>

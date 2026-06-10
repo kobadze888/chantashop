@@ -26,7 +26,7 @@ export default function NewArrivals({ products, locale }: Props) {
     <section className="container mx-auto px-3 md:px-6 mt-12 md:mt-16">
       <header className="flex items-center justify-between mb-5 md:mb-7">
         <div>
-          <h2 className="text-lg md:text-xl font-semibold text-brand-dark">
+          <h2 className="font-display text-xl md:text-2xl font-bold text-brand-dark">
             {t('title')}
           </h2>
         </div>

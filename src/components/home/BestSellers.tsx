@@ -14,7 +14,7 @@ export default function BestSellers({ products, locale }: Props) {
   return (
     <section className="container mx-auto px-3 md:px-6 mt-12 md:mt-16">
       <header className="mb-5 md:mb-7">
-        <h2 className="text-lg md:text-xl font-semibold text-brand-dark">
+        <h2 className="font-display text-xl md:text-2xl font-bold text-brand-dark">
           {t('title')}
         </h2>
       </header>

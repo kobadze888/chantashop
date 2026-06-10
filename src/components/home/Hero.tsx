@@ -68,7 +68,7 @@ export default function Hero() {
             </span>
 
             {/* Title */}
-            <h1 className="font-sans font-extrabold tracking-[-0.02em] leading-[1.05]
+            <h1 className="font-display font-extrabold tracking-[-0.02em] leading-[1.06]
               mb-3 md:mb-4 drop-shadow-lg text-balance
               text-[1.85rem] xs:text-[2.1rem] sm:text-[2.6rem] md:text-[3rem] lg:text-[3.5rem] xl:text-[3.9rem]">
               {t('titleLine1')}{' '}

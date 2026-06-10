@@ -160,7 +160,7 @@ export default function CategoriesGrid({ categories }: Props) {
       `}</style>
 
       <header className="flex items-center justify-between mb-5 md:mb-6">
-        <h2 className="text-lg md:text-xl font-semibold text-brand-dark">
+        <h2 className="font-display text-xl md:text-2xl font-bold text-brand-dark">
           {t('title')}
         </h2>
         <div className="flex items-center gap-1.5 md:gap-2">

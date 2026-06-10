@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Noto_Serif_Georgian } from "next/font/google";
-import localFont from "next/font/local";
+import { Playfair_Display, Manrope, Noto_Serif_Georgian, Noto_Sans_Georgian } from "next/font/google";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import Header from '@/components/layout/Header';
@@ -9,31 +8,34 @@ import Footer from '@/components/layout/Footer';
 import Toast from '@/components/ui/Toast';
 import "../globals.css";
 
-// 1. FiraGO - ძირითადი ქართული/ლათინური შრიფტი (Georgian + Latin + Cyrillic)
-const firago = localFont({
-  src: [
-    { path: '../../../public/fonts/FiraGO-Regular.woff2',  weight: '400', style: 'normal' },
-    { path: '../../../public/fonts/FiraGO-Medium.woff2',   weight: '500', style: 'normal' },
-    { path: '../../../public/fonts/FiraGO-SemiBold.woff2', weight: '600', style: 'normal' },
-    { path: '../../../public/fonts/FiraGO-Bold.woff2',     weight: '700', style: 'normal' },
-  ],
-  variable: '--font-firago',
+// ── Typography system (NBI Tower scheme) ──
+
+// 1. Manrope — Latin sans (body + UI). Also the source of "ManropeNum" digits.
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: '--font-manrope',
   display: 'swap',
 });
 
-// 2. Playfair Display - ლათინური სერიფი
+// 2. Playfair Display — Latin serif (display / headings)
 const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: '--font-playfair',
-  display: 'swap'
+  display: 'swap',
 });
 
-// 3. Noto Serif Georgian - ქართული სერიფი (700, 800, 900)
+// 3. Noto Serif Georgian — Georgian serif (display / headings)
 const notoSerifGeorgian = Noto_Serif_Georgian({
   subsets: ["georgian", "latin"],
   variable: '--font-ka-serif',
   display: 'swap',
-  weight: ['700', '800', '900'],
+});
+
+// 4. Noto Sans Georgian — Georgian sans (body + UI)
+const notoSansGeorgian = Noto_Sans_Georgian({
+  subsets: ["georgian", "latin"],
+  variable: '--font-ka-sans',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -60,7 +62,7 @@ export default async function RootLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className={`${firago.variable} ${playfair.variable} ${notoSerifGeorgian.variable}`}>
+    <html lang={locale} className={`${manrope.variable} ${playfair.variable} ${notoSerifGeorgian.variable} ${notoSansGeorgian.variable}`}>
       <body className="font-sans antialiased selection:bg-brand-DEFAULT selection:text-white pb-24 md:pb-0 bg-white text-brand-dark">
         <NextIntlClientProvider messages={messages}>
           <Header />

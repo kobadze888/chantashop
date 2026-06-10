@@ -201,7 +201,7 @@ export default function EditorialBanner({ categories }: Props) {
             <span className="block text-[10px] md:text-xs font-semibold uppercase tracking-[0.25em] text-brand-DEFAULT/80 mb-2">
               {t('sectionLabel')}
             </span>
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight text-brand-dark">
+            <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight text-brand-dark">
               {t('sectionTitle')}
             </h2>
           </div>
