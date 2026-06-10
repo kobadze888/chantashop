@@ -1,10 +1,25 @@
 'use client';
+import { useState, useEffect } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Link } from '@/navigation';
 import { useTranslations } from 'next-intl';
 
 export default function Hero() {
   const t = useTranslations('Home.Hero');
+
+  // Device-specific video: mobile gets a lighter, mobile-framed clip.
+  // null on first render (SSR + first client paint) → only poster shows → no hydration mismatch.
+  const [device, setDevice] = useState<'mobile' | 'desktop' | null>(null);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const apply = () => setDevice(mq.matches ? 'mobile' : 'desktop');
+    apply();
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
+  }, []);
+
+  const videoSrc = device === 'mobile' ? '/videos/hero-mobile.mp4' : '/videos/hero-desktop.mp4';
 
   return (
     <section className="relative mx-3 md:container md:mx-auto mt-24 md:mt-32
@@ -15,19 +30,36 @@ export default function Hero() {
       <div className="relative w-full
         h-[78vh] min-h-[480px] sm:h-[72vh] lg:h-[86vh] lg:max-h-[800px]">
 
-        <video
-          className="absolute inset-0 w-full h-full object-cover object-center"
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="auto"
-          poster="/videos/hero-poster.jpg"
+        {/* Poster layer — instant paint, device-specific */}
+        <img
+          src="/videos/hero-mobile-poster.jpg"
+          alt=""
           aria-hidden
-        >
-          <source src="/videos/hero.webm" type="video/webm" />
-          <source src="/videos/hero.mp4" type="video/mp4" />
-        </video>
+          className="absolute inset-0 w-full h-full object-cover object-center md:hidden"
+        />
+        <img
+          src="/videos/hero-desktop-poster.jpg"
+          alt=""
+          aria-hidden
+          className="absolute inset-0 w-full h-full object-cover object-center hidden md:block"
+        />
+
+        {/* Video layer — mounts after we know the device, swaps src on resize */}
+        {device && (
+          <video
+            key={device}
+            className="absolute inset-0 w-full h-full object-cover object-center"
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+            poster={device === 'mobile' ? '/videos/hero-mobile-poster.jpg' : '/videos/hero-desktop-poster.jpg'}
+            aria-hidden
+          >
+            <source src={videoSrc} type="video/mp4" />
+          </video>
+        )}
 
         {/* ── Overlays for legibility ── */}
         {/* Bottom-up dark gradient (anchors text) */}
