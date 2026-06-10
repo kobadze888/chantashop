@@ -58,23 +58,13 @@ export default function Hero() {
 
           <div className="w-full max-w-md md:max-w-xl flex flex-col items-center md:items-start">
 
-            {/* Eyebrow badge */}
-            <span className="inline-flex items-center gap-2
-              bg-white/10 backdrop-blur-md border border-white/15
-              text-[9px] sm:text-[10px] font-semibold px-3.5 py-1.5 rounded-full
-              uppercase tracking-[0.16em] mb-4 md:mb-5">
-              <span className="w-1.5 h-1.5 rounded-full bg-brand-DEFAULT shrink-0 animate-pulse" />
-              {t('badge')}
-            </span>
-
-            {/* Title */}
-            <h1 className="font-display font-extrabold tracking-[-0.02em] leading-[1.06]
+            {/* Title — Mtavruli (Georgian caps) */}
+            <h1 className="font-display font-extrabold uppercase tracking-[-0.01em] leading-[1.08]
               mb-3 md:mb-4 drop-shadow-lg text-balance
-              text-[1.85rem] xs:text-[2.1rem] sm:text-[2.6rem] md:text-[3rem] lg:text-[3.5rem] xl:text-[3.9rem]">
-              {t('titleLine1')}{' '}
-              <span className="text-brand-DEFAULT">{t('titleHighlight')}</span>{' '}
+              text-[1.75rem] xs:text-[2.05rem] sm:text-[2.5rem] md:text-[2.9rem] lg:text-[3.4rem] xl:text-[3.8rem]">
+              {t('titleLine1')}{' '}{t('titleHighlight')}{' '}
               <br className="hidden sm:block" />
-              {t('titleLine3')}
+              <span className="text-brand-DEFAULT">{t('titleLine3')}</span>
             </h1>
 
             {/* Subtitle */}
@@ -83,25 +73,16 @@ export default function Hero() {
               {t('subtitle')}
             </p>
 
-            {/* CTAs */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center
-              gap-2.5 sm:gap-3 w-full sm:w-auto">
+            {/* CTA */}
+            <div className="w-full sm:w-auto">
               <Link
                 href="/shop"
-                className="group inline-flex items-center justify-center gap-2.5
-                  bg-white text-brand-dark px-6 sm:px-7 py-3.5 rounded-full font-bold text-sm
+                className="group inline-flex w-full sm:w-auto items-center justify-center gap-2.5
+                  bg-white text-brand-dark px-7 py-3.5 rounded-full font-bold text-sm
                   hover:bg-brand-DEFAULT hover:text-white transition-all
                   shadow-lg shadow-black/30 active:scale-[0.98]">
                 {t('cta')}
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <Link
-                href="/shop"
-                className="inline-flex items-center justify-center
-                  bg-white/10 backdrop-blur-md text-white border border-white/30
-                  px-6 sm:px-7 py-3.5 rounded-full font-bold text-sm
-                  hover:bg-white/20 transition-all active:scale-[0.98]">
-                {t('ctaSecondary')}
               </Link>
             </div>
 
