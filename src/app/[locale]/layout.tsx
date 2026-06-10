@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Manrope, Noto_Sans_Georgian } from "next/font/google";
+import { Playfair_Display, Manrope, Noto_Serif_Georgian, Noto_Sans_Georgian } from "next/font/google";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import Header from '@/components/layout/Header';
@@ -8,16 +8,28 @@ import Footer from '@/components/layout/Footer';
 import Toast from '@/components/ui/Toast';
 import "../globals.css";
 
-// ── Typography: one clean sans system ──
+// ── Typography ──
+// Headings: Playfair (Latin) + Noto Serif Georgian (Georgian) — elegant serif.
+// Body/UI: Manrope (Latin) + Noto Sans Georgian (Georgian) — clean sans.
 
-// Manrope — Latin sans (body + headings). Also the source of "ManropeNum" digits.
 const manrope = Manrope({
   subsets: ["latin"],
   variable: '--font-manrope',
   display: 'swap',
 });
 
-// Noto Sans Georgian — Georgian sans (body + headings)
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: '--font-playfair',
+  display: 'swap',
+});
+
+const notoSerifGeorgian = Noto_Serif_Georgian({
+  subsets: ["georgian", "latin"],
+  variable: '--font-ka-serif',
+  display: 'swap',
+});
+
 const notoSansGeorgian = Noto_Sans_Georgian({
   subsets: ["georgian", "latin"],
   variable: '--font-ka-sans',
@@ -48,7 +60,7 @@ export default async function RootLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className={`${manrope.variable} ${notoSansGeorgian.variable}`}>
+    <html lang={locale} className={`${manrope.variable} ${playfair.variable} ${notoSerifGeorgian.variable} ${notoSansGeorgian.variable}`}>
       <body className="font-sans antialiased selection:bg-brand-DEFAULT selection:text-white pb-24 md:pb-0 bg-white text-brand-dark">
         <NextIntlClientProvider messages={messages}>
           <Header />

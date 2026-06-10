@@ -22,13 +22,12 @@
   --color-brand-dark: #000000;
   --color-brand-gray: #F9FAFB;
 
-  /* Typography — one clean sans system (Manrope + Noto Sans Georgian).
-     ManropeNum first → Manrope numerals in every context. */
+  /* Body / UI — clean sans (Manrope + Noto Sans Georgian) */
   --font-sans:    'ManropeNum', var(--font-manrope), var(--font-ka-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-display: 'ManropeNum', var(--font-manrope), var(--font-ka-sans), ui-sans-serif, system-ui, sans-serif;
   --font-geo:     'ManropeNum', var(--font-ka-sans), ui-sans-serif, sans-serif;
-  /* Back-compat: existing font-serif usages now resolve to the same sans */
-  --font-serif:   'ManropeNum', var(--font-manrope), var(--font-ka-sans), ui-sans-serif, system-ui, sans-serif;
+  /* Headings — serif (Playfair + Noto Serif Georgian), rendered Mkhedruli */
+  --font-display: 'ManropeNum', var(--font-playfair), var(--font-ka-serif), Georgia, serif;
+  --font-serif:   'ManropeNum', var(--font-playfair), var(--font-ka-serif), Georgia, serif;
 }
 
 /* Base Styles */

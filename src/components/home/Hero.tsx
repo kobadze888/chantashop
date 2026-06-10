@@ -58,10 +58,10 @@ export default function Hero() {
 
           <div className="w-full max-w-md md:max-w-xl flex flex-col items-center md:items-start">
 
-            {/* Title — Mtavruli (Georgian caps via OpenType 'case', no text-transform) */}
-            <h1 className="font-display font-extrabold mtavruli tracking-[-0.01em] leading-[1.08]
+            {/* Title — serif, Mkhedruli */}
+            <h1 className="font-display font-bold tracking-[-0.01em] leading-[1.1]
               mb-3 md:mb-4 drop-shadow-lg text-balance
-              text-[1.75rem] xs:text-[2.05rem] sm:text-[2.5rem] md:text-[2.9rem] lg:text-[3.4rem] xl:text-[3.8rem]">
+              text-[2rem] xs:text-[2.3rem] sm:text-[2.8rem] md:text-[3.2rem] lg:text-[3.7rem] xl:text-[4.1rem]">
               {t('titleLine1')}{' '}{t('titleHighlight')}{' '}
               <br className="hidden sm:block" />
               <span className="text-brand-DEFAULT">{t('titleLine3')}</span>
