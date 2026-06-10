@@ -41,13 +41,12 @@ body {
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* Georgian Mtavruli (caps). Georgian has no separate capital codepoints, so
-   `text-transform: uppercase` does nothing — the OpenType 'case' feature maps
-   Mkhedruli → Mtavruli instead. `.mtavruli` applies it on its own (no
-   text-transform); `.uppercase` also gets it so Latin caps + Georgian Mtavruli
-   stay consistent. !important guards against utility resets. */
-.mtavruli  { font-feature-settings: 'case' on !important; }
-.uppercase { font-feature-settings: 'case' on !important; }
+/* Georgian Mtavruli (caps) — OPT-IN ONLY via `.mtavruli`. Georgian has no
+   separate capital codepoints, so the OpenType 'case' feature maps Mkhedruli
+   → Mtavruli. We do NOT bind this to Tailwind's `uppercase` — that would force
+   Mtavruli on every uppercase label (nav, footer, badges), which we don't want.
+   Plain Georgian stays Mkhedruli; add `mtavruli` only where caps are intended. */
+.mtavruli { font-feature-settings: 'case' on !important; }
 
 /* Range Slider */
 input[type=range] { -webkit-appearance: none; width: 100%; height: 4px; background: transparent; cursor: pointer; }
