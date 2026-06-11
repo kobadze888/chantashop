@@ -465,7 +465,7 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
       {/* ✅ DESKTOP HEADER (Static) */}
       <div className="hidden md:flex container mx-auto px-4 mb-8 justify-between items-end border-b border-gray-100 pb-8 mt-8">
           <div>
-              <h1 className="text-6xl font-serif font-black text-brand-dark">{t('title')}</h1>
+              <h1 className="text-4xl lg:text-5xl font-serif font-black text-brand-dark">{t('title')}</h1>
               <p className="text-gray-400 mt-2 text-sm">
                 {t('productsCount', { count: initialProducts.length })}
                 {isPending && <span className="text-brand-DEFAULT ml-2 animate-pulse">{tCommon('loading')}</span>}
