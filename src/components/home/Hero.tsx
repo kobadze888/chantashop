@@ -58,13 +58,13 @@ export default function Hero() {
 
           <div className="w-full max-w-md md:max-w-xl flex flex-col items-center md:items-start">
 
-            {/* Title — serif, Mkhedruli */}
-            <h1 className="font-display font-bold tracking-[-0.01em] leading-[1.1]
-              mb-3 md:mb-4 drop-shadow-lg text-balance
-              text-[2rem] xs:text-[2.3rem] sm:text-[2.8rem] md:text-[3.2rem] lg:text-[3.7rem] xl:text-[4.1rem]">
-              {t('titleLine1')}{' '}{t('titleHighlight')}{' '}
-              <br className="hidden sm:block" />
-              <span className="text-brand-DEFAULT">{t('titleLine3')}</span>
+            {/* Title — Mtavruli (upper register), BPG Nino Mtavruli */}
+            <h1 className="font-bold mtavruli leading-tight
+              mb-3 md:mb-4 drop-shadow-lg
+              text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-5xl">
+              {t('titleLine1')}{' '}{t('titleHighlight')}
+              <br />
+              <span className="text-brand-DEFAULT whitespace-nowrap">{t('titleLine3')}</span>
             </h1>
 
             {/* Subtitle */}
