@@ -94,7 +94,7 @@ export default function Hero() {
 
             {/* Stats */}
             <div className="flex items-start gap-5 xs:gap-7 md:gap-10
-              mt-7 md:mt-9 pt-5 md:pt-7 border-t border-white/15
+              mt-11 md:mt-9 pt-6 md:pt-7 border-t border-white/15
               w-full sm:w-auto justify-center md:justify-start">
               {stats.map(({ num, label }) => (
                 <div key={label} className="text-center md:text-left">
