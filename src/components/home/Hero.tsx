@@ -59,18 +59,12 @@ export default function Hero() {
           <div className="w-full max-w-md md:max-w-xl flex flex-col items-center md:items-start">
 
             {/* Title — Mtavruli (upper register), BPG Nino Mtavruli */}
-            <h1
-              style={{ WebkitTextStrokeWidth: '0.6px', WebkitTextStrokeColor: 'currentColor' }}
-              className="font-bold mtavruli leading-tight
-                mb-3 md:mb-4 drop-shadow-lg
-                text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-5xl">
+            <h1 className="font-bold mtavruli leading-tight
+              mb-3 md:mb-4 drop-shadow-lg
+              text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-5xl">
               {t('titleLine1')}{' '}{t('titleHighlight')}
               <br />
-              <span
-                style={{ WebkitTextStrokeWidth: '0.6px', WebkitTextStrokeColor: 'currentColor' }}
-                className="text-brand-DEFAULT whitespace-nowrap">
-                {t('titleLine3')}
-              </span>
+              <span className="text-brand-DEFAULT whitespace-nowrap">{t('titleLine3')}</span>
             </h1>
 
             {/* Subtitle */}
