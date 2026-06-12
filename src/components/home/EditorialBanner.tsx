@@ -1,6 +1,9 @@
 import Image from 'next/image';
 import { Link } from '@/navigation';
-import { ArrowRight } from 'lucide-react';
+import {
+  ArrowRight, ShoppingBag, Briefcase, Watch, Glasses,
+  Umbrella, Wallet, Sparkles, Luggage, Gem, type LucideIcon,
+} from 'lucide-react';
 import { useTranslations, useLocale } from 'next-intl';
 import type { HomeCategory } from '@/lib/api';
 import { getCategoryName } from '@/lib/categoryTranslations';
@@ -16,17 +19,43 @@ const FEATURED = {
   ekonomi: { img: '/images/chantashop_ge_banner_econom.png',  ribbon: 'ECONOMY' },
 } as const;
 
-/* Semantic Unsplash fallbacks for categories that have no image yet in WP */
-const FALLBACK_IMAGES: Record<string, string> = {
-  qalis_chantebi:               'https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?q=80&w=800&auto=format&fit=crop',
-  'naturaluri-tyavis-chantebi': 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=800&auto=format&fit=crop',
-  kolgebi:                      'https://images.unsplash.com/photo-1601379329542-31c59ba1716b?q=80&w=800&auto=format&fit=crop',
-  saatebi:                      'https://images.unsplash.com/photo-1524592094714-0f0654e20314?q=80&w=800&auto=format&fit=crop',
-  satvaleebi:                   'https://images.unsplash.com/photo-1572635196237-14b3f281503f?q=80&w=800&auto=format&fit=crop',
-  'samgzavro-chantebi':         'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=800&auto=format&fit=crop',
-  sapuleebi:                    'https://images.unsplash.com/photo-1627123424574-724758594e93?q=80&w=800&auto=format&fit=crop',
-  sunamo:                       'https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=800&auto=format&fit=crop',
+/* ── Generated visuals: gradient + icon per category (no image needed) ── */
+const GRADIENT_PALETTE = [
+  'from-rose-400 via-pink-500 to-fuchsia-600',
+  'from-amber-400 via-orange-500 to-rose-500',
+  'from-sky-400 via-blue-500 to-indigo-600',
+  'from-emerald-400 via-teal-500 to-cyan-600',
+  'from-violet-500 via-purple-500 to-indigo-600',
+  'from-stone-500 via-stone-700 to-zinc-900',
+  'from-pink-400 via-rose-500 to-red-500',
+  'from-teal-400 via-emerald-500 to-green-600',
+];
+
+const CATEGORY_ICONS: Record<string, LucideIcon> = {
+  qalis_chantebi:               ShoppingBag,
+  'naturaluri-tyavis-chantebi': Briefcase,
+  kolgebi:                      Umbrella,
+  saatebi:                      Watch,
+  satvaleebi:                   Glasses,
+  'samgzavro-chantebi':         Luggage,
+  sapuleebi:                    Wallet,
+  sunamo:                       Sparkles,
 };
+
+/* Deterministic hash → stable gradient per slug */
+function slugHash(slug: string): number {
+  let h = 0;
+  for (let i = 0; i < slug.length; i++) h = (h * 31 + slug.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+function gradientFor(slug: string): string {
+  return GRADIENT_PALETTE[slugHash(slug) % GRADIENT_PALETTE.length];
+}
+
+function iconFor(slug: string): LucideIcon {
+  return CATEGORY_ICONS[slug] ?? Gem;
+}
 
 interface CardData {
   slug: string;
@@ -105,7 +134,8 @@ function FeaturedCard({ card }: { card: CardData }) {
 function SmallCard({ card }: { card: CardData }) {
   const t = useTranslations('Home.Editorial');
   const isEmpty = !card.count;
-  const img = card.img ?? FALLBACK_IMAGES[card.slug];
+  const img = card.img;
+  const Icon = iconFor(card.slug);
 
   return (
     <Link
@@ -118,7 +148,7 @@ function SmallCard({ card }: { card: CardData }) {
         ring-1 ring-black/5 hover:ring-black/10
         transition-all duration-500"
     >
-      {img && (
+      {img ? (
         <Image
           src={img}
           alt={card.name}
@@ -127,6 +157,20 @@ function SmallCard({ card }: { card: CardData }) {
           className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.08]"
           quality={85}
         />
+      ) : (
+        /* ── Generated visual — colourful gradient + category icon ── */
+        <div className={`absolute inset-0 bg-gradient-to-br ${gradientFor(card.slug)}`}>
+          {/* soft decorative glows */}
+          <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-white/20 blur-2xl" />
+          <div className="absolute -bottom-8 -left-8 w-28 h-28 rounded-full bg-black/10 blur-2xl" />
+          {/* watermark icon */}
+          <Icon
+            className="absolute inset-0 m-auto w-2/5 h-2/5 text-white/90
+              drop-shadow-lg transition-transform duration-700 ease-out
+              group-hover:scale-110 group-hover:rotate-3"
+            strokeWidth={1.5}
+          />
+        </div>
       )}
 
       {/* Bottom gradient */}
