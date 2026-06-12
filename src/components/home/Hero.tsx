@@ -58,8 +58,8 @@ export default function Hero() {
 
           <div className="w-full max-w-md md:max-w-xl flex flex-col items-center md:items-start">
 
-            {/* Title — Mtavruli (upper register), BPG Nino Mtavruli */}
-            <h1 className="font-bold mtavruli leading-tight
+            {/* Title — serif (Noto Serif Georgian), Mkhedruli */}
+            <h1 className="font-display font-bold leading-tight
               mb-3 md:mb-4 drop-shadow-lg
               text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-5xl">
               {t('titleLine1')}{' '}{t('titleHighlight')}
