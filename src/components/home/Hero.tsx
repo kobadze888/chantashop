@@ -50,13 +50,12 @@ export default function Hero() {
 
         {/* ── Content: centred-bottom on mobile, bottom-left on desktop ── */}
         <div className="relative z-10 h-full flex flex-col
-          items-center justify-end text-center
-          md:items-start md:text-left
+          items-start justify-end text-left
           px-5 sm:px-10 md:px-12 lg:px-16
-          pb-16 sm:pb-12 md:pb-16 lg:pb-20 pt-24
+          pb-12 sm:pb-12 md:pb-16 lg:pb-20 pt-24
           text-white">
 
-          <div className="w-full max-w-md md:max-w-xl flex flex-col items-center md:items-start">
+          <div className="w-full max-w-md md:max-w-xl flex flex-col items-start">
 
             {/* Title — serif (Noto Serif Georgian), Mkhedruli */}
             <h1 className="font-display font-bold leading-tight
@@ -74,10 +73,10 @@ export default function Hero() {
             </p>
 
             {/* CTA */}
-            <div className="w-full sm:w-auto">
+            <div>
               <Link
                 href="/shop"
-                className="group inline-flex w-full sm:w-auto items-center justify-center gap-2.5
+                className="group inline-flex items-center justify-center gap-2.5
                   bg-white text-brand-dark px-7 py-3.5 rounded-full font-bold text-sm
                   hover:bg-brand-DEFAULT hover:text-white transition-all
                   shadow-lg shadow-black/30 active:scale-[0.98]">
@@ -87,11 +86,11 @@ export default function Hero() {
             </div>
 
             {/* Stats */}
-            <div className="flex items-start gap-5 xs:gap-7 md:gap-10
-              mt-11 md:mt-9 pt-6 md:pt-7 border-t border-white/15
-              w-full sm:w-auto justify-center md:justify-start">
+            <div className="flex items-start gap-7 md:gap-10
+              mt-9 md:mt-9 pt-6 md:pt-7 border-t border-white/15
+              justify-start">
               {stats.map(({ num, label }) => (
-                <div key={label} className="text-center md:text-left">
+                <div key={label} className="text-left">
                   <div className="text-lg sm:text-xl md:text-2xl lg:text-[1.7rem] font-bold leading-none drop-shadow">
                     {num}
                   </div>
