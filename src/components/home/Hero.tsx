@@ -61,7 +61,7 @@ export default function Hero() {
                 Sizes kept so "ჩანთებისა და აქსესუარების" stays on one line. */}
             <h1 className="font-display font-bold leading-tight tracking-tighter
               mb-3 md:mb-4 drop-shadow-lg
-              text-[1.65rem] sm:text-3xl md:text-4xl">
+              text-[1.5rem] sm:text-3xl md:text-4xl">
               <span className="whitespace-nowrap">
                 {t('titleLine1').split('&').map((part, i, arr) => (
                   <span key={i}>{part}{i < arr.length - 1 && <span className="font-sans">&amp;</span>}</span>
