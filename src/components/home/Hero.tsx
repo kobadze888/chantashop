@@ -61,7 +61,8 @@ export default function Hero() {
                 Sizes kept so "ჩანთებისა და აქსესუარების" stays on one line. */}
             <h1 className="font-display font-bold leading-tight tracking-tighter
               mb-3 md:mb-4 drop-shadow-lg
-              text-[1.375rem] sm:text-3xl md:text-4xl">
+              text-[1.375rem] sm:text-3xl md:text-4xl
+              [font-variant-ligatures:none] [font-feature-settings:'liga'_0,'calt'_0,'dlig'_0]">
               <span className="whitespace-nowrap">{t('titleLine1')}{' '}{t('titleHighlight')}</span>
               <br />
               <span className="text-brand-DEFAULT whitespace-nowrap">{t('titleLine3')}</span>
