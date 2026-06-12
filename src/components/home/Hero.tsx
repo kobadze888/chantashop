@@ -57,11 +57,12 @@ export default function Hero() {
 
           <div className="w-full max-w-md md:max-w-xl flex flex-col items-start">
 
-            {/* Title — serif (Noto Serif Georgian), Mkhedruli */}
-            <h1 className="font-display font-bold leading-tight
+            {/* Title — serif (Noto Serif Georgian), Mkhedruli.
+                Sizes kept so "ჩანთებისა და აქსესუარების" stays on one line. */}
+            <h1 className="font-display font-bold leading-tight tracking-tight
               mb-3 md:mb-4 drop-shadow-lg
-              text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-5xl">
-              {t('titleLine1')}{' '}{t('titleHighlight')}
+              text-xl sm:text-3xl md:text-4xl">
+              <span className="whitespace-nowrap">{t('titleLine1')}{' '}{t('titleHighlight')}</span>
               <br />
               <span className="text-brand-DEFAULT whitespace-nowrap">{t('titleLine3')}</span>
             </h1>
