@@ -51,7 +51,7 @@ export default function Hero() {
         {/* ── Content: centred-bottom on mobile, bottom-left on desktop ── */}
         <div className="relative z-10 h-full flex flex-col
           items-start justify-end text-left
-          px-5 sm:px-10 md:px-12 lg:px-16
+          px-4 sm:px-10 md:px-12 lg:px-16
           pb-12 sm:pb-12 md:pb-16 lg:pb-20 pt-24
           text-white">
 
@@ -59,9 +59,9 @@ export default function Hero() {
 
             {/* Title — serif (Noto Serif Georgian), Mkhedruli.
                 Sizes kept so "ჩანთებისა და აქსესუარების" stays on one line. */}
-            <h1 className="font-display font-bold leading-tight tracking-tight
+            <h1 className="font-display font-bold leading-tight tracking-tighter
               mb-3 md:mb-4 drop-shadow-lg
-              text-xl sm:text-3xl md:text-4xl">
+              text-[1.375rem] sm:text-3xl md:text-4xl">
               <span className="whitespace-nowrap">{t('titleLine1')}{' '}{t('titleHighlight')}</span>
               <br />
               <span className="text-brand-DEFAULT whitespace-nowrap">{t('titleLine3')}</span>
