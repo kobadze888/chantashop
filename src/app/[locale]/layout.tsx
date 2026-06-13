@@ -5,6 +5,7 @@ import { getMessages } from 'next-intl/server';
 import Header from '@/components/layout/Header';
 import BottomNav from '@/components/layout/BottomNav';
 import Footer from '@/components/layout/Footer';
+import LiveChat from '@/components/layout/LiveChat';
 import Toast from '@/components/ui/Toast';
 import "../globals.css";
 
@@ -77,6 +78,7 @@ export default async function RootLayout({
           <BottomNav />
           {/* აქ ემატება Toast კომპონენტი */}
           <Toast />
+          <LiveChat />
         </NextIntlClientProvider>
       </body>
     </html>

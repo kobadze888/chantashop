@@ -171,7 +171,9 @@
     "whatsappLabel": "WhatsApp",
     "whatsappCta": "WhatsApp-ზე მოწერა",
     "callCta": "დარეკვა",
-    "followUs": "გამოგვყევი"
+    "followUs": "გამოგვყევი",
+    "mapTitle": "ვაგზავნით მთელ საქართველოში",
+    "mapSubtitle": "ონლაინ მაღაზია — კურიერით მიწოდება ქვეყნის ყველა დიდ ქალაქში."
   },
   "Catalog": {
     "title": "სრული კატალოგი",

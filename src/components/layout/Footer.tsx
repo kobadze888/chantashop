@@ -71,7 +71,7 @@ export default function Footer() {
                 </div>
                 <div>
                   <p className="text-xs text-white/40 uppercase tracking-wider font-bold">ტელეფონი</p>
-                  <a href="tel:+995555000000" className="text-white group-hover:text-brand-DEFAULT transition-colors">+995 555 XX XX XX</a>
+                  <a href="tel:+995591290610" className="text-white group-hover:text-brand-DEFAULT transition-colors">+995 591 29 06 10</a>
                 </div>
               </li>
               <li className="flex items-start gap-3 group">
@@ -80,7 +80,7 @@ export default function Footer() {
                 </div>
                 <div>
                   <p className="text-xs text-white/40 uppercase tracking-wider font-bold">ელ-ფოსტა</p>
-                  <a href="mailto:info@chantashop.ge" className="text-white group-hover:text-brand-DEFAULT transition-colors">info@chantashop.ge</a>
+                  <a href="mailto:chantashopge@gmail.com" className="text-white group-hover:text-brand-DEFAULT transition-colors">chantashopge@gmail.com</a>
                 </div>
               </li>
             </ul>
@@ -92,17 +92,17 @@ export default function Footer() {
               {t('followUs')}
             </h5>
             <div className="flex gap-4">
-              <a 
-                href="https://instagram.com" 
-                target="_blank" 
+              <a
+                href="https://www.instagram.com/chantashop.ge/"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-DEFAULT hover:border-brand-DEFAULT transition-all group"
               >
                 <Instagram className="w-5 h-5 group-hover:scale-110 transition" />
               </a>
-              <a 
-                href="https://facebook.com" 
-                target="_blank" 
+              <a
+                href="https://www.facebook.com/chantashopge1"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-DEFAULT hover:border-brand-DEFAULT transition-all group"
               >

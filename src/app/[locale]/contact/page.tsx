@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Phone, Mail, MapPin, Clock, MessageCircle, Instagram, Facebook } from 'lucide-react';
 import { getContactInfo } from '@/lib/api';
-import ContactForm from './ContactForm';
+import GeorgiaMap from '@/components/contact/GeorgiaMap';
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -110,12 +110,13 @@ export default async function ContactPage({ params }: Props) {
             </div>
           </div>
 
-          {/* Form column */}
+          {/* Map column — delivery coverage across Georgia */}
           <div className="lg:col-span-3">
-            <div className="bg-white rounded-3xl p-6 md:p-8 ring-1 ring-black/5 shadow-lg">
-              <h2 className="font-display font-bold text-xl md:text-2xl text-brand-dark mb-6">{t('formTitle')}</h2>
-              <ContactForm />
+            <div className="mb-4">
+              <h2 className="font-display font-bold text-xl md:text-2xl text-brand-dark">{t('mapTitle')}</h2>
+              <p className="text-gray-500 text-sm mt-1">{t('mapSubtitle')}</p>
             </div>
+            <GeorgiaMap />
           </div>
         </div>
       </section>
