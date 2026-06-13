@@ -1,10 +1,34 @@
 'use client';
+import { useEffect, useRef } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Link } from '@/navigation';
 import { useTranslations } from 'next-intl';
 
 export default function Hero() {
   const t = useTranslations('Home.Hero');
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // iOS Safari sometimes leaves the hero video paused (showing a play overlay)
+  // after client-side navigation or bfcache restore. Force it back to playing.
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    const tryPlay = () => {
+      v.muted = true;
+      const p = v.play();
+      if (p && typeof p.catch === 'function') p.catch(() => {});
+    };
+    tryPlay();
+    const onVisible = () => { if (document.visibilityState === 'visible') tryPlay(); };
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('pageshow', tryPlay);
+    window.addEventListener('focus', tryPlay);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('pageshow', tryPlay);
+      window.removeEventListener('focus', tryPlay);
+    };
+  }, []);
 
   const stats = [
     { num: t('stats.brandsNum'),   label: t('stats.brandsLabel')   },
@@ -31,6 +55,7 @@ export default function Hero() {
 
         {/* Looping background video (same clip across all devices) */}
         <video
+          ref={videoRef}
           className="absolute inset-0 w-full h-full object-cover object-center"
           autoPlay
           loop
@@ -39,6 +64,9 @@ export default function Hero() {
           preload="auto"
           poster="/videos/hero-desktop-poster.jpg"
           aria-hidden
+          tabIndex={-1}
+          disablePictureInPicture
+          controls={false}
         >
           <source src="/videos/hero-desktop.mp4" type="video/mp4" />
         </video>
