@@ -89,11 +89,12 @@ export default function GeorgiaMap() {
         .cs-pin-lg .cs-pin-dot{width:16px;height:16px;left:-8px;top:-8px;}
         .cs-pin-lg::before{width:16px;height:16px;left:-8px;top:-8px;animation-duration:1.8s;}
         @keyframes csPulse{0%{transform:scale(1);opacity:.55;}100%{transform:scale(4.5);opacity:0;}}
-        .leaflet-container{background:#f7f4f1;font-family:inherit;border-radius:1.5rem;}
+        .leaflet-container{background:#f7f4f1;font-family:inherit;border-radius:1.5rem;z-index:0;}
+        .leaflet-pane,.leaflet-top,.leaflet-bottom,.leaflet-control{z-index:1 !important;}
         .leaflet-tooltip{background:#1a1a1a;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:11px;padding:3px 8px;box-shadow:0 4px 12px rgba(0,0,0,.18);}
         .leaflet-tooltip-top:before{border-top-color:#1a1a1a;}
       `}</style>
-      <div ref={ref} className="w-full h-[360px] md:h-[520px] rounded-3xl ring-1 ring-black/5 shadow-lg overflow-hidden" />
+      <div ref={ref} className="relative z-0 [isolation:isolate] w-full h-[360px] md:h-[520px] rounded-3xl ring-1 ring-black/5 shadow-lg overflow-hidden" />
     </>
   );
 }
