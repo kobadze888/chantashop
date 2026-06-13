@@ -231,6 +231,14 @@ export const GET_MATERIAL_SEO_QUERY = `
   }
 `;
 
+export const GET_CONTACT_INFO_QUERY = `
+  query GetContactInfo {
+    contactInfo {
+      phone email whatsapp address workingHours instagram facebook mapsEmbed
+    }
+  }
+`;
+
 export const ADD_TO_CART_MUTATION = `mutation AddToCart($input: AddToCartInput!) { addToCart(input: $input) { cart { contents { itemCount } } } }`;
 export const CHECKOUT_MUTATION = `mutation Checkout($input: CheckoutInput!) { checkout(input: $input) { order { databaseId orderNumber status total(format: RAW) } result redirect } }`;
 export const APPLY_COUPON_MUTATION = `mutation ApplyCoupon($input: ApplyCouponInput!) { applyCoupon(input: $input) { cart { total(format: RAW) appliedCoupons { code discountAmount(format: RAW) } } } }`;

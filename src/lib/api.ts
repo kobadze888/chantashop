@@ -3,7 +3,8 @@ import { WORDPRESS_API_URL } from './constants';
 import {
   GET_PRODUCTS_QUERY, GET_FILTERS_QUERY, GET_PRODUCT_BY_SLUG_QUERY,
   GET_PAGE_QUERY, GET_PAGE_BY_SLUG_NAME_QUERY, GET_SHOP_PAGE_WITH_TRANSLATIONS,
-  GET_SITEMAP_DATA_QUERY, GET_HOME_DATA_QUERY, TAXONOMY_SEO_FRAGMENT
+  GET_SITEMAP_DATA_QUERY, GET_HOME_DATA_QUERY, TAXONOMY_SEO_FRAGMENT,
+  GET_CONTACT_INFO_QUERY
 } from './queries';
 import { Product, FilterTerm } from '@/types';
 
@@ -162,6 +163,27 @@ export async function getHomeData(locale: string = 'ka'): Promise<HomeData> {
     onSale:       data?.onSale?.nodes ?? [],
     bestSellers:  data?.bestSellers?.nodes ?? [],
   };
+}
+
+export interface ContactInfo {
+  phone: string;
+  email: string;
+  whatsapp: string;
+  address: string;
+  workingHours: string;
+  instagram: string;
+  facebook: string;
+  mapsEmbed: string;
+}
+
+const EMPTY_CONTACT: ContactInfo = {
+  phone: '', email: '', whatsapp: '', address: '',
+  workingHours: '', instagram: '', facebook: '', mapsEmbed: '',
+};
+
+export async function getContactInfo(): Promise<ContactInfo> {
+  const data = await fetchAPI(GET_CONTACT_INFO_QUERY, {}, 300, ['contact']);
+  return { ...EMPTY_CONTACT, ...(data?.contactInfo ?? {}) };
 }
 
 export async function getPageByUri(uri: string) {
