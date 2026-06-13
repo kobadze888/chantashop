@@ -57,6 +57,16 @@ function iconFor(slug: string): LucideIcon {
   return CATEGORY_ICONS[slug] ?? Gem;
 }
 
+/* ── Custom generated product visuals (real products on blush-pink bg) ── */
+const GENERATED_IMAGE_SLUGS = new Set([
+  'qalis_chantebi', 'naturaluri-tyavis-chantebi', 'kolgebi', 'saatebi',
+  'satvaleebi', 'samgzavro-chantebi', 'sapuleebi', 'sunamo',
+]);
+
+function generatedImageFor(slug: string): string | null {
+  return GENERATED_IMAGE_SLUGS.has(slug) ? `/images/categories/${slug}.jpg` : null;
+}
+
 interface CardData {
   slug: string;
   name: string;
@@ -134,7 +144,8 @@ function FeaturedCard({ card }: { card: CardData }) {
 function SmallCard({ card }: { card: CardData }) {
   const t = useTranslations('Home.Editorial');
   const isEmpty = !card.count;
-  const img = card.img;
+  // Prefer our custom generated product visual; fall back to WP image, then gradient
+  const img = generatedImageFor(card.slug) ?? card.img;
   const Icon = iconFor(card.slug);
 
   return (
