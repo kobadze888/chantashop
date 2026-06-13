@@ -24,9 +24,9 @@ export default async function ContactPage({ params }: Props) {
   const t = await getTranslations({ locale, namespace: 'ContactPage' });
   const info = await getContactInfo();
 
-  const phone = info.phone || '+995 555 XX XX XX';
-  const email = info.email || 'info@chantashop.ge';
-  const whatsapp = waHref(info.whatsapp || info.phone);
+  const phone = info.phone || '+995 591 29 06 10';
+  const email = info.email || 'chantashopge@gmail.com';
+  const whatsapp = waHref(info.whatsapp || info.phone || phone);
 
   const infoCards = [
     { icon: Phone, label: t('phoneLabel'), value: phone, href: `tel:${phone.replace(/\s/g, '')}` },

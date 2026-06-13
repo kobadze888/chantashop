@@ -114,7 +114,7 @@ export default function Footer() {
 
         {/* ქვედა ზოლი */}
         <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-white/40 gap-4">
-          <p>&copy; 2025 ChantaShop. {t('rights')}</p>
+          <p>&copy; {new Date().getFullYear()} ChantaShop. {t('rights')}</p>
           <div className="flex gap-6">
             <Link href="/privacy" className="hover:text-white transition">{t('privacy')}</Link>
             <Link href="/terms" className="hover:text-white transition">{t('terms')}</Link>

@@ -35,7 +35,7 @@ export default function BottomNav() {
       icon: MessageCircle,
       isButton: true,
       onClick: () => {
-        window.open('https://wa.me/995555555555', '_blank');
+        window.open('https://wa.me/995591290610', '_blank');
       },
     },
   ];
