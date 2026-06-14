@@ -78,42 +78,40 @@ export default async function ContactPage({ params }: Props) {
             })}
 
             {/* Direct contact — WhatsApp + socials */}
-            <div className="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-brand-dark via-zinc-900 to-brand-dark ring-1 ring-white/10 shadow-lg">
-              <div className="absolute -top-12 -right-12 w-36 h-36 rounded-full bg-brand-DEFAULT/20 blur-3xl pointer-events-none" />
-              <div className="relative">
-                {whatsapp && (
-                  <a
-                    href={whatsapp}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group flex items-center justify-center gap-3 w-full bg-[#25D366] text-white px-5 py-3.5 rounded-xl font-bold text-sm shadow-lg shadow-[#25D366]/25 hover:shadow-xl hover:shadow-[#25D366]/40 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300"
-                  >
-                    <span className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-                      <MessageCircle className="w-4 h-4" />
-                    </span>
-                    {t('whatsappCta')}
-                  </a>
-                )}
-                {(info.instagram || info.facebook) && (
-                  <div className="mt-5">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/40 mb-3 text-center">{t('followUs')}</p>
-                    <div className="flex gap-3 justify-center">
-                      {info.instagram && (
-                        <a href={info.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram"
-                          className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 hover:scale-105 hover:border-transparent hover:bg-gradient-to-tr hover:from-[#feda75] hover:via-[#d62976] hover:to-[#962fbf]">
-                          <Instagram className="w-5 h-5 text-white" />
-                        </a>
-                      )}
-                      {info.facebook && (
-                        <a href={info.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook"
-                          className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 hover:scale-105 hover:border-transparent hover:bg-[#1877F2]">
-                          <Facebook className="w-5 h-5 text-white" />
-                        </a>
-                      )}
-                    </div>
+            <div className="rounded-2xl p-6 bg-gradient-to-br from-rose-50 via-pink-50/40 to-white ring-1 ring-black/5 shadow-sm">
+              {whatsapp && (
+                <a
+                  href={whatsapp}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-3 w-full bg-[#25D366] text-white px-5 py-3.5 rounded-xl font-bold text-sm shadow-lg shadow-[#25D366]/25 hover:shadow-xl hover:shadow-[#25D366]/40 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300"
+                >
+                  <span className="w-7 h-7 rounded-full bg-white/25 flex items-center justify-center shrink-0">
+                    <MessageCircle className="w-4 h-4" />
+                  </span>
+                  {t('whatsappCta')}
+                </a>
+              )}
+              {(info.instagram || info.facebook) && (
+                <div className="mt-5 flex items-center gap-3">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400 shrink-0">{t('followUs')}</span>
+                  <span className="h-px flex-1 bg-gray-200" />
+                  <div className="flex gap-2">
+                    {info.instagram && (
+                      <a href={info.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram"
+                        className="group w-10 h-10 rounded-xl bg-white ring-1 ring-black/5 flex items-center justify-center transition-all duration-300 hover:ring-0 hover:scale-105 hover:bg-gradient-to-tr hover:from-[#feda75] hover:via-[#d62976] hover:to-[#962fbf]">
+                        <Instagram className="w-5 h-5 text-gray-500 transition-colors group-hover:text-white" />
+                      </a>
+                    )}
+                    {info.facebook && (
+                      <a href={info.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook"
+                        className="group w-10 h-10 rounded-xl bg-white ring-1 ring-black/5 flex items-center justify-center transition-all duration-300 hover:ring-0 hover:scale-105 hover:bg-[#1877F2]">
+                        <Facebook className="w-5 h-5 text-gray-500 transition-colors group-hover:text-white" />
+                      </a>
+                    )}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
 
