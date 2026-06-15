@@ -17,35 +17,22 @@ function Lightbox({
 }: {
   images: string[]; startIndex: number; alt: string; onClose: () => void;
 }) {
-  const trackRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(startIndex);
+  const touchStart = useRef({ x: 0, y: 0 });
 
-  const goTo = useCallback((i: number) => {
-    const el = trackRef.current;
-    if (!el) return;
-    const idx = (i + images.length) % images.length;
-    el.scrollTo({ left: idx * el.clientWidth, behavior: 'smooth' });
-  }, [images.length]);
+  const next = useCallback(() => setActive((a) => (a + 1) % images.length), [images.length]);
+  const prev = useCallback(() => setActive((a) => (a - 1 + images.length) % images.length), [images.length]);
 
-  // start at the clicked image + lock body scroll + keyboard nav
   useEffect(() => {
-    const el = trackRef.current;
-    if (el) el.scrollTo({ left: startIndex * el.clientWidth });
     document.body.style.overflow = 'hidden';
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
-      else if (e.key === 'ArrowRight') goTo(active + 1);
-      else if (e.key === 'ArrowLeft') goTo(active - 1);
+      else if (e.key === 'ArrowRight') next();
+      else if (e.key === 'ArrowLeft') prev();
     };
     window.addEventListener('keydown', onKey);
     return () => { document.body.style.overflow = ''; window.removeEventListener('keydown', onKey); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, goTo, onClose]);
-
-  const onScroll = () => {
-    const el = trackRef.current;
-    if (el) setActive(Math.round(el.scrollLeft / el.clientWidth));
-  };
+  }, [next, prev, onClose]);
 
   return (
     <div
@@ -72,13 +59,13 @@ function Lightbox({
       {images.length > 1 && (
         <>
           <button
-            onClick={(e) => { e.stopPropagation(); goTo(active - 1); }}
+            onClick={(e) => { e.stopPropagation(); prev(); }}
             className="hidden md:grid place-items-center absolute left-4 lg:left-8 top-1/2 -translate-y-1/2 z-[100001] w-12 h-12 rounded-full bg-white/10 text-white hover:bg-white/20 transition cursor-pointer active:scale-90"
           >
             <ChevronLeft className="w-7 h-7" />
           </button>
           <button
-            onClick={(e) => { e.stopPropagation(); goTo(active + 1); }}
+            onClick={(e) => { e.stopPropagation(); next(); }}
             className="hidden md:grid place-items-center absolute right-4 lg:right-8 top-1/2 -translate-y-1/2 z-[100001] w-12 h-12 rounded-full bg-white/10 text-white hover:bg-white/20 transition cursor-pointer active:scale-90"
           >
             <ChevronRight className="w-7 h-7" />
@@ -86,18 +73,27 @@ function Lightbox({
         </>
       )}
 
-      {/* Compact image stage — swipeable via native scroll-snap */}
+      {/* Compact image stage — swipeable */}
       <div
-        ref={trackRef}
-        onScroll={onScroll}
+        className="relative w-full max-w-3xl h-[78vh] flex items-center justify-center"
         onClick={(e) => e.stopPropagation()}
-        className="flex w-full max-w-3xl h-[78vh] overflow-x-auto snap-x snap-mandatory hide-scrollbar overscroll-contain rounded-2xl"
+        onTouchStart={(e) => { touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }}
+        onTouchEnd={(e) => {
+          const dx = e.changedTouches[0].clientX - touchStart.current.x;
+          const dy = e.changedTouches[0].clientY - touchStart.current.y;
+          if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) { if (dx > 0) prev(); else next(); }
+        }}
       >
-        {images.map((url, i) => (
-          <div key={i} className="relative w-full h-full shrink-0 snap-center">
-            <Image src={url} alt={`${alt} ${i + 1}`} fill className="object-contain" sizes="(max-width: 768px) 92vw, 768px" quality={95} priority={i === startIndex} />
-          </div>
-        ))}
+        <Image
+          key={active}
+          src={images[active]}
+          alt={`${alt} ${active + 1}`}
+          fill
+          className="object-contain animate-fade-in select-none"
+          sizes="(max-width: 768px) 92vw, 768px"
+          quality={95}
+          priority
+        />
       </div>
     </div>
   );
