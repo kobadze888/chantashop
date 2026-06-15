@@ -207,13 +207,13 @@ export default function ProductCard(props: ProductCardProps) {
 
   return (
     <div 
-      className={`group relative flex flex-col w-full h-full bg-white border border-gray-200 rounded-2xl p-3 transition-all duration-300 hover:shadow-xl hover:border-brand-DEFAULT/30 cursor-pointer ${isOutOfStock ? 'opacity-80' : ''} ${className || ''}`}
+      className={`group relative flex flex-col w-full h-full bg-white border border-gray-200 rounded-2xl p-3 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/5 hover:border-brand-DEFAULT/30 cursor-pointer ${isOutOfStock ? 'opacity-90' : ''} ${className || ''}`}
       onClick={handleFullView}
     >
       <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-gray-50 mb-3 border border-gray-100 cursor-pointer">
         {!isOutOfStock && hasDiscount && discountPercent && (
           <div className="absolute top-2.5 left-2.5 z-20 pointer-events-none">
-            <span className="bg-rose-600 text-white text-[10px] font-bold px-2.5 py-1 rounded shadow-sm tracking-wide">
+            <span className="bg-rose-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md tracking-wide">
               -{discountPercent}%
             </span>
           </div>
@@ -222,14 +222,14 @@ export default function ProductCard(props: ProductCardProps) {
         <div className="absolute top-2.5 right-2.5 z-30 flex flex-col gap-1.5">
             <button
               onClick={handleWishlist}
-              className={`p-2 rounded-full transition-all duration-200 shadow-sm border active:scale-95 cursor-pointer ${
-                isLiked 
-                ? 'bg-white text-brand-DEFAULT border-brand-DEFAULT/20 shadow-md' 
+              className={`p-2.5 rounded-full transition-all duration-200 shadow-sm border active:scale-95 cursor-pointer ${
+                isLiked
+                ? 'bg-white text-brand-DEFAULT border-brand-DEFAULT/20 shadow-md'
                 : 'bg-white/90 text-gray-500 border-transparent hover:text-brand-DEFAULT hover:bg-white backdrop-blur-sm'
               }`}
               title={t('addToWishlist')}
             >
-              <Heart className={`w-4.5 h-4.5 ${isLiked ? 'fill-current' : ''}`} strokeWidth={2} />
+              <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} strokeWidth={2} />
             </button>
 
             <button 
@@ -237,7 +237,7 @@ export default function ProductCard(props: ProductCardProps) {
                 className="hidden md:flex p-2 rounded-full bg-white/90 text-gray-600 border border-transparent hover:text-brand-DEFAULT hover:bg-white hover:border-brand-DEFAULT/20 shadow-sm transition-all duration-300 transform translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 backdrop-blur-sm active:scale-95 cursor-pointer"
                 title={t('quickView')}
             >
-                <Eye className="w-4.5 h-4.5" strokeWidth={2}/>
+                <Eye className="w-5 h-5" strokeWidth={2}/>
             </button>
         </div>
 
@@ -250,7 +250,7 @@ export default function ProductCard(props: ProductCardProps) {
         )}
 
         {isOutOfStock && (
-          <div className="absolute inset-0 z-20 bg-white/80 flex items-center justify-center">
+          <div className="absolute inset-0 z-20 bg-white/30 flex items-center justify-center">
              <div className="bg-black/90 text-white px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 shadow-xl">
                 <XCircle className="w-3.5 h-3.5" />
                 {t('outOfStock')}
@@ -275,7 +275,7 @@ export default function ProductCard(props: ProductCardProps) {
           fill
           priority={priority}
           sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-          className="object-cover z-0 transition-transform duration-700" 
+          className={`object-cover z-0 transition-transform duration-700 ease-out group-hover:scale-105 ${isOutOfStock ? 'grayscale' : ''}`}
           onError={() => setImgSrc('/placeholder.jpg')}
         />
       </div>
@@ -308,13 +308,13 @@ export default function ProductCard(props: ProductCardProps) {
                   {colorOptions.slice(0, 4).map((colorSlug: string, idx: number) => (
                     <div
                       key={idx}
-                      className="w-4 h-4 rounded-full border border-white ring-1 ring-gray-200 shadow-sm transition-transform hover:scale-110 hover:z-10 relative cursor-pointer"
+                      className="w-5 h-5 rounded-full border-2 border-white ring-1 ring-gray-200 shadow-sm transition-transform hover:scale-110 hover:z-10 relative cursor-pointer"
                       // აქ გამოვიყენეთ getColorHex
                       style={{ backgroundColor: getColorHex(colorSlug) }}
                     />
                   ))}
                   {colorOptions.length > 4 && (
-                      <div className="w-4 h-4 rounded-full border border-white bg-gray-100 flex items-center justify-center text-[9px] text-gray-500 font-bold z-10">
+                      <div className="w-5 h-5 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[9px] text-gray-500 font-bold z-10">
                           +
                       </div>
                   )}
@@ -331,11 +331,11 @@ export default function ProductCard(props: ProductCardProps) {
              <>
                <button
                  onClick={handleAddToCart}
-                 className="group/btn flex items-center justify-center w-12 md:w-auto md:flex-1 bg-white text-gray-900 border border-gray-200 rounded-xl hover:border-black hover:bg-gray-50 transition-all active:scale-95 shadow-sm cursor-pointer px-1.5 overflow-hidden"
+                 className="group/btn flex flex-1 items-center justify-center gap-1.5 bg-white text-gray-900 border border-gray-200 rounded-xl hover:border-black hover:bg-gray-50 transition-all active:scale-95 shadow-sm cursor-pointer px-2 overflow-hidden"
                  title={hasVariations ? t('selectOptions') : t('addToCart')}
                >
-                 <ShoppingBag className="w-5 h-5 md:w-4 md:h-4 flex-shrink-0 md:mr-1.5" />
-                 <span className="hidden md:block text-[11px] font-bold uppercase truncate min-w-0">
+                 <ShoppingBag className="w-4 h-4 flex-shrink-0" />
+                 <span className="text-[10px] md:text-[11px] font-bold uppercase truncate min-w-0">
                     {hasVariations ? t('selectOptions') : t('addToCart')}
                  </span>
                </button>
