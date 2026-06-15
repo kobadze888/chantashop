@@ -68,7 +68,7 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} className={`${manrope.variable} ${playfair.variable} ${notoSerifGeorgian.variable} ${notoSansGeorgian.variable}`}>
-      <body className="font-sans antialiased selection:bg-brand-DEFAULT selection:text-white pb-24 md:pb-0 bg-white text-brand-dark">
+      <body className="font-sans antialiased selection:bg-brand-DEFAULT selection:text-white bg-white text-brand-dark">
         <NextIntlClientProvider messages={messages}>
           <Header />
           <main className="min-h-screen">

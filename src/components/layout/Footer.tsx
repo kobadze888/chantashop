@@ -11,7 +11,7 @@ export default function Footer() {
   const tNav = useTranslations('Navigation');
 
   return (
-    <footer className="bg-brand-dark text-white pt-24 pb-12 md:rounded-t-[3rem] mt-auto relative z-10 overflow-hidden">
+    <footer className="bg-brand-dark text-white pt-24 pb-[calc(6.5rem+env(safe-area-inset-bottom))] md:pb-12 md:rounded-t-[3rem] mt-auto relative z-10 overflow-hidden">
       {/* ზედა დეკორატიული ხაზი */}
       <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-brand-DEFAULT via-purple-500 to-brand-DEFAULT"></div>
       
