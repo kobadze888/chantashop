@@ -145,7 +145,7 @@ export default async function ProductPage({ params }: Props) {
       <Script id="product-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <div className="container mx-auto px-6 max-w-[1350px]">
-        <nav className="text-xs font-bold text-gray-400 mb-10 uppercase tracking-widest flex items-center gap-2 overflow-x-auto whitespace-nowrap pb-2 hide-scrollbar">
+        <nav className="text-xs font-bold text-gray-400 mb-5 md:mb-10 uppercase tracking-widest flex items-center gap-2 overflow-x-auto whitespace-nowrap pb-2 hide-scrollbar">
             <Link href="/" className="hover:text-brand-dark transition">{t('home')}</Link>
             <ChevronRight className="w-3 h-3 flex-shrink-0" />
             <Link href="/shop" className="hover:text-brand-dark transition">{t('collection')}</Link>

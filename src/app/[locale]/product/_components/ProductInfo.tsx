@@ -410,14 +410,14 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
                     {product.name}
                 </h1>
 
-                <div className="flex items-center gap-2 mb-6">
+                <div className="flex items-center gap-2 mb-4 md:mb-6">
                     <div className="flex text-yellow-400">
                         {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-current" />)}
                     </div>
                 </div>
 
                 {/* ✅ FIX: განახლებული ფასების ბლოკი */}
-                <div className="bg-gray-50/50 rounded-2xl p-5 border border-gray-100 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative overflow-hidden">
+                <div className="bg-gray-50/50 rounded-2xl p-4 md:p-5 border border-gray-100 mb-5 md:mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 md:gap-6 relative overflow-hidden">
                
                     {isSale && (
                         <div className="absolute top-0 right-0 w-20 h-20 bg-red-500/5 blur-3xl -translate-y-10 translate-x-10 pointer-events-none"></div>
@@ -473,7 +473,7 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
                 </div>
 
                 {colorOptions.length > 0 && (
-                    <div className="mb-8">
+                    <div className="mb-5 md:mb-8">
                         <div className="flex justify-between items-center mb-3">
                             <span className="text-xs font-bold text-brand-dark uppercase tracking-wider">
                                 {t('color')}: <span className="text-gray-500 font-normal capitalize">{displayColorName}</span>
@@ -505,7 +505,7 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
                     </div>
                 )}
 
-                <div className="flex gap-3 mb-8 pb-4">
+                <div className="flex gap-3 mb-5 md:mb-8 pb-0 md:pb-4">
                     <div className="flex items-center bg-white rounded-xl h-14 border border-gray-200 w-32 shadow-sm">
                         <button
                             onClick={() => setQuantity(q => Math.max(1, q - 1))}
@@ -535,8 +535,8 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 mb-8">
-                    <div className="col-span-2 border border-brand-light bg-brand-light/30 rounded-2xl p-2 md:p-3 flex flex-col items-center text-center justify-center transition-all hover:shadow-md hover:border-brand-medium h-full min-h-[110px]">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 mb-6 md:mb-8">
+                    <div className="col-span-2 border border-brand-light bg-brand-light/30 rounded-2xl p-2 md:p-3 flex flex-col items-center text-center justify-center transition-all hover:shadow-md hover:border-brand-medium h-full min-h-[92px] md:min-h-[110px]">
                         <span className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-2">{t('Payment.onlineTitle')}</span>
                         <div className="flex items-center justify-center gap-4 mb-2">
                             <LogoBOG />
@@ -549,7 +549,7 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
                         </div>
                     </div>
 
-                    <div className="col-span-1 border border-gray-100 bg-gray-50 rounded-2xl p-2 md:p-3 flex flex-col items-center text-center justify-center transition-all hover:shadow-md hover:border-gray-200 h-full min-h-[110px]">
+                    <div className="col-span-1 border border-gray-100 bg-gray-50 rounded-2xl p-2 md:p-3 flex flex-col items-center text-center justify-center transition-all hover:shadow-md hover:border-gray-200 h-full min-h-[92px] md:min-h-[110px]">
                         <span className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-2">{t('Payment.transferTitle')}</span>
                         <div className="mb-2 text-gray-600">
                             <Landmark className="w-5 h-5 md:w-6 md:h-6" />
@@ -559,7 +559,7 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
                         </div>
                     </div>
 
-                    <div className="col-span-1 border border-gray-100 bg-gray-50 rounded-2xl p-2 md:p-3 flex flex-col items-center text-center justify-center transition-all hover:shadow-md hover:border-gray-200 cursor-default h-full min-h-[110px]">
+                    <div className="col-span-1 border border-gray-100 bg-gray-50 rounded-2xl p-2 md:p-3 flex flex-col items-center text-center justify-center transition-all hover:shadow-md hover:border-gray-200 cursor-default h-full min-h-[92px] md:min-h-[110px]">
                         <span className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-2">{t('Payment.realPhotoTitle')}</span>
                         <div className="mb-2 text-brand-DEFAULT">
                             <Camera className="w-5 h-5 md:w-6 md:h-6" />

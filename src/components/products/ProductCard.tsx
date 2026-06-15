@@ -207,10 +207,10 @@ export default function ProductCard(props: ProductCardProps) {
 
   return (
     <div 
-      className={`group relative flex flex-col w-full h-full bg-white border border-gray-200 rounded-2xl p-3 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/5 hover:border-brand-DEFAULT/30 cursor-pointer ${isOutOfStock ? 'opacity-90' : ''} ${className || ''}`}
+      className={`group relative flex flex-col w-full h-full bg-white border border-gray-200 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/5 hover:border-brand-DEFAULT/30 cursor-pointer ${isOutOfStock ? 'opacity-90' : ''} ${className || ''}`}
       onClick={handleFullView}
     >
-      <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-gray-50 mb-3 border border-gray-100 cursor-pointer">
+      <div className="relative aspect-[4/5] overflow-hidden bg-gray-50 cursor-pointer">
         {!isOutOfStock && hasDiscount && discountPercent && (
           <div className="absolute top-2.5 left-2.5 z-20 pointer-events-none">
             <span className="bg-rose-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md tracking-wide">
@@ -275,12 +275,12 @@ export default function ProductCard(props: ProductCardProps) {
           fill
           priority={priority}
           sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-          className={`object-cover z-0 transition-transform duration-700 ease-out group-hover:scale-105 ${isOutOfStock ? 'grayscale' : ''}`}
+          className={`object-cover z-0 ${isOutOfStock ? 'grayscale' : ''}`}
           onError={() => setImgSrc('/placeholder.jpg')}
         />
       </div>
 
-      <div className="flex flex-col flex-1 gap-1.5 min-w-0">
+      <div className="flex flex-col flex-1 gap-1.5 min-w-0 p-3">
         <Link 
           href={{ pathname: '/product/[slug]', params: { slug } }}
           className="text-gray-900 font-semibold text-[15px] leading-tight line-clamp-2 min-h-[2.5em] hover:text-brand-DEFAULT transition-colors cursor-pointer"
