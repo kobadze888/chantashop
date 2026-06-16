@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Eye, Heart, ShoppingBag, XCircle, CreditCard } from 'lucide-react';
+import { Eye, Heart, ShoppingCart, XCircle, CreditCard } from 'lucide-react';
 import { Link, useRouter } from '@/navigation';
 import { useCartStore } from '@/store/cartStore';
 import { useWishlistStore } from '@/store/wishlistStore'; 
@@ -236,10 +236,10 @@ export default function ProductCard(props: ProductCardProps) {
             ) : !isOutOfStock && (
               <button
                 onClick={handleAddToCart}
-                className="p-2.5 rounded-full bg-white/90 text-gray-600 border border-transparent shadow-sm backdrop-blur-sm hover:text-brand-DEFAULT hover:bg-white transition-all duration-200 active:scale-95 cursor-pointer"
+                className="w-8 h-8 grid place-items-center rounded-full bg-white text-brand-dark shadow-md ring-1 ring-black/5 hover:bg-brand-DEFAULT hover:text-white hover:ring-0 transition-all duration-200 active:scale-90 cursor-pointer"
                 title={hasVariations ? t('selectOptions') : t('addToCart')}
               >
-                <ShoppingBag className="w-5 h-5" strokeWidth={2} />
+                <ShoppingCart className="w-4 h-4" strokeWidth={2.2} />
               </button>
             )}
 
@@ -333,35 +333,22 @@ export default function ProductCard(props: ProductCardProps) {
             )}
         </div>
 
-        <div className="flex flex-col gap-2 w-full min-w-0">
+        <div className="w-full min-w-0">
            {isOutOfStock ? (
               <div className="w-full h-10 flex items-center justify-center bg-gray-100 text-gray-400 text-center rounded-xl text-[10px] font-bold uppercase cursor-not-allowed tracking-wider border border-gray-100 px-1 truncate">
                 {t('outOfStock')}
               </div>
            ) : (
-             <>
-               <button
-                 onClick={handleBuyNow}
-                 className="flex w-full h-10 items-center justify-center bg-brand-DEFAULT text-white rounded-xl hover:bg-brand-dark transition-all active:scale-95 shadow-sm hover:shadow-brand-DEFAULT/20 cursor-pointer px-2 gap-1.5"
-                 title={t('buyNow')}
-               >
-                 <CreditCard className="w-4 h-4 flex-shrink-0" />
-                 <span className="text-[11px] font-bold uppercase">
-                   {t('buy')}
-                 </span>
-               </button>
-
-               <button
-                 onClick={handleAddToCart}
-                 className="group/btn flex w-full h-10 items-center justify-center gap-1.5 bg-white text-gray-900 border border-gray-200 rounded-xl hover:border-black hover:bg-gray-50 transition-all active:scale-95 shadow-sm cursor-pointer px-2"
-                 title={hasVariations ? t('selectOptions') : t('addToCart')}
-               >
-                 <ShoppingBag className="w-4 h-4 flex-shrink-0" />
-                 <span className="text-[11px] font-bold uppercase">
-                    {hasVariations ? t('selectOptions') : t('addToCart')}
-                 </span>
-               </button>
-             </>
+             <button
+               onClick={handleBuyNow}
+               className="flex w-full h-10 items-center justify-center bg-brand-DEFAULT text-white rounded-xl hover:bg-brand-dark transition-all active:scale-95 shadow-sm hover:shadow-brand-DEFAULT/20 cursor-pointer px-2 gap-1.5"
+               title={t('buyNow')}
+             >
+               <CreditCard className="w-4 h-4 flex-shrink-0" />
+               <span className="text-[11px] font-bold uppercase">
+                 {t('buy')}
+               </span>
+             </button>
            )}
         </div>
       </div>
