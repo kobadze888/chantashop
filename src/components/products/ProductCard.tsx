@@ -319,9 +319,9 @@ export default function ProductCard(props: ProductCardProps) {
           </div>
         )}
 
-        {/* Price — emphasized colour chip */}
-        <div className="flex items-center justify-center gap-2 flex-wrap mt-auto pt-0.5">
-          <span className="inline-flex items-center bg-rose-50 text-brand-DEFAULT font-extrabold text-[15px] md:text-base px-2.5 py-1 rounded-lg leading-none tracking-tight">
+        {/* Price — solid colour tag */}
+        <div className="flex items-center gap-2 flex-wrap mt-auto pt-0.5">
+          <span className="inline-flex items-center bg-brand-DEFAULT text-white font-extrabold text-[14px] md:text-[15px] px-2.5 py-1 rounded-lg leading-none tracking-tight shadow-sm shadow-brand-DEFAULT/25">
             {displayPrice}
           </span>
           {hasDiscount && displayOldPrice && (
