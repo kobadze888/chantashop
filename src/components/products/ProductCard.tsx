@@ -322,7 +322,7 @@ export default function ProductCard(props: ProductCardProps) {
             )}
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-2 w-full min-w-0">
+        <div className="flex flex-col gap-2 w-full min-w-0">
            {isOutOfStock ? (
               <div className="w-full h-10 flex items-center justify-center bg-gray-100 text-gray-400 text-center rounded-xl text-[10px] font-bold uppercase cursor-not-allowed tracking-wider border border-gray-100 px-1 truncate">
                 {t('outOfStock')}
@@ -330,24 +330,24 @@ export default function ProductCard(props: ProductCardProps) {
            ) : (
              <>
                <button
-                 onClick={handleAddToCart}
-                 className="group/btn flex w-full sm:flex-1 h-10 sm:h-11 items-center justify-center gap-1.5 bg-white text-gray-900 border border-gray-200 rounded-xl hover:border-black hover:bg-gray-50 transition-all active:scale-95 shadow-sm cursor-pointer px-2 overflow-hidden"
-                 title={hasVariations ? t('selectOptions') : t('addToCart')}
+                 onClick={handleBuyNow}
+                 className="flex w-full h-10 items-center justify-center bg-brand-DEFAULT text-white rounded-xl hover:bg-brand-dark transition-all active:scale-95 shadow-sm hover:shadow-brand-DEFAULT/20 cursor-pointer px-2 gap-1.5"
+                 title={t('buyNow')}
                >
-                 <ShoppingBag className="w-4 h-4 flex-shrink-0" />
-                 <span className="text-[11px] font-bold uppercase truncate min-w-0">
-                    {hasVariations ? t('selectOptions') : t('addToCart')}
+                 <CreditCard className="w-4 h-4 flex-shrink-0" />
+                 <span className="text-[11px] font-bold uppercase">
+                   {t('buy')}
                  </span>
                </button>
 
                <button
-                 onClick={handleBuyNow}
-                 className="flex w-full sm:flex-1 h-10 sm:h-11 items-center justify-center bg-brand-DEFAULT text-white rounded-xl hover:bg-brand-dark transition-all active:scale-95 shadow-sm hover:shadow-brand-DEFAULT/20 cursor-pointer px-2 overflow-hidden gap-1.5"
-                 title={t('buyNow')}
+                 onClick={handleAddToCart}
+                 className="group/btn flex w-full h-10 items-center justify-center gap-1.5 bg-white text-gray-900 border border-gray-200 rounded-xl hover:border-black hover:bg-gray-50 transition-all active:scale-95 shadow-sm cursor-pointer px-2"
+                 title={hasVariations ? t('selectOptions') : t('addToCart')}
                >
-                 <CreditCard className="w-4 h-4 flex-shrink-0" />
-                 <span className="text-[11px] font-bold uppercase truncate min-w-0">
-                   {t('buy')}
+                 <ShoppingBag className="w-4 h-4 flex-shrink-0" />
+                 <span className="text-[11px] font-bold uppercase">
+                    {hasVariations ? t('selectOptions') : t('addToCart')}
                  </span>
                </button>
              </>
