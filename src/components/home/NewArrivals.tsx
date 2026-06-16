@@ -2,12 +2,13 @@
 
 import { useRef } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation } from 'swiper/modules';
+import { Navigation, Pagination } from 'swiper/modules';
 import ProductCard from '../products/ProductCard';
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { Link } from '@/navigation';
 import { useTranslations } from 'next-intl';
 import 'swiper/css';
+import 'swiper/css/pagination';
 
 interface Props {
   products: any[];
@@ -55,11 +56,17 @@ export default function NewArrivals({ products, locale }: Props) {
         </div>
       </header>
 
+      <style>{`
+        .cs-slider .swiper-pagination{ position:static; margin-top:18px; }
+        .cs-slider .swiper-pagination-bullet{ width:7px; height:7px; background:#d1d5db; opacity:1; transition:all .3s; }
+        .cs-slider .swiper-pagination-bullet-active{ width:22px; border-radius:9999px; background:#db2777; }
+      `}</style>
       <Swiper
-        modules={[Navigation]}
+        modules={[Navigation, Pagination]}
         spaceBetween={12}
         slidesPerView={2}
         navigation={{ prevEl: prevRef.current, nextEl: nextRef.current }}
+        pagination={{ clickable: true }}
         onBeforeInit={(swiper) => {
           // @ts-expect-error swiper navigation refs assigned post-init
           swiper.params.navigation.prevEl = prevRef.current;
@@ -71,7 +78,7 @@ export default function NewArrivals({ products, locale }: Props) {
           1024: { slidesPerView: 4, spaceBetween: 16 },
           1280: { slidesPerView: 5, spaceBetween: 16 },
         }}
-        className="pb-2"
+        className="cs-slider pb-1"
       >
         {products.map((product) => (
           <SwiperSlide key={product.id}>

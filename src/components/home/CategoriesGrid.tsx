@@ -1,13 +1,14 @@
 'use client';
 import { useRef, useState, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation } from 'swiper/modules';
+import { Navigation, Grid } from 'swiper/modules';
 import Image from 'next/image';
 import { Link } from '@/navigation';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { HomeCategory } from '@/lib/api';
 import 'swiper/css';
+import 'swiper/css/grid';
 
 interface Props {
   categories: HomeCategory[];
@@ -148,15 +149,15 @@ export default function CategoriesGrid({ categories }: Props) {
           from { stroke-dashoffset: ${CIRCUMFERENCE}; }
           to   { stroke-dashoffset: 0; }
         }
-        /* Pre-init slide sizing — prevents SSR flash */
-        .cats-swiper:not(.swiper-initialized) .swiper-wrapper { display: flex; }
-        .cats-swiper:not(.swiper-initialized) .swiper-slide { flex: 0 0 auto; width: calc((100% - 40px) / 5); margin-right: 10px; }
-        .cats-swiper:not(.swiper-initialized) .swiper-slide:last-child { margin-right: 0; }
-        @media (min-width: 480px)  { .cats-swiper:not(.swiper-initialized) .swiper-slide { width: calc((100% - 50px) / 6);  margin-right: 10px; } }
-        @media (min-width: 640px)  { .cats-swiper:not(.swiper-initialized) .swiper-slide { width: calc((100% - 60px) / 7);  margin-right: 12px; } }
-        @media (min-width: 768px)  { .cats-swiper:not(.swiper-initialized) .swiper-slide { width: calc((100% - 70px) / 8);  margin-right: 14px; } }
-        @media (min-width: 1024px) { .cats-swiper:not(.swiper-initialized) .swiper-slide { width: calc((100% - 80px) / 9);  margin-right: 14px; } }
-        @media (min-width: 1280px) { .cats-swiper:not(.swiper-initialized) .swiper-slide { width: calc((100% - 90px) / 10); margin-right: 16px; } }
+        /* Pre-init sizing — 2 rows, prevents SSR flash */
+        .cats-swiper:not(.swiper-initialized) .swiper-wrapper { display: flex; flex-wrap: wrap; }
+        .cats-swiper:not(.swiper-initialized) .swiper-slide { flex: 0 0 auto; width: calc((100% - 36px) / 4); margin: 0 12px 14px 0; }
+        @media (min-width: 640px)  { .cats-swiper:not(.swiper-initialized) .swiper-slide { width: calc((100% - 48px) / 5); } }
+        @media (min-width: 768px)  { .cats-swiper:not(.swiper-initialized) .swiper-slide { width: calc((100% - 60px) / 6); } }
+        @media (min-width: 1024px) { .cats-swiper:not(.swiper-initialized) .swiper-slide { width: calc((100% - 84px) / 7); } }
+        .cats-swiper .swiper-pagination{ position:static; margin-top:14px; }
+        .cats-swiper .swiper-pagination-bullet{ width:7px; height:7px; background:#d1d5db; opacity:1; transition:all .3s; }
+        .cats-swiper .swiper-pagination-bullet-active{ width:22px; border-radius:9999px; background:#db2777; }
       `}</style>
 
       <header className="flex items-center justify-between mb-5 md:mb-6">
@@ -184,9 +185,10 @@ export default function CategoriesGrid({ categories }: Props) {
       </header>
 
       <Swiper
-        modules={[Navigation]}
-        slidesPerView={5}
-        spaceBetween={10}
+        modules={[Navigation, Grid]}
+        grid={{ rows: 2, fill: 'row' }}
+        slidesPerView={4}
+        spaceBetween={12}
         navigation={{ prevEl: prevRef.current, nextEl: nextRef.current }}
         onBeforeInit={(swiper) => {
           // @ts-expect-error swiper navigation refs assigned post-init
@@ -195,11 +197,9 @@ export default function CategoriesGrid({ categories }: Props) {
           swiper.params.navigation.nextEl = nextRef.current;
         }}
         breakpoints={{
-          480:  { slidesPerView: 6,  spaceBetween: 10 },
-          640:  { slidesPerView: 7,  spaceBetween: 12 },
-          768:  { slidesPerView: 8,  spaceBetween: 14 },
-          1024: { slidesPerView: 9,  spaceBetween: 14 },
-          1280: { slidesPerView: 10, spaceBetween: 16 },
+          640:  { slidesPerView: 5, spaceBetween: 12 },
+          768:  { slidesPerView: 6, spaceBetween: 14 },
+          1024: { slidesPerView: 7, spaceBetween: 14 },
         }}
         className="cats-swiper pb-1"
       >

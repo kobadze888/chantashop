@@ -2,10 +2,11 @@
 
 import { useRef } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Autoplay } from 'swiper/modules';
+import { Navigation, Autoplay, Pagination } from 'swiper/modules';
 import ProductCard from '../products/ProductCard';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import 'swiper/css';
+import 'swiper/css/pagination';
 
 interface FeaturedCarouselProps {
   title: string;
@@ -35,11 +36,17 @@ export default function FeaturedCarousel({ title, subtitle, products, locale }: 
         </div>
       </div>
 
+      <style>{`
+        .cs-slider .swiper-pagination{ position:static; margin-top:18px; }
+        .cs-slider .swiper-pagination-bullet{ width:7px; height:7px; background:#d1d5db; opacity:1; transition:all .3s; }
+        .cs-slider .swiper-pagination-bullet-active{ width:22px; border-radius:9999px; background:#db2777; }
+      `}</style>
       <Swiper
-        modules={[Navigation, Autoplay]}
+        modules={[Navigation, Autoplay, Pagination]}
         spaceBetween={20}
         slidesPerView={2}
         navigation={{ prevEl: prevRef.current, nextEl: nextRef.current }}
+        pagination={{ clickable: true }}
         onBeforeInit={(swiper) => {
           // @ts-ignore
           swiper.params.navigation.prevEl = prevRef.current;
@@ -51,7 +58,7 @@ export default function FeaturedCarousel({ title, subtitle, products, locale }: 
           1024: { slidesPerView: 4 },
           1280: { slidesPerView: 5 }
         }}
-        className="pb-4"
+        className="cs-slider pb-1"
       >
         {products.map((product) => (
           <SwiperSlide key={product.id}>
