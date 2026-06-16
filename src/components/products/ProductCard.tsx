@@ -291,46 +291,44 @@ export default function ProductCard(props: ProductCardProps) {
         />
       </div>
 
-      <div className="flex flex-col flex-1 gap-1.5 min-w-0 p-2.5 md:p-3">
-        <Link 
+      <div className="flex flex-col flex-1 gap-2 min-w-0 p-2.5 md:p-3">
+        <Link
           href={{ pathname: '/product/[slug]', params: { slug } }}
-          className="text-gray-600 font-medium text-[13px] md:text-[14px] leading-snug line-clamp-2 min-h-[2.5em] hover:text-brand-DEFAULT transition-colors cursor-pointer"
+          className="text-gray-700 font-medium text-[13px] md:text-[14px] leading-snug truncate hover:text-brand-DEFAULT transition-colors cursor-pointer"
           title={name}
           onClick={(e) => e.stopPropagation()}
         >
           {name}
         </Link>
 
-        <div className="flex justify-between items-end mt-auto mb-3 gap-2">
-            <div className="flex flex-col gap-0.5 leading-none min-w-0">
-                 <span className={`text-[16px] md:text-[17px] font-bold tracking-tight truncate ${hasDiscount ? 'text-brand-DEFAULT' : 'text-gray-900'}`}>
-                   {displayPrice}
-                 </span>
-                 {hasDiscount && displayOldPrice && (
-                   <span className="text-xs text-gray-400 line-through decoration-gray-300 truncate">
-                     {displayOldPrice}
-                   </span>
-                 )}
-            </div>
-
-            {/* ✅ FIX: აქ ვიყენებთ getColorHex-ს, რომელიც ყველა ენის სლაგს ამუშავებს */}
-            {colorOptions.length > 0 && !isOutOfStock && (
-                <div className="flex -space-x-1.5 pb-1 flex-shrink-0">
-                  {colorOptions.slice(0, 4).map((colorSlug: string, idx: number) => (
-                    <div
-                      key={idx}
-                      className="w-5 h-5 rounded-full border-2 border-white ring-1 ring-gray-200 shadow-sm transition-transform hover:scale-110 hover:z-10 relative cursor-pointer"
-                      // აქ გამოვიყენეთ getColorHex
-                      style={{ backgroundColor: getColorHex(colorSlug) }}
-                    />
-                  ))}
-                  {colorOptions.length > 4 && (
-                      <div className="w-5 h-5 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[9px] text-gray-500 font-bold z-10">
-                          +
-                      </div>
-                  )}
-                </div>
+        {/* Colors (count via swatches) */}
+        {colorOptions.length > 0 && !isOutOfStock && (
+          <div className="flex -space-x-1.5">
+            {colorOptions.slice(0, 5).map((colorSlug: string, idx: number) => (
+              <div
+                key={idx}
+                className="w-4 h-4 rounded-full border-2 border-white ring-1 ring-gray-200 shadow-sm relative"
+                style={{ backgroundColor: getColorHex(colorSlug) }}
+              />
+            ))}
+            {colorOptions.length > 5 && (
+              <div className="w-4 h-4 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[8px] text-gray-500 font-bold z-10">
+                +{colorOptions.length - 5}
+              </div>
             )}
+          </div>
+        )}
+
+        {/* Price */}
+        <div className="flex items-baseline gap-2 flex-wrap mt-auto pt-0.5">
+          <span className={`text-[17px] md:text-[18px] font-extrabold tracking-tight ${hasDiscount ? 'text-brand-DEFAULT' : 'text-brand-dark'}`}>
+            {displayPrice}
+          </span>
+          {hasDiscount && displayOldPrice && (
+            <span className="text-xs text-gray-400 line-through decoration-gray-300/80 font-medium">
+              {displayOldPrice}
+            </span>
+          )}
         </div>
 
         <div className="w-full min-w-0">
