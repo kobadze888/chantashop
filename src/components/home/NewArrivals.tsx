@@ -26,6 +26,8 @@ export default function NewArrivals({ products, locale }: Props) {
   return (
     <section className="relative overflow-hidden mt-12 md:mt-16 py-10 md:py-14 bg-gradient-to-br from-rose-50 via-pink-50/50 to-white">
       <style>{`
+        .na-swiper .swiper-slide{ height:auto; display:flex; }
+        .na-swiper .swiper-slide > *{ width:100%; }
         .na-swiper .swiper-pagination{ bottom:0 !important; }
         .na-swiper .swiper-pagination-bullet{ width:8px; height:8px; background:#e5b9cf; opacity:1; transition:all .3s; margin:0 4px !important; }
         .na-swiper .swiper-pagination-bullet-active{ background:#db2777; }

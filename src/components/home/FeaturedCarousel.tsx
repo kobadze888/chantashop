@@ -35,6 +35,10 @@ export default function FeaturedCarousel({ title, subtitle, products, locale }: 
         </div>
       </div>
 
+      <style>{`
+        .fc-swiper .swiper-slide{ height:auto; display:flex; }
+        .fc-swiper .swiper-slide > *{ width:100%; }
+      `}</style>
       <Swiper
         modules={[Navigation, Autoplay]}
         spaceBetween={20}
@@ -51,7 +55,7 @@ export default function FeaturedCarousel({ title, subtitle, products, locale }: 
           1024: { slidesPerView: 4 },
           1280: { slidesPerView: 5 }
         }}
-        className="pb-4"
+        className="fc-swiper pb-4"
       >
         {products.map((product) => (
           <SwiperSlide key={product.id}>
