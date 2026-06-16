@@ -19,8 +19,8 @@ export default function BestSellers({ products, locale }: Props) {
         </h2>
       </header>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
-        {products.slice(0, 4).map((product, i) => (
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+        {products.slice(0, 6).map((product, i) => (
           <div key={product.id} className="relative">
             <span className="absolute -top-2 -left-2 z-20 w-9 h-9 md:w-10 md:h-10 rounded-full bg-brand-dark text-white text-xs md:text-sm font-black flex items-center justify-center shadow-lg ring-2 ring-white">
               {t('rank', { rank: i + 1 })}

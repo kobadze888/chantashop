@@ -13,7 +13,7 @@ export default function SaleSection({ products, locale }: Props) {
 
   if (!products?.length) return null;
 
-  const visible = products.slice(0, 4);
+  const visible = products.slice(0, 6);
 
   return (
     <section className="mt-12 md:mt-16 bg-gradient-to-br from-brand-light via-white to-brand-medium/40 py-12 md:py-20">
@@ -33,7 +33,7 @@ export default function SaleSection({ products, locale }: Props) {
           </Link>
         </header>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
           {visible.map((product) => (
             <ProductCard
               key={product.id}

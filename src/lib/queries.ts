@@ -133,7 +133,7 @@ export const GET_HOME_DATA_QUERY = `
     onSale: products(first: 8, where: { wpLang: $wpLang, onSale: true, orderby: { field: DATE, order: DESC } }) {
       nodes { ...ProductFragment }
     }
-    bestSellers: products(first: 4, where: { wpLang: $wpLang, orderby: { field: TOTAL_SALES, order: DESC } }) {
+    bestSellers: products(first: 6, where: { wpLang: $wpLang, orderby: { field: TOTAL_SALES, order: DESC } }) {
       nodes { ...ProductFragment }
     }
   }

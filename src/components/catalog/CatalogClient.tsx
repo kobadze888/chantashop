@@ -612,7 +612,7 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
             )}
 
             {/* ✅ Load More: ვიყენებთ დაჭრილ პროდუქტებს */}
-            <div className={`grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-x-3 gap-y-6 md:gap-8 transition-opacity duration-300 ${isPending ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
+            <div className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-x-3 gap-y-6 md:gap-x-4 md:gap-y-8 transition-opacity duration-300 ${isPending ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
                 {visibleProducts.map((product) => (
                     <ProductCard 
                         key={product.databaseId || product.id}

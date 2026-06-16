@@ -67,8 +67,9 @@ export default function NewArrivals({ products, locale }: Props) {
           swiper.params.navigation.nextEl = nextRef.current;
         }}
         breakpoints={{
-          640: { slidesPerView: 3, spaceBetween: 16 },
-          1024: { slidesPerView: 4, spaceBetween: 20 },
+          640: { slidesPerView: 3, spaceBetween: 14 },
+          1024: { slidesPerView: 4, spaceBetween: 16 },
+          1280: { slidesPerView: 6, spaceBetween: 16 },
         }}
         className="pb-2"
       >
