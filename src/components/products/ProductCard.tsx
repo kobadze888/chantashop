@@ -85,6 +85,7 @@ interface ProductCardProps {
   description?: string;
   productCategories?: any;
   priority?: boolean;
+  showWishlist?: boolean;
 }
 
 function isValidImageUrl(url: string | undefined | null): boolean {
@@ -105,7 +106,7 @@ export default function ProductCard(props: ProductCardProps) {
   const {
     id, name, price, salePrice, regularPrice, image, secondImage,
     slug, attributes, stockQuantity, stockStatus, stockStatusManual, className,
-    onQuickView, productCategories, priority = false
+    onQuickView, productCategories, priority = false, showWishlist = false
   } = props;
 
   const addItem = useCartStore((state) => state.addItem);
@@ -220,17 +221,27 @@ export default function ProductCard(props: ProductCardProps) {
         )}
 
         <div className="absolute top-2.5 right-2.5 z-30 flex flex-col gap-1.5">
-            <button
-              onClick={handleWishlist}
-              className={`p-2.5 rounded-full transition-all duration-200 shadow-sm border active:scale-95 cursor-pointer ${
-                isLiked
-                ? 'bg-white text-brand-DEFAULT border-brand-DEFAULT/20 shadow-md'
-                : 'bg-white/90 text-gray-500 border-transparent hover:text-brand-DEFAULT hover:bg-white backdrop-blur-sm'
-              }`}
-              title={t('addToWishlist')}
-            >
-              <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} strokeWidth={2} />
-            </button>
+            {showWishlist ? (
+              <button
+                onClick={handleWishlist}
+                className={`p-2.5 rounded-full transition-all duration-200 shadow-sm border active:scale-95 cursor-pointer ${
+                  isLiked
+                  ? 'bg-white text-brand-DEFAULT border-brand-DEFAULT/20 shadow-md'
+                  : 'bg-white/90 text-gray-500 border-transparent hover:text-brand-DEFAULT hover:bg-white backdrop-blur-sm'
+                }`}
+                title={t('addToWishlist')}
+              >
+                <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} strokeWidth={2} />
+              </button>
+            ) : !isOutOfStock && (
+              <button
+                onClick={handleAddToCart}
+                className="p-2.5 rounded-full bg-white/90 text-gray-600 border border-transparent shadow-sm backdrop-blur-sm hover:text-brand-DEFAULT hover:bg-white transition-all duration-200 active:scale-95 cursor-pointer"
+                title={hasVariations ? t('selectOptions') : t('addToCart')}
+              >
+                <ShoppingBag className="w-5 h-5" strokeWidth={2} />
+              </button>
+            )}
 
             <button 
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onQuickView?.(e); }}

@@ -60,6 +60,7 @@ export default function WishlistContent({ locale }: { locale: string }) {
                 // ✅ გადავცემთ მთლიან item-ს, რომელიც ახლა უკვე შეიცავს attributes, stockStatus და სხვა ველებს
                 {...item}
                 locale={locale}
+                showWishlist
                 // ✅ onQuickView-ს ვაწვდით სრულ ობიექტს
                 onQuickView={() => setSelectedProduct(item)}
               />
