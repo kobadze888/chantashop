@@ -36,8 +36,7 @@ export default function FeaturedCarousel({ title, subtitle, products, locale }: 
       </div>
 
       <style>{`
-        .fc-swiper .swiper-slide{ height:auto; display:flex; }
-        .fc-swiper .swiper-slide > *{ width:100%; }
+        .fc-swiper .swiper-slide{ height:auto; }
       `}</style>
       <Swiper
         modules={[Navigation, Autoplay]}
