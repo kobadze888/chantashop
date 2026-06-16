@@ -319,13 +319,13 @@ export default function ProductCard(props: ProductCardProps) {
           </div>
         )}
 
-        {/* Price */}
-        <div className="flex items-baseline gap-2 flex-wrap mt-auto pt-0.5">
-          <span className={`text-[17px] md:text-[18px] font-extrabold tracking-tight ${hasDiscount ? 'text-brand-DEFAULT' : 'text-brand-dark'}`}>
+        {/* Price — emphasized colour chip */}
+        <div className="flex items-center gap-2 flex-wrap mt-auto pt-0.5">
+          <span className="inline-flex items-center bg-rose-50 text-brand-DEFAULT font-extrabold text-[15px] md:text-base px-2.5 py-1 rounded-lg leading-none tracking-tight">
             {displayPrice}
           </span>
           {hasDiscount && displayOldPrice && (
-            <span className="text-xs text-gray-400 line-through decoration-gray-300/80 font-medium">
+            <span className="text-xs text-gray-400 line-through decoration-gray-300 font-semibold">
               {displayOldPrice}
             </span>
           )}
