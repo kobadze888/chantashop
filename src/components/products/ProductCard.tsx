@@ -320,7 +320,7 @@ export default function ProductCard(props: ProductCardProps) {
         )}
 
         {/* Price — emphasized colour chip */}
-        <div className="flex items-center gap-2 flex-wrap mt-auto pt-0.5">
+        <div className="flex items-center justify-center gap-2 flex-wrap mt-auto pt-0.5">
           <span className="inline-flex items-center bg-rose-50 text-brand-DEFAULT font-extrabold text-[15px] md:text-base px-2.5 py-1 rounded-lg leading-none tracking-tight">
             {displayPrice}
           </span>
