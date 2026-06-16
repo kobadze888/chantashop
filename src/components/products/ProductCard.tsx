@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Eye, Heart, ShoppingCart, XCircle, CreditCard } from 'lucide-react';
+import { Eye, Heart, ShoppingCart, XCircle } from 'lucide-react';
 import { Link, useRouter } from '@/navigation';
 import { useCartStore } from '@/store/cartStore';
 import { useWishlistStore } from '@/store/wishlistStore'; 
@@ -163,27 +163,6 @@ export default function ProductCard(props: ProductCardProps) {
     addItem({ id, name, price: salePrice || price, image: imgSrc, slug, stockQuantity }, messages);
   };
 
-  const handleBuyNow = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (isOutOfStock) return;
-
-    if (hasVariations) {
-      router.push({ pathname: '/product/[slug]', params: { slug } });
-      return;
-    }
-
-    // ✅ მესიჯების გადაცემა (ყიდვა)
-    const messages = {
-        added: tToast('added', { name }),
-        increased: tToast('quantityIncreased', { name }),
-        stockError: tToast('stockError', { quantity: stockQuantity ?? 0 })
-    };
-
-    addItem({ id, name, price: salePrice || price, image: imgSrc, slug, stockQuantity }, messages);
-    router.push('/checkout');
-  };
-
   const handleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -319,35 +298,16 @@ export default function ProductCard(props: ProductCardProps) {
           </div>
         )}
 
-        {/* Price — solid colour tag */}
-        <div className="flex items-center gap-2 flex-wrap mt-auto pt-0.5">
-          <span className="inline-flex items-center bg-brand-DEFAULT text-white font-extrabold text-[14px] md:text-[15px] px-2.5 py-1 rounded-lg leading-none tracking-tight shadow-sm shadow-brand-DEFAULT/25">
+        {/* Price — clean prominent anchor */}
+        <div className="flex items-center gap-2 mt-auto pt-1">
+          <span className={`text-lg md:text-xl font-extrabold tracking-tight leading-none ${hasDiscount ? 'text-brand-DEFAULT' : 'text-brand-dark'}`}>
             {displayPrice}
           </span>
           {hasDiscount && displayOldPrice && (
-            <span className="text-xs text-gray-400 line-through decoration-gray-300 font-semibold">
+            <span className="text-[13px] text-gray-400 line-through decoration-gray-300 font-semibold">
               {displayOldPrice}
             </span>
           )}
-        </div>
-
-        <div className="w-full min-w-0">
-           {isOutOfStock ? (
-              <div className="w-full h-10 flex items-center justify-center bg-gray-100 text-gray-400 text-center rounded-xl text-[10px] font-bold uppercase cursor-not-allowed tracking-wider border border-gray-100 px-1 truncate">
-                {t('outOfStock')}
-              </div>
-           ) : (
-             <button
-               onClick={handleBuyNow}
-               className="flex w-full h-10 items-center justify-center bg-brand-DEFAULT text-white rounded-xl hover:bg-brand-dark transition-all active:scale-95 shadow-sm hover:shadow-brand-DEFAULT/20 cursor-pointer px-2 gap-1.5"
-               title={t('buyNow')}
-             >
-               <CreditCard className="w-4 h-4 flex-shrink-0" />
-               <span className="text-[11px] font-bold uppercase">
-                 {t('buy')}
-               </span>
-             </button>
-           )}
         </div>
       </div>
     </div>
