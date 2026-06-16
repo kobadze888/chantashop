@@ -40,3 +40,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 _wp/
+
+# stray AI image downloads + local IDE config
+public/images/Gemini_Generated_Image_*
+.claude/
