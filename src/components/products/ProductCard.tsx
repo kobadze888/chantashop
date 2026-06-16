@@ -207,7 +207,7 @@ export default function ProductCard(props: ProductCardProps) {
 
   return (
     <div 
-      className={`group relative flex flex-col w-full h-full bg-white border border-gray-200 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/5 hover:border-brand-DEFAULT/30 cursor-pointer ${isOutOfStock ? 'opacity-90' : ''} ${className || ''}`}
+      className={`group relative flex flex-col w-full h-full bg-white border border-gray-200 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-black/5 hover:border-brand-DEFAULT/30 cursor-pointer ${isOutOfStock ? 'opacity-90' : ''} ${className || ''}`}
       onClick={handleFullView}
     >
       <div className="relative aspect-[4/5] overflow-hidden bg-gray-50 cursor-pointer">
@@ -280,10 +280,10 @@ export default function ProductCard(props: ProductCardProps) {
         />
       </div>
 
-      <div className="flex flex-col flex-1 gap-1.5 min-w-0 p-3">
+      <div className="flex flex-col flex-1 gap-1.5 min-w-0 p-2.5 md:p-3">
         <Link 
           href={{ pathname: '/product/[slug]', params: { slug } }}
-          className="text-gray-900 font-semibold text-[15px] leading-tight line-clamp-2 min-h-[2.5em] hover:text-brand-DEFAULT transition-colors cursor-pointer"
+          className="text-gray-600 font-medium text-[13px] md:text-[14px] leading-snug line-clamp-2 min-h-[2.5em] hover:text-brand-DEFAULT transition-colors cursor-pointer"
           title={name}
           onClick={(e) => e.stopPropagation()}
         >
@@ -292,7 +292,7 @@ export default function ProductCard(props: ProductCardProps) {
 
         <div className="flex justify-between items-end mt-auto mb-3 gap-2">
             <div className="flex flex-col gap-0.5 leading-none min-w-0">
-                 <span className={`text-[19px] font-bold tracking-tight truncate ${hasDiscount ? 'text-brand-DEFAULT' : 'text-gray-900'}`}>
+                 <span className={`text-[16px] md:text-[17px] font-bold tracking-tight truncate ${hasDiscount ? 'text-brand-DEFAULT' : 'text-gray-900'}`}>
                    {displayPrice}
                  </span>
                  {hasDiscount && displayOldPrice && (
@@ -322,27 +322,27 @@ export default function ProductCard(props: ProductCardProps) {
             )}
         </div>
 
-        <div className="flex gap-2 h-11 w-full min-w-0">
+        <div className="flex flex-col sm:flex-row gap-2 w-full min-w-0">
            {isOutOfStock ? (
-              <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400 text-center rounded-xl text-[10px] font-bold uppercase cursor-not-allowed tracking-wider border border-gray-100 px-1 truncate">
+              <div className="w-full h-10 flex items-center justify-center bg-gray-100 text-gray-400 text-center rounded-xl text-[10px] font-bold uppercase cursor-not-allowed tracking-wider border border-gray-100 px-1 truncate">
                 {t('outOfStock')}
               </div>
            ) : (
              <>
                <button
                  onClick={handleAddToCart}
-                 className="group/btn flex flex-1 items-center justify-center gap-1.5 bg-white text-gray-900 border border-gray-200 rounded-xl hover:border-black hover:bg-gray-50 transition-all active:scale-95 shadow-sm cursor-pointer px-2 overflow-hidden"
+                 className="group/btn flex w-full sm:flex-1 h-10 sm:h-11 items-center justify-center gap-1.5 bg-white text-gray-900 border border-gray-200 rounded-xl hover:border-black hover:bg-gray-50 transition-all active:scale-95 shadow-sm cursor-pointer px-2 overflow-hidden"
                  title={hasVariations ? t('selectOptions') : t('addToCart')}
                >
                  <ShoppingBag className="w-4 h-4 flex-shrink-0" />
-                 <span className="text-[10px] md:text-[11px] font-bold uppercase truncate min-w-0">
+                 <span className="text-[11px] font-bold uppercase truncate min-w-0">
                     {hasVariations ? t('selectOptions') : t('addToCart')}
                  </span>
                </button>
 
                <button
                  onClick={handleBuyNow}
-                 className="flex-1 flex items-center justify-center bg-brand-DEFAULT text-white rounded-xl hover:bg-brand-dark transition-all active:scale-95 shadow-sm hover:shadow-brand-DEFAULT/20 cursor-pointer px-2 overflow-hidden gap-1.5"
+                 className="flex w-full sm:flex-1 h-10 sm:h-11 items-center justify-center bg-brand-DEFAULT text-white rounded-xl hover:bg-brand-dark transition-all active:scale-95 shadow-sm hover:shadow-brand-DEFAULT/20 cursor-pointer px-2 overflow-hidden gap-1.5"
                  title={t('buyNow')}
                >
                  <CreditCard className="w-4 h-4 flex-shrink-0" />
