@@ -49,7 +49,7 @@ export default function FeaturedCarousel({ title, subtitle, products, locale }: 
         breakpoints={{
           768: { slidesPerView: 3 },
           1024: { slidesPerView: 4 },
-          1280: { slidesPerView: 6 }
+          1280: { slidesPerView: 5 }
         }}
         className="pb-4"
       >
