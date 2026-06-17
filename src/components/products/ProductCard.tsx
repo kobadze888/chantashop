@@ -85,6 +85,7 @@ interface ProductCardProps {
   description?: string;
   productCategories?: any;
   priority?: boolean;
+  rank?: number;
 }
 
 function isValidImageUrl(url: string | undefined | null): boolean {
@@ -105,7 +106,7 @@ export default function ProductCard(props: ProductCardProps) {
   const {
     id, name, price, salePrice, regularPrice, image, secondImage,
     slug, attributes, stockQuantity, stockStatus, stockStatusManual, className,
-    onQuickView, productCategories, priority = false
+    onQuickView, productCategories, priority = false, rank
   } = props;
 
   const addItem = useCartStore((state) => state.addItem);
@@ -132,7 +133,7 @@ export default function ProductCard(props: ProductCardProps) {
 
   const displayPrice = hasDiscount ? formatPrice(salePrice) : formatPrice(price);
   const displayOldPrice = hasDiscount ? formatPrice(regularPrice) : null;
-  const discountPercent = hasDiscount ? calculateDiscount(regularPrice!, salePrice!) : null;
+  const savings = hasDiscount ? Math.round(rawRegular - rawSale) : 0;
 
   const categoryName = productCategories?.nodes?.[0]?.name;
 
@@ -190,11 +191,18 @@ export default function ProductCard(props: ProductCardProps) {
       onClick={handleFullView}
     >
       <div className="relative aspect-[4/5] overflow-hidden bg-gray-50 cursor-pointer">
-        {!isOutOfStock && hasDiscount && discountPercent && (
-          <div className="absolute top-2.5 left-2.5 z-20 pointer-events-none">
-            <span className="bg-rose-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md tracking-wide">
-              -{discountPercent}%
-            </span>
+        {(rank || (!isOutOfStock && hasDiscount && savings > 0)) && (
+          <div className="absolute top-2.5 left-2.5 z-20 flex flex-col gap-1.5 items-start pointer-events-none">
+            {rank && (
+              <span className="bg-brand-dark text-white text-[11px] font-black w-7 h-7 flex items-center justify-center rounded-full shadow-md ring-2 ring-white">
+                {rank}
+              </span>
+            )}
+            {!isOutOfStock && hasDiscount && savings > 0 && (
+              <span className="bg-rose-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md tracking-wide whitespace-nowrap">
+                −{savings} ₾
+              </span>
+            )}
           </div>
         )}
 
