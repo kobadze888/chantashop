@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 import { getProducts, getFilters, getTaxonomySeo } from '@/lib/api';
 import CatalogClient from '@/components/catalog/CatalogClient';
 import { notFound } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>;
@@ -11,7 +12,16 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug, locale } = await params;
-  
+
+  if (slug === 'sale') {
+    const t = await getTranslations({ locale, namespace: 'Home.Sale' });
+    return { title: `${t('title')} | ChantaShop` };
+  }
+  if (slug === 'bestsellers' || slug === 'best-sellers') {
+    const t = await getTranslations({ locale, namespace: 'Home.BestSellers' });
+    return { title: `${t('title')} | ChantaShop` };
+  }
+
   const categoryData = await getTaxonomySeo('category', slug);
 
   if (!categoryData) {
@@ -45,14 +55,17 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const maxPrice = typeof resolvedSearchParams.maxPrice === 'string' ? Number(resolvedSearchParams.maxPrice) : undefined;
   const sort = typeof resolvedSearchParams.sort === 'string' ? resolvedSearchParams.sort : 'DATE_DESC';
 
+  // Special virtual collections: /product-category/sale and /bestsellers
+  const isSale = slug === 'sale';
+  const isBest = slug === 'bestsellers' || slug === 'best-sellers';
+
+  const productFilters: any = { minPrice, maxPrice, limit: 100, sort: sort as any };
+  if (isSale) productFilters.onSale = true;
+  else if (isBest) { if (sort === 'DATE_DESC') productFilters.sort = 'POPULARITY'; }
+  else productFilters.category = slug;
+
   const [products, filters] = await Promise.all([
-    getProducts({ 
-      category: slug, 
-      minPrice,
-      maxPrice,
-      limit: 100,
-      sort: sort as any
-    }, locale), 
+    getProducts(productFilters, locale),
     getFilters(locale) // ✅ ვაწვდით ენას
   ]);
 

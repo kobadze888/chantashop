@@ -43,9 +43,11 @@ async function fetchAPI(query: string, { variables }: { variables?: any } = {}, 
 function snakeToCamel(str: string) { return str.replace(/_([a-z])/g, (g) => g[1].toUpperCase()); }
 
 export async function getProducts(filters: any = {}, locale: string = 'ka'): Promise<Product[]> {
-  const { category, minPrice, maxPrice, limit = 50, sort = 'DATE_DESC', dynamicAttributes } = filters;
+  const { category, minPrice, maxPrice, limit = 50, sort = 'DATE_DESC', dynamicAttributes, onSale } = filters;
   // Always query KA — content (products/categories/brands) is unified across all UI locales
   const whereArgs: any = { wpLang: 'KA' };
+
+  if (onSale) whereArgs.onSale = true;
 
   const taxonomyFilter: any = { relation: 'AND', filters: [] };
   if (category && category !== 'all') {
@@ -65,6 +67,7 @@ export async function getProducts(filters: any = {}, locale: string = 'ka'): Pro
   }
   if (sort === 'PRICE_ASC') whereArgs.orderby = [{ field: 'PRICE', order: 'ASC' }];
   else if (sort === 'PRICE_DESC') whereArgs.orderby = [{ field: 'PRICE', order: 'DESC' }];
+  else if (sort === 'POPULARITY') whereArgs.orderby = [{ field: 'TOTAL_SALES', order: 'DESC' }];
   else whereArgs.orderby = [{ field: 'DATE', order: 'DESC' }];
 
   const data = await fetchAPI(GET_PRODUCTS_QUERY, { variables: { first: limit, where: whereArgs } }, 3600, ['products']);
