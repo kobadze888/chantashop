@@ -627,6 +627,8 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
                         attributes={product.attributes}
                         stockQuantity={product.stockQuantity}
                         stockStatus={product.stockStatus}
+                        stockStatusManual={product.stockStatusManual}
+                        productCategories={product.productCategories}
                         locale={locale}
                         onQuickView={() => setSelectedProduct(product)}
                     />
