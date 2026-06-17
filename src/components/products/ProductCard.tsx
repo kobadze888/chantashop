@@ -298,14 +298,14 @@ export default function ProductCard(props: ProductCardProps) {
           </div>
         )}
 
-        {/* Price — hidden for out-of-stock products */}
+        {/* Price — separated with a top divider; hidden for out-of-stock */}
         {!isOutOfStock && (
-          <div className="flex items-center gap-2 mt-auto pt-1">
-            <span className={`text-lg md:text-xl font-extrabold tracking-tight leading-none ${hasDiscount ? 'text-brand-DEFAULT' : 'text-brand-dark'}`}>
+          <div className="mt-auto pt-2.5 border-t border-gray-100 flex items-baseline gap-2">
+            <span className={`font-sans text-[15px] md:text-base font-bold tracking-tight tabular-nums leading-none ${hasDiscount ? 'text-brand-DEFAULT' : 'text-brand-dark'}`}>
               {displayPrice}
             </span>
             {hasDiscount && displayOldPrice && (
-              <span className="text-[13px] text-gray-400 line-through decoration-gray-300 font-semibold">
+              <span className="font-sans text-[11px] text-gray-400 line-through decoration-gray-300 font-medium tabular-nums">
                 {displayOldPrice}
               </span>
             )}

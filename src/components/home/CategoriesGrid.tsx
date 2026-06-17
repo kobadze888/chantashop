@@ -1,7 +1,8 @@
 'use client';
 import { useRef, useState, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Grid } from 'swiper/modules';
+import { Grid } from 'swiper/modules';
+import type { Swiper as SwiperType } from 'swiper';
 import Image from 'next/image';
 import { Link } from '@/navigation';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -135,9 +136,8 @@ function StoryCircle({ cat }: { cat: HomeCategory }) {
 
 /* ── Main section ── */
 export default function CategoriesGrid({ categories }: Props) {
-  const t       = useTranslations('Home.Categories');
-  const prevRef = useRef<HTMLButtonElement>(null);
-  const nextRef = useRef<HTMLButtonElement>(null);
+  const t        = useTranslations('Home.Categories');
+  const swiperRef = useRef<SwiperType | null>(null);
 
   const brands = categories.filter(c => BRAND_SLUGS.has(c.slug));
   if (!brands.length) return null;
@@ -165,7 +165,8 @@ export default function CategoriesGrid({ categories }: Props) {
         </h2>
         <div className="flex items-center gap-1.5 md:gap-2">
           <button
-            ref={prevRef}
+            type="button"
+            onClick={() => swiperRef.current?.slidePrev()}
             aria-label="Previous"
             className="w-8 h-8 md:w-9 md:h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 cursor-pointer
               hover:bg-brand-dark hover:border-brand-dark hover:text-white transition-all duration-150 active:scale-90"
@@ -173,7 +174,8 @@ export default function CategoriesGrid({ categories }: Props) {
             <ChevronLeft className="w-4 h-4" />
           </button>
           <button
-            ref={nextRef}
+            type="button"
+            onClick={() => swiperRef.current?.slideNext()}
             aria-label="Next"
             className="w-8 h-8 md:w-9 md:h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 cursor-pointer
               hover:bg-brand-dark hover:border-brand-dark hover:text-white transition-all duration-150 active:scale-90"
@@ -184,17 +186,11 @@ export default function CategoriesGrid({ categories }: Props) {
       </header>
 
       <Swiper
-        modules={[Navigation, Grid]}
+        modules={[Grid]}
         slidesPerView={4}
         grid={{ rows: 2, fill: 'row' }}
         spaceBetween={12}
-        navigation={{ prevEl: prevRef.current, nextEl: nextRef.current }}
-        onBeforeInit={(swiper) => {
-          // @ts-expect-error swiper navigation refs assigned post-init
-          swiper.params.navigation.prevEl = prevRef.current;
-          // @ts-expect-error swiper navigation refs assigned post-init
-          swiper.params.navigation.nextEl = nextRef.current;
-        }}
+        onSwiper={(s) => { swiperRef.current = s; }}
         breakpoints={{
           480:  { slidesPerView: 5,  grid: { rows: 2, fill: 'row' }, spaceBetween: 12 },
           640:  { slidesPerView: 7,  grid: { rows: 1 }, spaceBetween: 12 },

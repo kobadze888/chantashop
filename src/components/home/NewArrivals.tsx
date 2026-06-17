@@ -2,7 +2,8 @@
 
 import { useRef } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination } from 'swiper/modules';
+import { Pagination } from 'swiper/modules';
+import type { Swiper as SwiperType } from 'swiper';
 import ProductCard from '../products/ProductCard';
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { Link } from '@/navigation';
@@ -18,8 +19,7 @@ interface Props {
 export default function NewArrivals({ products, locale }: Props) {
   const t = useTranslations('Home.NewArrivals');
   const tCommon = useTranslations('Common');
-  const prevRef = useRef<HTMLButtonElement>(null);
-  const nextRef = useRef<HTMLButtonElement>(null);
+  const swiperRef = useRef<SwiperType | null>(null);
 
   if (!products?.length) return null;
 
@@ -55,14 +55,16 @@ export default function NewArrivals({ products, locale }: Props) {
               <ArrowRight className="w-4 h-4" />
             </Link>
             <button
-              ref={prevRef}
+              type="button"
+              onClick={() => swiperRef.current?.slidePrev()}
               aria-label="Previous"
               className="w-10 h-10 rounded-full bg-white/80 backdrop-blur border border-gray-200 flex items-center justify-center hover:bg-brand-dark hover:border-brand-dark hover:text-white transition-all active:scale-90 cursor-pointer"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
-              ref={nextRef}
+              type="button"
+              onClick={() => swiperRef.current?.slideNext()}
               aria-label="Next"
               className="w-10 h-10 rounded-full bg-white/80 backdrop-blur border border-gray-200 flex items-center justify-center hover:bg-brand-dark hover:border-brand-dark hover:text-white transition-all active:scale-90 cursor-pointer"
             >
@@ -72,17 +74,11 @@ export default function NewArrivals({ products, locale }: Props) {
         </header>
 
         <Swiper
-          modules={[Navigation, Pagination]}
+          modules={[Pagination]}
           spaceBetween={12}
           slidesPerView={2}
-          navigation={{ prevEl: prevRef.current, nextEl: nextRef.current }}
+          onSwiper={(s) => { swiperRef.current = s; }}
           pagination={{ clickable: true }}
-          onBeforeInit={(swiper) => {
-            // @ts-expect-error swiper navigation refs assigned post-init
-            swiper.params.navigation.prevEl = prevRef.current;
-            // @ts-expect-error swiper navigation refs assigned post-init
-            swiper.params.navigation.nextEl = nextRef.current;
-          }}
           breakpoints={{
             640: { slidesPerView: 3, spaceBetween: 14 },
             1024: { slidesPerView: 4, spaceBetween: 16 },

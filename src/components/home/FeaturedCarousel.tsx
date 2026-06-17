@@ -2,7 +2,8 @@
 
 import { useRef } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Autoplay } from 'swiper/modules';
+import { Autoplay } from 'swiper/modules';
+import type { Swiper as SwiperType } from 'swiper';
 import ProductCard from '../products/ProductCard';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import 'swiper/css';
@@ -15,8 +16,7 @@ interface FeaturedCarouselProps {
 }
 
 export default function FeaturedCarousel({ title, subtitle, products, locale }: FeaturedCarouselProps) {
-  const prevRef = useRef<HTMLButtonElement>(null);
-  const nextRef = useRef<HTMLButtonElement>(null);
+  const swiperRef = useRef<SwiperType | null>(null);
 
   return (
     <section className="py-12">
@@ -26,10 +26,10 @@ export default function FeaturedCarousel({ title, subtitle, products, locale }: 
           <h2 className="text-xl md:text-2xl font-serif font-bold text-brand-dark tracking-tight">{title}</h2>
         </div>
         <div className="flex gap-2">
-          <button ref={prevRef} className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-brand-dark hover:text-white transition-all active:scale-90">
+          <button type="button" onClick={() => swiperRef.current?.slidePrev()} aria-label="Previous" className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-brand-dark hover:text-white transition-all active:scale-90 cursor-pointer">
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <button ref={nextRef} className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-brand-dark hover:text-white transition-all active:scale-90">
+          <button type="button" onClick={() => swiperRef.current?.slideNext()} aria-label="Next" className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-brand-dark hover:text-white transition-all active:scale-90 cursor-pointer">
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>
@@ -39,16 +39,10 @@ export default function FeaturedCarousel({ title, subtitle, products, locale }: 
         .fc-swiper .swiper-slide{ height:auto; }
       `}</style>
       <Swiper
-        modules={[Navigation, Autoplay]}
+        modules={[Autoplay]}
         spaceBetween={20}
         slidesPerView={2}
-        navigation={{ prevEl: prevRef.current, nextEl: nextRef.current }}
-        onBeforeInit={(swiper) => {
-          // @ts-ignore
-          swiper.params.navigation.prevEl = prevRef.current;
-          // @ts-ignore
-          swiper.params.navigation.nextEl = nextRef.current;
-        }}
+        onSwiper={(s) => { swiperRef.current = s; }}
         breakpoints={{
           768: { slidesPerView: 3 },
           1024: { slidesPerView: 4 },
