@@ -32,6 +32,8 @@ const formatProduct = (p: Product) => ({
   stockQuantity: p.stockQuantity,
   stockStatus: p.stockStatus,
   stockStatusManual: p.stockStatusManual,
+  productCategories: p.productCategories,
+  attributes: p.attributes,
 });
 
 export async function generateMetadata({

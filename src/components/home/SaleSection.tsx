@@ -48,6 +48,8 @@ export default function SaleSection({ products, locale }: Props) {
               locale={locale}
               stockStatus={product.stockStatus}
               stockStatusManual={product.stockStatusManual}
+              productCategories={product.productCategories}
+              attributes={product.attributes}
               priority={false}
             />
           ))}

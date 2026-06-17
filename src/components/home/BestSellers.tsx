@@ -37,6 +37,8 @@ export default function BestSellers({ products, locale }: Props) {
               locale={locale}
               stockStatus={product.stockStatus}
               stockStatusManual={product.stockStatusManual}
+              productCategories={product.productCategories}
+              attributes={product.attributes}
               priority={false}
             />
           </div>

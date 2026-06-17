@@ -100,6 +100,8 @@ export default function NewArrivals({ products, locale }: Props) {
                 locale={locale}
                 stockStatus={product.stockStatus}
                 stockStatusManual={product.stockStatusManual}
+                productCategories={product.productCategories}
+                attributes={product.attributes}
                 priority={false}
               />
             </SwiperSlide>

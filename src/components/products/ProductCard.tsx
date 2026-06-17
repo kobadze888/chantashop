@@ -201,14 +201,14 @@ export default function ProductCard(props: ProductCardProps) {
         <div className="absolute top-2.5 right-2.5 z-30 flex flex-col gap-1.5">
             <button
               onClick={handleWishlist}
-              className={`p-2.5 rounded-full transition-all duration-200 shadow-sm border active:scale-95 cursor-pointer ${
+              className={`w-8 h-8 grid place-items-center rounded-full transition-all duration-200 shadow-sm border active:scale-95 cursor-pointer ${
                 isLiked
                 ? 'bg-white text-brand-DEFAULT border-brand-DEFAULT/20 shadow-md'
                 : 'bg-white/90 text-gray-500 border-transparent hover:text-brand-DEFAULT hover:bg-white backdrop-blur-sm'
               }`}
               title={t('addToWishlist')}
             >
-              <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} strokeWidth={2} />
+              <Heart className={`w-[18px] h-[18px] ${isLiked ? 'fill-current' : ''}`} strokeWidth={2} />
             </button>
 
             <button 
