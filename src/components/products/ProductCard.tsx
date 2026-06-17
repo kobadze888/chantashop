@@ -85,7 +85,6 @@ interface ProductCardProps {
   description?: string;
   productCategories?: any;
   priority?: boolean;
-  showWishlist?: boolean;
 }
 
 function isValidImageUrl(url: string | undefined | null): boolean {
@@ -106,7 +105,7 @@ export default function ProductCard(props: ProductCardProps) {
   const {
     id, name, price, salePrice, regularPrice, image, secondImage,
     slug, attributes, stockQuantity, stockStatus, stockStatusManual, className,
-    onQuickView, productCategories, priority = false, showWishlist = false
+    onQuickView, productCategories, priority = false
   } = props;
 
   const addItem = useCartStore((state) => state.addItem);
@@ -200,27 +199,17 @@ export default function ProductCard(props: ProductCardProps) {
         )}
 
         <div className="absolute top-2.5 right-2.5 z-30 flex flex-col gap-1.5">
-            {showWishlist ? (
-              <button
-                onClick={handleWishlist}
-                className={`p-2.5 rounded-full transition-all duration-200 shadow-sm border active:scale-95 cursor-pointer ${
-                  isLiked
-                  ? 'bg-white text-brand-DEFAULT border-brand-DEFAULT/20 shadow-md'
-                  : 'bg-white/90 text-gray-500 border-transparent hover:text-brand-DEFAULT hover:bg-white backdrop-blur-sm'
-                }`}
-                title={t('addToWishlist')}
-              >
-                <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} strokeWidth={2} />
-              </button>
-            ) : !isOutOfStock && (
-              <button
-                onClick={handleAddToCart}
-                className="w-8 h-8 grid place-items-center rounded-full bg-white text-brand-dark shadow-md ring-1 ring-black/5 hover:bg-brand-DEFAULT hover:text-white hover:ring-0 transition-all duration-200 active:scale-90 cursor-pointer"
-                title={hasVariations ? t('selectOptions') : t('addToCart')}
-              >
-                <ShoppingCart className="w-4 h-4" strokeWidth={2.2} />
-              </button>
-            )}
+            <button
+              onClick={handleWishlist}
+              className={`p-2.5 rounded-full transition-all duration-200 shadow-sm border active:scale-95 cursor-pointer ${
+                isLiked
+                ? 'bg-white text-brand-DEFAULT border-brand-DEFAULT/20 shadow-md'
+                : 'bg-white/90 text-gray-500 border-transparent hover:text-brand-DEFAULT hover:bg-white backdrop-blur-sm'
+              }`}
+              title={t('addToWishlist')}
+            >
+              <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} strokeWidth={2} />
+            </button>
 
             <button 
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onQuickView?.(e); }}
@@ -230,14 +219,6 @@ export default function ProductCard(props: ProductCardProps) {
                 <Eye className="w-5 h-5" strokeWidth={2}/>
             </button>
         </div>
-
-        {categoryName && (
-           <div className="absolute bottom-2.5 left-2.5 z-20 pointer-events-none">
-             <span className="bg-white/90 backdrop-blur-[4px] text-gray-900 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg shadow-sm border border-gray-100/50">
-               {categoryName}
-             </span>
-           </div>
-        )}
 
         {isOutOfStock && (
           <div className="absolute inset-0 z-20 bg-white/30 flex items-center justify-center">
@@ -280,35 +261,51 @@ export default function ProductCard(props: ProductCardProps) {
           {name}
         </Link>
 
-        {/* Colors (count via swatches) */}
-        {colorOptions.length > 0 && !isOutOfStock && (
-          <div className="flex -space-x-1.5">
-            {colorOptions.slice(0, 5).map((colorSlug: string, idx: number) => (
-              <div
-                key={idx}
-                className="w-4 h-4 rounded-full border-2 border-white ring-1 ring-gray-200 shadow-sm relative"
-                style={{ backgroundColor: getColorHex(colorSlug) }}
-              />
-            ))}
-            {colorOptions.length > 5 && (
-              <div className="w-4 h-4 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[8px] text-gray-500 font-bold z-10">
-                +{colorOptions.length - 5}
+        {/* Category (left) + colors (right) */}
+        {(categoryName || (colorOptions.length > 0 && !isOutOfStock)) && (
+          <div className="flex items-center justify-between gap-2 min-h-[18px]">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 truncate min-w-0">
+              {categoryName || ''}
+            </span>
+            {colorOptions.length > 0 && !isOutOfStock && (
+              <div className="flex -space-x-1.5 shrink-0">
+                {colorOptions.slice(0, 4).map((colorSlug: string, idx: number) => (
+                  <div
+                    key={idx}
+                    className="w-4 h-4 rounded-full border-2 border-white ring-1 ring-gray-200 shadow-sm relative"
+                    style={{ backgroundColor: getColorHex(colorSlug) }}
+                  />
+                ))}
+                {colorOptions.length > 4 && (
+                  <div className="w-4 h-4 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[8px] text-gray-500 font-bold z-10">
+                    +{colorOptions.length - 4}
+                  </div>
+                )}
               </div>
             )}
           </div>
         )}
 
-        {/* Price — separated with a top divider; hidden for out-of-stock */}
+        {/* Price (left) + add-to-cart (right) — hidden for out-of-stock */}
         {!isOutOfStock && (
-          <div className="mt-auto pt-2.5 border-t border-gray-100 flex items-baseline gap-2">
-            <span className={`font-sans text-[15px] md:text-base font-bold tracking-tight tabular-nums leading-none ${hasDiscount ? 'text-brand-DEFAULT' : 'text-brand-dark'}`}>
-              {displayPrice}
-            </span>
-            {hasDiscount && displayOldPrice && (
-              <span className="font-sans text-[11px] text-gray-400 line-through decoration-gray-300 font-medium tabular-nums">
-                {displayOldPrice}
+          <div className="mt-auto pt-2.5 border-t border-gray-100 flex items-center justify-between gap-2">
+            <div className="flex items-baseline gap-2 min-w-0">
+              <span className={`font-sans text-[15px] md:text-base font-bold tracking-tight tabular-nums leading-none ${hasDiscount ? 'text-brand-DEFAULT' : 'text-brand-dark'}`}>
+                {displayPrice}
               </span>
-            )}
+              {hasDiscount && displayOldPrice && (
+                <span className="font-sans text-[11px] text-gray-400 line-through decoration-gray-300 font-medium tabular-nums">
+                  {displayOldPrice}
+                </span>
+              )}
+            </div>
+            <button
+              onClick={handleAddToCart}
+              className="shrink-0 w-9 h-9 grid place-items-center rounded-lg bg-brand-DEFAULT text-white shadow-sm shadow-brand-DEFAULT/25 hover:bg-brand-dark transition-all duration-200 active:scale-90 cursor-pointer"
+              title={hasVariations ? t('selectOptions') : t('addToCart')}
+            >
+              <ShoppingCart className="w-4 h-4" strokeWidth={2.2} />
+            </button>
           </div>
         )}
       </div>
