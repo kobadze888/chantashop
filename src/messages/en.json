@@ -328,13 +328,16 @@
   },
   "Tracking": {
     "title": "Track Order",
-    "desc": "Enter order number to check status",
-    "placeholder": "Order # (e.g. 10145)",
+    "desc": "Enter your order number and the phone number used at checkout",
+    "placeholder": "Order # (e.g. 1234)",
+    "phonePlaceholder": "Phone number (e.g. 555 123 456)",
     "btn": "Search",
+    "hint": "No login required — just order number and phone",
     "orderFound": "Order #",
     "notFound": "Order not found",
-    "notFoundDesc": "Please check your order number and email.",
-    "back": "Go Back"
+    "notFoundDesc": "Please check your order number and phone number. They must match the details used at checkout.",
+    "back": "Go Back",
+    "statusCancelled": "This order has been cancelled or refunded."
   },
   "Navigation": {
     "home": "Home",

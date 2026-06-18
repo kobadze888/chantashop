@@ -126,11 +126,17 @@ export async function placeOrder(orderInput: any, cartItems: any[], couponCode?:
   return res.data?.checkout || { errors: res.errors };
 }
 
-export async function getOrder(orderId: string, email: string) {
-  if (!orderId || !email) return null;
+// Normalize phone: strip all non-digits, compare last 9 digits (Georgian mobile format)
+function normalizePhone(phone: string): string {
+  const digits = phone.replace(/\D/g, '');
+  return digits.slice(-9);
+}
+
+export async function getOrder(orderId: string, phone: string) {
+  if (!orderId || !phone) return null;
 
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  
+
   if (WORDPRESS_ADMIN_TOKEN) {
     headers['Authorization'] = `Basic ${WORDPRESS_ADMIN_TOKEN}`;
   }
@@ -139,9 +145,9 @@ export async function getOrder(orderId: string, email: string) {
     const res = await fetch(WORDPRESS_API_URL, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ 
-        query: GET_ORDER_QUERY, 
-        variables: { id: orderId } 
+      body: JSON.stringify({
+        query: GET_ORDER_QUERY,
+        variables: { id: orderId }
       }),
       cache: 'no-store',
     });
@@ -155,12 +161,12 @@ export async function getOrder(orderId: string, email: string) {
 
     const order = json.data.order;
 
-    const orderEmail = order.billing?.email?.toLowerCase();
-    const inputEmail = email.toLowerCase().trim();
+    const orderPhone = normalizePhone(order.billing?.phone || '');
+    const inputPhone = normalizePhone(phone);
 
-    if (orderEmail !== inputEmail) {
-      console.warn(`Security alert: Email mismatch for order #${orderId}`);
-      return null; 
+    if (!orderPhone || !inputPhone || orderPhone !== inputPhone) {
+      console.warn(`Security: Phone mismatch for order #${orderId}`);
+      return null;
     }
 
     return order;
