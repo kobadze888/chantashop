@@ -182,6 +182,10 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
   const [visibleCount, setVisibleCount] = useState(PRODUCTS_PER_PAGE);
 
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, []);
+
+  useEffect(() => {
     setTempMinPrice(urlMinPrice);
     setTempMaxPrice(urlMaxPrice);
   }, [urlMinPrice, urlMaxPrice]);
