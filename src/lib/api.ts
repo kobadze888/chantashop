@@ -75,9 +75,8 @@ export async function getProducts(filters: any = {}, locale: string = 'ka'): Pro
 }
 
 export async function getFilters(locale: string = 'ka'): Promise<FiltersData | null> {
-  // 🕵️‍♂️ ვაყენებთ 0-ს, რომ არ დაიმახსოვროს კეში და ყოველ ჯერზე გვაჩვენოს რეალური "ლაივ" შედეგი
   // Always query KA — filters (categories/colors/materials) are unified across all UI locales
-  const data = await fetchAPI(GET_FILTERS_QUERY, { variables: { wpLang: 'KA' } }, 0, ['filters']);
+  const data = await fetchAPI(GET_FILTERS_QUERY, { variables: { wpLang: 'KA' } }, 300, ['filters']);
   if (!data) return null;
   
   const allCategories = data.productCategories?.nodes || [];

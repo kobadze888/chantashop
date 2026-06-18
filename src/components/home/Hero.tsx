@@ -61,7 +61,7 @@ export default function Hero() {
           loop
           muted
           playsInline
-          preload="auto"
+          preload="none"
           poster="/videos/hero-desktop-poster.jpg"
           aria-hidden
           tabIndex={-1}
