@@ -41,10 +41,7 @@ export default function BottomNav() {
   ];
 
   return (
-    // ✅ ცვლილებები ვიზუალის გასაუმჯობესებლად:
-    // 1. shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.1)] -> უფრო ღრმა და რბილი ჩრდილი ზემოთ.
-    // 2. border-t border-gray-200/50 -> ოდნავ მკვეთრი ზედა ხაზი.
-    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl text-brand-dark rounded-t-[1.5rem] px-6 pt-3 pb-[calc(5px+env(safe-area-inset-bottom))] flex justify-between items-center z-50 shadow-[0_-10px_30px_-10px_rgba(0,0,0,0.12)] border-t border-gray-200/60">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl text-brand-dark rounded-t-[1rem] px-4 pt-2 pb-[calc(4px+env(safe-area-inset-bottom))] flex justify-between items-center z-50 shadow-[0_-6px_20px_-4px_rgba(0,0,0,0.1)] border-t border-gray-200/60">
         {navItems.map((item, index) => {
             const Icon = item.icon;
 
@@ -53,10 +50,10 @@ export default function BottomNav() {
                     <button
                         key={index}
                         onClick={item.onClick}
-                        className="flex flex-1 flex-col items-center gap-1 text-gray-400 hover:text-brand-dark transition active:scale-95 p-1"
+                        className="flex flex-1 flex-col items-center gap-0.5 text-gray-400 hover:text-brand-dark transition active:scale-95 py-1"
                     >
-                        <Icon className="w-6 h-6" />
-                        <span className="text-[10px] font-bold uppercase tracking-wide">{item.label}</span>
+                        <Icon className="w-5 h-5" />
+                        <span className="text-[9px] font-bold uppercase tracking-wide">{item.label}</span>
                     </button>
                 );
             }
@@ -66,17 +63,17 @@ export default function BottomNav() {
                 <Link
                     key={index}
                     href={item.href}
-                    className={`flex flex-1 flex-col items-center gap-1 transition active:scale-95 p-1 relative group ${isActive ? 'text-brand-DEFAULT' : 'text-gray-400 hover:text-brand-dark'}`}
+                    className={`flex flex-1 flex-col items-center gap-0.5 transition active:scale-95 py-1 relative group ${isActive ? 'text-brand-DEFAULT' : 'text-gray-400 hover:text-brand-dark'}`}
                 >
                     <div className="relative">
-                        <Icon className={`w-6 h-6 transition-colors ${isActive ? 'text-brand-DEFAULT' : 'group-hover:text-brand-DEFAULT'}`} />
+                        <Icon className={`w-5 h-5 transition-colors ${isActive ? 'text-brand-DEFAULT' : 'group-hover:text-brand-DEFAULT'}`} />
                         {item.badge !== undefined && item.badge > 0 && (
-                            <span className="absolute -top-2 -right-2 bg-brand-DEFAULT text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-full font-bold shadow-sm animate-fade-in border border-white">
+                            <span className="absolute -top-1.5 -right-1.5 bg-brand-DEFAULT text-white text-[9px] w-3.5 h-3.5 flex items-center justify-center rounded-full font-bold shadow-sm animate-fade-in border border-white">
                                 {item.badge}
                             </span>
                         )}
                     </div>
-                    <span className={`text-[10px] font-bold uppercase tracking-wide transition-colors ${isActive ? 'text-brand-DEFAULT' : 'group-hover:text-brand-DEFAULT'}`}>
+                    <span className={`text-[9px] font-bold uppercase tracking-wide transition-colors ${isActive ? 'text-brand-DEFAULT' : 'group-hover:text-brand-DEFAULT'}`}>
                         {item.label}
                     </span>
                 </Link>

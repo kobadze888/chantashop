@@ -432,35 +432,34 @@ function CatalogContent({ initialProducts, categories, attributes, maxPriceLimit
         </div>
       </div>
 
-      {/* ✅ MOBILE HEADER (Sticky, One row) */}
-    
-      <div 
-        className="md:hidden sticky top-[72px] z-40 bg-white border-b border-gray-100 mb-4 transition-all duration-300"
+      {/* MOBILE HEADER — fixed so it never "falls" to the bottom when scrolling past products */}
+      <div
+        className="md:hidden fixed top-[72px] left-0 right-0 z-40 bg-white border-b border-gray-100 transition-all duration-300"
         ref={productsTopRef}
       >
-          <div className="container mx-auto px-4 h-[50px] flex items-center justify-between">
-              {/* მარცხენა მხარე: სათაური და რაოდენობა */}
-              <div 
+          <div className="container mx-auto px-4 h-[44px] flex items-center justify-between">
+              <div
                 onClick={scrollToProducts}
-                className="flex flex-col justify-center cursor-pointer"
+                className="flex items-center gap-2 cursor-pointer"
               >
-                  <h1 className="text-lg font-serif font-black text-brand-dark leading-none">{t('title')}</h1>
-                  <span className="text-[10px] text-gray-500 font-medium mt-0.5">
-                    {t('productsCount', { count: initialProducts.length })}
-                    {isPending && <span className="text-brand-DEFAULT ml-2 animate-pulse">{tCommon('loading')}</span>}
+                  <h1 className="text-base font-serif font-black text-brand-dark leading-none">{t('title')}</h1>
+                  <span className="text-[10px] text-gray-400 font-medium">
+                    ({initialProducts.length}
+                    {isPending && <span className="text-brand-DEFAULT ml-1 animate-pulse">…</span>})
                   </span>
               </div>
 
-              {/* მარჯვენა მხარე: ფილტრის ღილაკი */}
-              <button 
-                onClick={() => setMobileFiltersOpen(true)} 
-                className="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 text-brand-dark px-3 py-1.5 rounded-lg transition active:scale-95 border border-gray-200 cursor-pointer"
+              <button
+                onClick={() => setMobileFiltersOpen(true)}
+                className="flex items-center gap-1.5 bg-gray-50 hover:bg-gray-100 text-brand-dark px-3 py-1.5 rounded-lg transition active:scale-95 border border-gray-200 cursor-pointer"
               >
-                <SlidersHorizontal className="w-4 h-4" />
+                <SlidersHorizontal className="w-3.5 h-3.5" />
                 <span className="text-[10px] font-bold uppercase tracking-wide">{t('filters.title')}</span>
               </button>
           </div>
       </div>
+      {/* spacer that fills the fixed bar's height in document flow */}
+      <div className="md:hidden h-[44px]" />
 
       {/* ✅ DESKTOP HEADER (Static) */}
       <div className="hidden md:flex container mx-auto px-4 mb-8 justify-between items-end border-b border-gray-100 pb-8 mt-8">
