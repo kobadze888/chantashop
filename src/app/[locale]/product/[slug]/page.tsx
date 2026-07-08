@@ -1,10 +1,10 @@
 // src/app/[locale]/product/[slug]/page.tsx
-import { getProductBySlug, getProducts } from '@/lib/api';
+import { getProductBySlug, getProducts, getSitemapData } from '@/lib/api';
 import { Link } from '@/navigation';
 import { ChevronRight } from 'lucide-react';
-import ProductInfo from '../_components/ProductInfo'; 
+import ProductInfo from '../_components/ProductInfo';
 import FeaturedCarousel from '@/components/home/FeaturedCarousel';
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import Script from 'next/script';
 import { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
@@ -12,6 +12,19 @@ import { notFound, redirect } from 'next/navigation';
 type Props = {
   params: Promise<{ slug: string; locale: string }>;
 };
+
+// Pre-build the (Georgian) product pages at build time so the first visit is
+// instant instead of triggering an on-demand render. Other locales and any
+// new products still render on-demand (dynamicParams stays enabled).
+export const dynamicParams = true;
+
+export async function generateStaticParams() {
+  const data = await getSitemapData();
+  const products = data?.products || [];
+  return products
+    .filter((p: any) => p?.slug)
+    .map((p: any) => ({ locale: 'ka', slug: p.slug as string }));
+}
 
 const getLocalizedProductUrl = (locale: string, slug: string) => {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://chantashop.ge';
@@ -21,6 +34,7 @@ const getLocalizedProductUrl = (locale: string, slug: string) => {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { slug, locale } = await params;
+    setRequestLocale(locale);
     const product = await getProductBySlug(slug, locale);
     
     if (!product) return { title: 'პროდუქტი არ მოიძებნა' };
@@ -61,6 +75,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProductPage({ params }: Props) {
   const { slug, locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations('Common');
   
   const product = await getProductBySlug(slug, locale);
