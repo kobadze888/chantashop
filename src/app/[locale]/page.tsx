@@ -8,6 +8,13 @@ import BestSellers from '@/components/home/BestSellers';
 import SaleSection from '@/components/home/SaleSection';
 import { getHomeData, getPageByUri } from '@/lib/api';
 import type { Product } from '@/types';
+import { setRequestLocale } from 'next-intl/server';
+import { routing } from '@/navigation';
+
+// Pre-render the home page per locale at build time (instant first load).
+export function generateStaticParams() {
+  return routing.locales.map((locale) => ({ locale }));
+}
 
 const CATEGORY_FALLBACK_IMAGES: Record<string, string> = {
   default: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?q=80&w=800&auto=format&fit=crop',
@@ -42,6 +49,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  setRequestLocale(locale);
   const uri = locale === 'ka' ? '/' : `/${locale}/`;
   const pageData = await getPageByUri(uri);
 
@@ -64,6 +72,7 @@ export async function generateMetadata({
 
 export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
+  setRequestLocale(locale);
   const data = await getHomeData(locale);
 
   const newArrivals = data.newArrivals.map(formatProduct);
