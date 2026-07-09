@@ -1,6 +1,6 @@
  'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useRouter } from '@/navigation';
 import { useCartStore } from '@/store/cartStore';
 import { useWishlistStore } from '@/store/wishlistStore';
@@ -221,6 +221,20 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
     const [selectedColor, setSelectedColor] = useState<string | null>(null);
     const [quantity, setQuantity] = useState(1);
     const [mounted, setMounted] = useState(false);
+
+    // Mobile sticky buy-bar: shows once the inline CTA row scrolls out of view.
+    const ctaRowRef = useRef<HTMLDivElement>(null);
+    const [showStickyBar, setShowStickyBar] = useState(false);
+    useEffect(() => {
+        const el = ctaRowRef.current;
+        if (!el || typeof IntersectionObserver === 'undefined') return;
+        const io = new IntersectionObserver(
+            ([entry]) => setShowStickyBar(!entry.isIntersecting && entry.boundingClientRect.top < 0),
+            { threshold: 0 }
+        );
+        io.observe(el);
+        return () => io.disconnect();
+    }, []);
     const [isDescOpen, setIsDescOpen] = useState(false);
     
     const t = useTranslations('Product');
@@ -371,7 +385,7 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
     const isLiked = mounted ? isInWishlist(product.databaseId) : false;
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 animate-fade-in pb-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-10 animate-fade-in pb-10">
 
             <div className="lg:col-span-6 h-min lg:sticky lg:top-32 z-10">
                 <ProductGallery
@@ -406,18 +420,18 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
                     )}
                 </div>
 
-                <h1 className="text-2xl md:text-3xl font-sans font-bold text-brand-dark leading-tight mb-3 tracking-tight">
+                <h1 className="text-xl md:text-3xl font-sans font-bold text-brand-dark leading-tight mb-2 tracking-tight">
                     {product.name}
                 </h1>
 
-                <div className="flex items-center gap-2 mb-4 md:mb-6">
+                <div className="flex items-center gap-2 mb-3 md:mb-5">
                     <div className="flex text-yellow-400">
                         {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-current" />)}
                     </div>
                 </div>
 
                 {/* ✅ FIX: განახლებული ფასების ბლოკი */}
-                <div className="bg-gray-50/50 rounded-2xl p-4 md:p-5 border border-gray-100 mb-5 md:mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 md:gap-6 relative overflow-hidden">
+                <div className="bg-gray-50/50 rounded-2xl p-3.5 md:p-5 border border-gray-100 mb-4 md:mb-7 flex flex-col sm:flex-row sm:items-center justify-between gap-3 md:gap-6 relative overflow-hidden">
                
                     {isSale && (
                         <div className="absolute top-0 right-0 w-20 h-20 bg-red-500/5 blur-3xl -translate-y-10 translate-x-10 pointer-events-none"></div>
@@ -434,7 +448,7 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
                         </div>
                         <div className="flex items-end gap-3">
                             {/* ✅ FIX: აქტიური ფასი (დიდი) - სიმბოლოს შემოწმება */}
-                            <span className={`text-4xl font-serif font-black ${isSale ? 'text-red-600' : 'text-brand-dark'}`}>
+                            <span className={`text-3xl md:text-4xl font-serif font-black ${isSale ? 'text-red-600' : 'text-brand-dark'}`}>
                                 {String(displayPrice).includes('₾') ? displayPrice : `${displayPrice} ₾`}
                             </span>
 
@@ -505,7 +519,7 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
                     </div>
                 )}
 
-                <div className="flex gap-3 mb-5 md:mb-8 pb-0 md:pb-4">
+                <div ref={ctaRowRef} className="flex gap-3 mb-5 md:mb-8 pb-0 md:pb-4">
                     <div className="flex items-center bg-white rounded-xl h-14 border border-gray-200 w-32 shadow-sm">
                         <button
                             onClick={() => setQuantity(q => Math.max(1, q - 1))}
@@ -532,6 +546,27 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
                             stockStatus={displayStock}
                             disabled={!isValidSelection}
                         />
+                    </div>
+                </div>
+
+                {/* Mobile sticky buy-bar — appears when the CTA row scrolls away (sits above BottomNav) */}
+                <div
+                    className={`md:hidden fixed left-0 right-0 z-40 bottom-[calc(56px+env(safe-area-inset-bottom))] px-3 pb-2 transition-all duration-300 ${showStickyBar ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'}`}
+                >
+                    <div className="flex items-center gap-3 bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-[0_8px_30px_-6px_rgba(0,0,0,0.25)] px-4 py-2.5">
+                        <div className="flex flex-col leading-tight min-w-0">
+                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider truncate">{product.name}</span>
+                            <span className={`text-lg font-serif font-black ${isSale ? 'text-red-600' : 'text-brand-dark'}`}>
+                                {String(displayPrice).includes('₾') ? displayPrice : `${displayPrice} ₾`}
+                            </span>
+                        </div>
+                        <div className="flex-1">
+                            <AddToCartButton
+                                product={cartDataForButton}
+                                stockStatus={displayStock}
+                                disabled={!isValidSelection}
+                            />
+                        </div>
                     </div>
                 </div>
 

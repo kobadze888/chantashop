@@ -135,8 +135,8 @@ export default function ProductGallery({ mainImage, gallery, alt }: ProductGalle
     <>
       <div className="flex flex-col lg:flex-row gap-3 lg:gap-4 select-none">
 
-        {/* === THUMBNAILS === */}
-        <div className="order-2 lg:order-1 lg:w-[84px] flex-shrink-0">
+        {/* === THUMBNAILS (desktop only — on mobile dots/counter do the job) === */}
+        <div className="hidden lg:block order-2 lg:order-1 lg:w-[84px] flex-shrink-0">
           <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto hide-scrollbar lg:max-h-[560px]">
             {allImages.map((url, i) => (
               <button
@@ -162,7 +162,7 @@ export default function ProductGallery({ mainImage, gallery, alt }: ProductGalle
               <div
                 key={i}
                 onClick={() => setLightboxOpen(true)}
-                className="group/main relative w-full shrink-0 snap-center h-[56vh] sm:h-[62vh] lg:h-[560px] cursor-zoom-in"
+                className="group/main relative w-full shrink-0 snap-center h-[46vh] sm:h-[54vh] lg:h-[560px] cursor-zoom-in"
               >
                 <Image
                   src={url || '/placeholder.jpg'}
