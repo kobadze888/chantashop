@@ -22,16 +22,15 @@ export async function GET(request: Request) {
   const wpLang = locale.toUpperCase();
 
   try {
-    const res = await fetch(WORDPRESS_API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        query: GET_PRODUCTS_QUERY,
-        variables: {
-          first: 500,
-          where: { wpLang, status: 'PUBLISH' },
-        },
-      }),
+    // GET via the nginx-cached /graphql-cached endpoint so the search index
+    // is served without booting WordPress (see lib/api.ts for the pattern).
+    const params = new URLSearchParams({
+      query: GET_PRODUCTS_QUERY,
+      variables: JSON.stringify({ first: 500, where: { wpLang, status: 'PUBLISH' } }),
+    });
+    const cachedEndpoint = WORDPRESS_API_URL.replace(/\/graphql\/?$/, '/graphql-cached');
+    const res = await fetch(`${cachedEndpoint}?${params.toString()}`, {
+      method: 'GET',
       next: { revalidate: 3600, tags: [`products-search-${locale}`] },
     });
 

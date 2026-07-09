@@ -12,20 +12,34 @@ export interface AttributeGroup { taxonomyName: string; label: string; terms: Fi
 interface FiltersData { categories: FilterTerm[]; attributes: AttributeGroup[]; highestPrice: number; }
 
 async function fetchAPI(query: string, { variables }: { variables?: any } = {}, revalidateTime: number, tags: string[] = []) {
-  const headers = { 'Content-Type': 'application/json' };
+  // Read-only queries go over GET to the nginx-cached /graphql-cached
+  // endpoint (cached responses skip the ~1s WordPress boot entirely; the
+  // session header is stripped there so nothing user-specific is cached).
+  // Mutations never pass through here (see lib/actions.ts → POST /graphql).
+  const params = new URLSearchParams({ query });
+  if (variables && Object.keys(variables).length > 0) {
+    params.set('variables', JSON.stringify(variables));
+  }
+  const cachedEndpoint = WORDPRESS_API_URL.replace(/\/graphql\/?$/, '/graphql-cached');
+  const getUrl = `${cachedEndpoint}?${params.toString()}`;
 
-  const fetchOptions: RequestInit = {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({ query, variables }),
-  };
-  
+  // Fall back to POST only if the URL would be absurdly long (nginx 414 guard).
+  const useGet = getUrl.length < 6000;
+
+  const fetchOptions: RequestInit = useGet
+    ? { method: 'GET' }
+    : {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, variables }),
+      };
+
   if (tags.length > 0) fetchOptions.next = { tags, revalidate: revalidateTime };
   else if (revalidateTime === 0) fetchOptions.cache = 'no-store';
   else fetchOptions.next = { revalidate: revalidateTime };
 
   try {
-    const res = await fetch(WORDPRESS_API_URL, fetchOptions);
+    const res = await fetch(useGet ? getUrl : WORDPRESS_API_URL, fetchOptions);
     const json = await res.json();
 
     if (json.errors) {
