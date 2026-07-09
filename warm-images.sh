@@ -2,6 +2,13 @@
 # Gently pre-optimize (warm) the Next.js image cache so photos don't lag on the
 # first visit after a deploy. Sequential + small sleeps = safe for the 2-core box.
 BASE="https://chantashop.ge"
+
+# Wait until the app answers (deploy restarts pm2 right before warming).
+for attempt in $(seq 1 12); do
+  code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$BASE/" || true)
+  [ "$code" = "200" ] && break
+  sleep 5
+done
 ACCEPT="Accept: image/avif,image/webp,image/*,*/*;q=0.8"
 
 # Pages whose images we warm: home + all KA product + KA category pages.

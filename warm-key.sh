@@ -3,6 +3,13 @@
 # Product + home pages are SSG (prebuilt) so warming them is cheap; the point
 # here is the dynamic pages: shop, categories, attribute terms, content pages.
 BASE="https://chantashop.ge"
+
+# Wait until the app answers (deploy restarts pm2 right before warming).
+for attempt in $(seq 1 12); do
+  code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$BASE/" || true)
+  [ "$code" = "200" ] && break
+  sleep 5
+done
 URLS=$(curl -s --max-time 20 "$BASE/sitemap.xml" \
   | grep -oE '<loc>[^<]+</loc>' \
   | sed -E 's#</?loc>##g' \
