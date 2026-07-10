@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { X, ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, ChevronDown, Maximize2 } from 'lucide-react';
 
 interface ProductGalleryProps {
   mainImage: string;
@@ -136,6 +136,22 @@ export default function ProductGallery({ mainImage, gallery, alt }: ProductGalle
   const trackRef = useRef<HTMLDivElement>(null);
   const thumbsRef = useRef<HTMLDivElement>(null);
 
+  // "there is more to scroll" hints for the thumbnail strip
+  const [thumbFade, setThumbFade] = useState({ start: false, end: false });
+  const updateThumbFade = useCallback(() => {
+    const c = thumbsRef.current;
+    if (!c) return;
+    const horizontal = c.scrollWidth > c.clientWidth + 2;
+    const vertical = c.scrollHeight > c.clientHeight + 2;
+    if (horizontal) {
+      setThumbFade({ start: c.scrollLeft > 4, end: c.scrollLeft + c.clientWidth < c.scrollWidth - 4 });
+    } else if (vertical) {
+      setThumbFade({ start: c.scrollTop > 4, end: c.scrollTop + c.clientHeight < c.scrollHeight - 4 });
+    } else {
+      setThumbFade({ start: false, end: false });
+    }
+  }, []);
+
   useEffect(() => { setMounted(true); }, []);
 
   // reset when product changes
@@ -160,7 +176,15 @@ export default function ProductGallery({ mainImage, gallery, alt }: ProductGalle
       const delta = (br.top - cr.top) - (c.clientHeight - br.height) / 2;
       c.scrollBy({ top: delta, behavior: 'smooth' });
     }
-  }, [active]);
+    updateThumbFade();
+  }, [active, updateThumbFade]);
+
+  // Recompute the "more to scroll" hint on mount, image-count change, and resize.
+  useEffect(() => {
+    updateThumbFade();
+    window.addEventListener('resize', updateThumbFade);
+    return () => window.removeEventListener('resize', updateThumbFade);
+  }, [allImages.length, updateThumbFade]);
 
   const scrollToIndex = useCallback((i: number) => {
     const el = trackRef.current;
@@ -179,8 +203,12 @@ export default function ProductGallery({ mainImage, gallery, alt }: ProductGalle
       <div className="flex flex-col lg:flex-row gap-2.5 lg:gap-4 select-none">
 
         {/* === THUMBNAILS — horizontal row below (mobile), vertical left (desktop) === */}
-        <div className="order-2 lg:order-1 lg:w-[84px] flex-shrink-0">
-          <div ref={thumbsRef} className="flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto hide-scrollbar lg:max-h-[560px] scroll-smooth">
+        <div className="order-2 lg:order-1 lg:w-[84px] flex-shrink-0 relative">
+          <div
+            ref={thumbsRef}
+            onScroll={updateThumbFade}
+            className="flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto hide-scrollbar lg:max-h-[560px] scroll-smooth"
+          >
             {allImages.map((url, i) => (
               <button
                 key={i}
@@ -191,6 +219,25 @@ export default function ProductGallery({ mainImage, gallery, alt }: ProductGalle
                 <Image src={url} alt={`${alt} ${i + 1}`} fill className="object-cover" sizes="84px" />
               </button>
             ))}
+          </div>
+
+          {/* start hint (left on mobile / top on desktop) */}
+          <div
+            className={`pointer-events-none absolute z-10 transition-opacity duration-200 rounded-lg
+              left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white to-transparent
+              lg:left-0 lg:right-0 lg:top-0 lg:bottom-auto lg:w-full lg:h-8 lg:bg-gradient-to-b
+              ${thumbFade.start ? 'opacity-100' : 'opacity-0'}`}
+          />
+
+          {/* end hint (right on mobile / bottom on desktop) + chevron — "there's more" */}
+          <div
+            className={`pointer-events-none absolute z-10 flex items-center justify-center transition-opacity duration-200 rounded-lg
+              right-0 top-0 bottom-0 w-9 bg-gradient-to-l from-white via-white/90 to-transparent
+              lg:right-0 lg:left-0 lg:top-auto lg:bottom-0 lg:w-full lg:h-9 lg:bg-gradient-to-t
+              ${thumbFade.end ? 'opacity-100' : 'opacity-0'}`}
+          >
+            <ChevronRight className="w-4 h-4 text-brand-dark/50 lg:hidden animate-pulse" />
+            <ChevronDown className="w-4 h-4 text-brand-dark/50 hidden lg:block animate-pulse" />
           </div>
         </div>
 
