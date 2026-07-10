@@ -36,46 +36,29 @@ function Lightbox({
 
   return (
     <div
-      className="fixed inset-0 z-[99999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 md:p-8 animate-fade-in"
+      className="fixed inset-0 z-[99999] bg-black/95 flex flex-col animate-fade-in"
       onClick={onClose}
     >
-      {/* Close */}
-      <button
-        onClick={onClose}
-        className="absolute top-4 right-4 md:top-6 md:right-6 z-[100001] w-11 h-11 grid place-items-center rounded-full bg-white/10 text-white hover:bg-white/20 transition cursor-pointer"
-        aria-label="Close"
-      >
-        <X className="w-6 h-6" />
-      </button>
-
-      {/* Counter */}
-      {images.length > 1 && (
-        <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[100001] text-white/80 text-sm font-bold tracking-widest">
-          {active + 1} / {images.length}
-        </div>
-      )}
-
-      {/* Arrows (desktop) */}
-      {images.length > 1 && (
-        <>
-          <button
-            onClick={(e) => { e.stopPropagation(); prev(); }}
-            className="hidden md:grid place-items-center absolute left-4 lg:left-8 top-1/2 -translate-y-1/2 z-[100001] w-12 h-12 rounded-full bg-white/10 text-white hover:bg-white/20 transition cursor-pointer active:scale-90"
-          >
-            <ChevronLeft className="w-7 h-7" />
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); next(); }}
-            className="hidden md:grid place-items-center absolute right-4 lg:right-8 top-1/2 -translate-y-1/2 z-[100001] w-12 h-12 rounded-full bg-white/10 text-white hover:bg-white/20 transition cursor-pointer active:scale-90"
-          >
-            <ChevronRight className="w-7 h-7" />
-          </button>
-        </>
-      )}
-
-      {/* Compact image stage — swipeable */}
+      {/* ── Top bar: counter + clean close ── */}
       <div
-        className="relative w-full max-w-3xl h-[78vh] flex items-center justify-center"
+        className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 shrink-0"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <span className="text-white/60 text-xs font-semibold tracking-[0.2em] tabular-nums">
+          {images.length > 1 ? `${String(active + 1).padStart(2, '0')} / ${String(images.length).padStart(2, '0')}` : ''}
+        </span>
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          className="w-9 h-9 grid place-items-center rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+        >
+          <X className="w-5 h-5" strokeWidth={1.75} />
+        </button>
+      </div>
+
+      {/* ── Image stage (fills space, swipeable) ── */}
+      <div
+        className="relative flex-1 min-h-0 flex items-center justify-center px-3 md:px-16"
         onClick={(e) => e.stopPropagation()}
         onTouchStart={(e) => { touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }}
         onTouchEnd={(e) => {
@@ -90,11 +73,52 @@ function Lightbox({
           alt={`${alt} ${active + 1}`}
           fill
           className="object-contain animate-fade-in select-none"
-          sizes="(max-width: 768px) 92vw, 768px"
+          sizes="100vw"
           quality={95}
           priority
         />
+
+        {/* Arrows (desktop) — subtle, no heavy chrome */}
+        {images.length > 1 && (
+          <>
+            <button
+              onClick={(e) => { e.stopPropagation(); prev(); }}
+              aria-label="Previous"
+              className="hidden md:grid place-items-center absolute left-2 lg:left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full text-white/60 hover:text-white hover:bg-white/10 transition cursor-pointer active:scale-90"
+            >
+              <ChevronLeft className="w-7 h-7" strokeWidth={1.5} />
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); next(); }}
+              aria-label="Next"
+              className="hidden md:grid place-items-center absolute right-2 lg:right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full text-white/60 hover:text-white hover:bg-white/10 transition cursor-pointer active:scale-90"
+            >
+              <ChevronRight className="w-7 h-7" strokeWidth={1.5} />
+            </button>
+          </>
+        )}
       </div>
+
+      {/* ── Bottom thumbnail strip ── */}
+      {images.length > 1 && (
+        <div
+          className="shrink-0 pt-2 pb-[calc(14px+env(safe-area-inset-bottom))] px-4"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex gap-2 justify-center overflow-x-auto hide-scrollbar">
+            {images.map((url, i) => (
+              <button
+                key={i}
+                onClick={() => setActive(i)}
+                aria-label={`Photo ${i + 1}`}
+                className={`relative w-11 h-14 rounded-lg overflow-hidden flex-shrink-0 transition-all duration-200 cursor-pointer ${active === i ? 'ring-2 ring-white ring-offset-2 ring-offset-black' : 'opacity-45 hover:opacity-90'}`}
+              >
+                <Image src={url} alt="" fill className="object-cover" sizes="44px" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -133,16 +157,16 @@ export default function ProductGallery({ mainImage, gallery, alt }: ProductGalle
 
   return (
     <>
-      <div className="flex flex-col lg:flex-row gap-3 lg:gap-4 select-none">
+      <div className="flex flex-row gap-2.5 lg:gap-4 select-none">
 
-        {/* === THUMBNAILS (desktop only — on mobile dots/counter do the job) === */}
-        <div className="hidden lg:block order-2 lg:order-1 lg:w-[84px] flex-shrink-0">
-          <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto hide-scrollbar lg:max-h-[560px]">
+        {/* === THUMBNAILS — vertical strip on the left (mobile + desktop) === */}
+        <div className="order-1 w-[46px] sm:w-[58px] lg:w-[84px] flex-shrink-0">
+          <div className="flex flex-col gap-2 overflow-y-auto hide-scrollbar max-h-[52vh] sm:max-h-[56vh] lg:max-h-[560px]">
             {allImages.map((url, i) => (
               <button
                 key={i}
                 onClick={() => scrollToIndex(i)}
-                className={`relative flex-shrink-0 w-14 lg:w-full aspect-[4/5] rounded-lg overflow-hidden transition-all duration-200 cursor-pointer border-2 ${active === i ? 'border-brand-DEFAULT shadow-md' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                className={`relative flex-shrink-0 w-full aspect-[4/5] rounded-lg lg:rounded-xl overflow-hidden transition-all duration-200 cursor-pointer border-2 ${active === i ? 'border-brand-DEFAULT shadow-md' : 'border-transparent opacity-55 hover:opacity-100'}`}
                 aria-label={`Photo ${i + 1}`}
               >
                 <Image src={url} alt={`${alt} ${i + 1}`} fill className="object-cover" sizes="84px" />
@@ -152,7 +176,7 @@ export default function ProductGallery({ mainImage, gallery, alt }: ProductGalle
         </div>
 
         {/* === MAIN SLIDER (native scroll-snap: swipe flips, tap opens lightbox) === */}
-        <div className="order-1 lg:order-2 flex-1 relative">
+        <div className="order-2 flex-1 relative min-w-0">
           <div
             ref={trackRef}
             onScroll={onTrackScroll}
@@ -162,7 +186,7 @@ export default function ProductGallery({ mainImage, gallery, alt }: ProductGalle
               <div
                 key={i}
                 onClick={() => setLightboxOpen(true)}
-                className="group/main relative w-full shrink-0 snap-center h-[46vh] sm:h-[54vh] lg:h-[560px] cursor-zoom-in"
+                className="group/main relative w-full shrink-0 snap-center h-[52vh] sm:h-[56vh] lg:h-[560px] cursor-zoom-in"
               >
                 <Image
                   src={url || '/placeholder.jpg'}
@@ -197,23 +221,11 @@ export default function ProductGallery({ mainImage, gallery, alt }: ProductGalle
             </>
           )}
 
-          {/* Mobile dots + counter */}
+          {/* Counter (thumbnails already indicate position, so no dots) */}
           {allImages.length > 1 && (
-            <>
-              <div className="lg:hidden absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
-                {allImages.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => scrollToIndex(i)}
-                    className={`h-1.5 rounded-full transition-all duration-300 ${active === i ? 'w-5 bg-white' : 'w-1.5 bg-white/50'}`}
-                    aria-label={`Go to photo ${i + 1}`}
-                  />
-                ))}
-              </div>
-              <div className="lg:hidden absolute top-3 right-3 bg-black/55 backdrop-blur-md text-white text-[11px] font-bold px-2.5 py-1 rounded-full z-10">
-                {active + 1} / {allImages.length}
-              </div>
-            </>
+            <div className="lg:hidden absolute top-3 right-3 bg-black/55 backdrop-blur-md text-white text-[11px] font-bold px-2.5 py-1 rounded-full z-10 tabular-nums">
+              {active + 1} / {allImages.length}
+            </div>
           )}
         </div>
       </div>
