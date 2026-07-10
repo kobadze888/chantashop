@@ -134,6 +134,7 @@ export default function ProductGallery({ mainImage, gallery, alt }: ProductGalle
   const [mounted, setMounted] = useState(false);
 
   const trackRef = useRef<HTMLDivElement>(null);
+  const thumbsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -142,6 +143,24 @@ export default function ProductGallery({ mainImage, gallery, alt }: ProductGalle
     setActive(0);
     if (trackRef.current) trackRef.current.scrollTo({ left: 0 });
   }, [mainImage]);
+
+  // Keep the active thumbnail in view when the main photo is swiped/changed
+  // (centers it in the strip — horizontal on mobile, vertical on desktop).
+  useEffect(() => {
+    const c = thumbsRef.current;
+    if (!c) return;
+    const btn = c.children[active] as HTMLElement | undefined;
+    if (!btn) return;
+    const cr = c.getBoundingClientRect();
+    const br = btn.getBoundingClientRect();
+    if (c.scrollWidth > c.clientWidth + 2) {
+      const delta = (br.left - cr.left) - (c.clientWidth - br.width) / 2;
+      c.scrollBy({ left: delta, behavior: 'smooth' });
+    } else if (c.scrollHeight > c.clientHeight + 2) {
+      const delta = (br.top - cr.top) - (c.clientHeight - br.height) / 2;
+      c.scrollBy({ top: delta, behavior: 'smooth' });
+    }
+  }, [active]);
 
   const scrollToIndex = useCallback((i: number) => {
     const el = trackRef.current;
@@ -161,7 +180,7 @@ export default function ProductGallery({ mainImage, gallery, alt }: ProductGalle
 
         {/* === THUMBNAILS — horizontal row below (mobile), vertical left (desktop) === */}
         <div className="order-2 lg:order-1 lg:w-[84px] flex-shrink-0">
-          <div className="flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto hide-scrollbar lg:max-h-[560px]">
+          <div ref={thumbsRef} className="flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto hide-scrollbar lg:max-h-[560px] scroll-smooth">
             {allImages.map((url, i) => (
               <button
                 key={i}
