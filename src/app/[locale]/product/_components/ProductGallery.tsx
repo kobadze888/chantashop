@@ -36,7 +36,7 @@ function Lightbox({
 
   return (
     <div
-      className="fixed inset-0 z-[99999] bg-black/95 flex flex-col animate-fade-in"
+      className="fixed inset-0 z-[99999] bg-neutral-950 flex flex-col animate-fade-in"
       onClick={onClose}
     >
       {/* ── Top bar: counter + clean close ── */}
@@ -157,16 +157,16 @@ export default function ProductGallery({ mainImage, gallery, alt }: ProductGalle
 
   return (
     <>
-      <div className="flex flex-row gap-2.5 lg:gap-4 select-none">
+      <div className="flex flex-col lg:flex-row gap-2.5 lg:gap-4 select-none">
 
-        {/* === THUMBNAILS — vertical strip on the left (mobile + desktop) === */}
-        <div className="order-1 w-[46px] sm:w-[58px] lg:w-[84px] flex-shrink-0">
-          <div className="flex flex-col gap-2 overflow-y-auto hide-scrollbar max-h-[52vh] sm:max-h-[56vh] lg:max-h-[560px]">
+        {/* === THUMBNAILS — horizontal row below (mobile), vertical left (desktop) === */}
+        <div className="order-2 lg:order-1 lg:w-[84px] flex-shrink-0">
+          <div className="flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto hide-scrollbar lg:max-h-[560px]">
             {allImages.map((url, i) => (
               <button
                 key={i}
                 onClick={() => scrollToIndex(i)}
-                className={`relative flex-shrink-0 w-full aspect-[4/5] rounded-lg lg:rounded-xl overflow-hidden transition-all duration-200 cursor-pointer border-2 ${active === i ? 'border-brand-DEFAULT shadow-md' : 'border-transparent opacity-55 hover:opacity-100'}`}
+                className={`relative flex-shrink-0 w-16 lg:w-full aspect-[4/5] rounded-lg lg:rounded-xl overflow-hidden transition-all duration-200 cursor-pointer border-2 ${active === i ? 'border-brand-DEFAULT shadow-md' : 'border-transparent opacity-55 hover:opacity-100'}`}
                 aria-label={`Photo ${i + 1}`}
               >
                 <Image src={url} alt={`${alt} ${i + 1}`} fill className="object-cover" sizes="84px" />
@@ -175,8 +175,8 @@ export default function ProductGallery({ mainImage, gallery, alt }: ProductGalle
           </div>
         </div>
 
-        {/* === MAIN SLIDER (native scroll-snap: swipe flips, tap opens lightbox) === */}
-        <div className="order-2 flex-1 relative min-w-0">
+        {/* === MAIN SLIDER (full-width on mobile; native scroll-snap: swipe flips, tap opens lightbox) === */}
+        <div className="order-1 lg:order-2 flex-1 relative min-w-0">
           <div
             ref={trackRef}
             onScroll={onTrackScroll}
@@ -186,7 +186,7 @@ export default function ProductGallery({ mainImage, gallery, alt }: ProductGalle
               <div
                 key={i}
                 onClick={() => setLightboxOpen(true)}
-                className="group/main relative w-full shrink-0 snap-center h-[52vh] sm:h-[56vh] lg:h-[560px] cursor-zoom-in"
+                className="group/main relative w-full shrink-0 snap-center h-[54vh] sm:h-[60vh] lg:h-[560px] cursor-zoom-in"
               >
                 <Image
                   src={url || '/placeholder.jpg'}
