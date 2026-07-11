@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { X, ChevronLeft, ChevronRight, ChevronDown, Maximize2 } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Maximize2 } from 'lucide-react';
 
 interface ProductGalleryProps {
   mainImage: string;
@@ -198,6 +198,15 @@ export default function ProductGallery({ mainImage, gallery, alt }: ProductGalle
     if (el) setActive(Math.round(el.scrollLeft / el.clientWidth));
   };
 
+  // Nudge the thumbnail strip a couple of thumbs in a direction (-1 / +1).
+  const scrollThumbs = useCallback((dir: number) => {
+    const c = thumbsRef.current;
+    if (!c) return;
+    const step = 150 * dir;
+    if (c.scrollWidth > c.clientWidth + 2) c.scrollBy({ left: step, behavior: 'smooth' });
+    else c.scrollBy({ top: step, behavior: 'smooth' });
+  }, []);
+
   return (
     <>
       <div className="flex flex-col lg:flex-row gap-2.5 lg:gap-4 select-none">
@@ -221,24 +230,33 @@ export default function ProductGallery({ mainImage, gallery, alt }: ProductGalle
             ))}
           </div>
 
-          {/* start hint (left on mobile / top on desktop) */}
-          <div
-            className={`pointer-events-none absolute z-10 transition-opacity duration-200 rounded-lg
-              left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white to-transparent
-              lg:left-0 lg:right-0 lg:top-0 lg:bottom-auto lg:w-full lg:h-8 lg:bg-gradient-to-b
-              ${thumbFade.start ? 'opacity-100' : 'opacity-0'}`}
-          />
-
-          {/* end hint (right on mobile / bottom on desktop) + chevron — "there's more" */}
-          <div
-            className={`pointer-events-none absolute z-10 flex items-center justify-center transition-opacity duration-200 rounded-lg
-              right-0 top-0 bottom-0 w-9 bg-gradient-to-l from-white via-white/90 to-transparent
-              lg:right-0 lg:left-0 lg:top-auto lg:bottom-0 lg:w-full lg:h-9 lg:bg-gradient-to-t
-              ${thumbFade.end ? 'opacity-100' : 'opacity-0'}`}
+          {/* Scroll controls — shown only when there are hidden thumbnails in that
+              direction. Left/Right on mobile, Up/Down on desktop. */}
+          <button
+            type="button"
+            onClick={() => scrollThumbs(-1)}
+            aria-label="Previous thumbnails"
+            className={`grid place-items-center absolute z-20 w-7 h-7 rounded-full bg-white/95 backdrop-blur shadow-md border border-gray-200/80 text-brand-dark hover:bg-brand-dark hover:text-white hover:border-brand-dark transition cursor-pointer active:scale-90
+              left-1 top-1/2 -translate-y-1/2
+              lg:left-1/2 lg:top-1 lg:-translate-x-1/2 lg:translate-y-0
+              ${thumbFade.start ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
           >
-            <ChevronRight className="w-4 h-4 text-brand-dark/50 lg:hidden animate-pulse" />
-            <ChevronDown className="w-4 h-4 text-brand-dark/50 hidden lg:block animate-pulse" />
-          </div>
+            <ChevronLeft className="w-4 h-4 lg:hidden" strokeWidth={2.5} />
+            <ChevronUp className="w-4 h-4 hidden lg:block" strokeWidth={2.5} />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => scrollThumbs(1)}
+            aria-label="More thumbnails"
+            className={`grid place-items-center absolute z-20 w-7 h-7 rounded-full bg-white/95 backdrop-blur shadow-md border border-gray-200/80 text-brand-dark hover:bg-brand-dark hover:text-white hover:border-brand-dark transition cursor-pointer active:scale-90
+              right-1 top-1/2 -translate-y-1/2
+              lg:right-auto lg:left-1/2 lg:top-auto lg:bottom-1 lg:-translate-x-1/2 lg:translate-y-0
+              ${thumbFade.end ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+          >
+            <ChevronRight className="w-4 h-4 lg:hidden" strokeWidth={2.5} />
+            <ChevronDown className="w-4 h-4 hidden lg:block" strokeWidth={2.5} />
+          </button>
         </div>
 
         {/* === MAIN SLIDER (full-width on mobile; native scroll-snap: swipe flips, tap opens lightbox) === */}
