@@ -3,12 +3,16 @@
 import Image from 'next/image';
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { X, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Maximize2 } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Maximize2, BadgeCheck } from 'lucide-react';
 
 interface ProductGalleryProps {
   mainImage: string;
   gallery: string[];
   alt: string;
+  /** Rendered as an overlay in the top-right of the main photo (e.g. wishlist). */
+  overlayTopRight?: React.ReactNode;
+  /** Small trust badge shown top-left of the main photo. */
+  realPhotoLabel?: string;
 }
 
 /* ── Compact, dimmed lightbox (centered, not full-bleed) ── */
@@ -123,7 +127,7 @@ function Lightbox({
   );
 }
 
-export default function ProductGallery({ mainImage, gallery, alt }: ProductGalleryProps) {
+export default function ProductGallery({ mainImage, gallery, alt, overlayTopRight, realPhotoLabel }: ProductGalleryProps) {
   const allImages = useMemo(
     () => [mainImage, ...gallery.filter((url) => url !== mainImage)].filter(Boolean),
     [mainImage, gallery]
@@ -287,6 +291,21 @@ export default function ProductGallery({ mainImage, gallery, alt }: ProductGalle
             ))}
           </div>
 
+          {/* Trust badge — top-left of the photo */}
+          {realPhotoLabel && (
+            <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 bg-white/90 backdrop-blur-md text-brand-dark text-[10px] font-bold px-2.5 py-1.5 rounded-full shadow-sm border border-white/70 pointer-events-none">
+              <BadgeCheck className="w-3.5 h-3.5 text-green-600" />
+              {realPhotoLabel}
+            </div>
+          )}
+
+          {/* Top-right overlay (wishlist) */}
+          {overlayTopRight && (
+            <div className="absolute top-3 right-3 z-20">
+              {overlayTopRight}
+            </div>
+          )}
+
           {/* Desktop arrows */}
           {allImages.length > 1 && (
             <>
@@ -305,9 +324,9 @@ export default function ProductGallery({ mainImage, gallery, alt }: ProductGalle
             </>
           )}
 
-          {/* Counter (thumbnails already indicate position, so no dots) */}
+          {/* Counter — bottom-right (top-right is used by the wishlist overlay) */}
           {allImages.length > 1 && (
-            <div className="lg:hidden absolute top-3 right-3 bg-black/55 backdrop-blur-md text-white text-[11px] font-bold px-2.5 py-1 rounded-full z-10 tabular-nums">
+            <div className="lg:hidden absolute bottom-3 right-3 bg-black/55 backdrop-blur-md text-white text-[11px] font-bold px-2.5 py-1 rounded-full z-20 tabular-nums pointer-events-none">
               {active + 1} / {allImages.length}
             </div>
           )}

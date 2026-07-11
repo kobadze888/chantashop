@@ -392,6 +392,16 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
                     mainImage={displayImage}
                     gallery={product.galleryImages?.nodes.map(img => img.sourceUrl) || []}
                     alt={product.name}
+                    realPhotoLabel={t('Payment.realPhotoTitle')}
+                    overlayTopRight={
+                        <button
+                            onClick={handleWishlist}
+                            aria-label="Wishlist"
+                            className={`h-10 w-10 grid place-items-center rounded-full backdrop-blur-md shadow-md border transition active:scale-90 cursor-pointer ${isLiked ? 'bg-red-500 border-red-500 text-white' : 'bg-white/85 border-white/70 text-brand-dark hover:text-red-500'}`}
+                        >
+                            <Heart className={`w-[18px] h-[18px] ${isLiked ? 'fill-current' : ''}`} />
+                        </button>
+                    }
                 />
             </div>
 
@@ -430,60 +440,73 @@ export default function ProductInfo({ product, locale = 'ka' }: ProductInfoProps
                     </div>
                 </div>
 
-                {/* ✅ FIX: განახლებული ფასების ბლოკი */}
-                <div className="bg-gray-50/50 rounded-2xl p-3.5 md:p-5 border border-gray-100 mb-4 md:mb-7 flex flex-col sm:flex-row sm:items-center justify-between gap-3 md:gap-6 relative overflow-hidden">
-               
+                {/* ── PRICE + STOCK ── */}
+                <div className="rounded-2xl p-4 md:p-5 border border-gray-100 bg-gradient-to-br from-gray-50/70 to-white mb-4 md:mb-7 relative overflow-hidden">
                     {isSale && (
-                        <div className="absolute top-0 right-0 w-20 h-20 bg-red-500/5 blur-3xl -translate-y-10 translate-x-10 pointer-events-none"></div>
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/10 blur-3xl -translate-y-10 translate-x-10 pointer-events-none"></div>
                     )}
 
-                 <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2 mb-1">
-                             <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t('priceLabel')}</span>
-                             {isSale && discountPercent > 0 && (
-                                 <span className="bg-red-100 text-red-600 text-[10px] font-extrabold px-2 py-0.5 rounded-full flex items-center gap-1">
-                                    <Tag className="w-2.5 h-2.5" /> -{discountPercent}%
-                                 </span>
-                             )}
-                        </div>
-                        <div className="flex items-end gap-3">
-                            {/* ✅ FIX: აქტიური ფასი (დიდი) - სიმბოლოს შემოწმება */}
-                            <span className={`text-3xl md:text-4xl font-serif font-black ${isSale ? 'text-red-600' : 'text-brand-dark'}`}>
-                                {String(displayPrice).includes('₾') ? displayPrice : `${displayPrice} ₾`}
-                            </span>
-
-                            {/* ✅ FIX: ძველი ფასი (გადახაზული) - სიმბოლოს შემოწმება */}
-                            {regularPrice && isSale && (
-                                <div className="flex flex-col leading-none mb-1.5">
-                                    <span className="text-lg text-gray-400 line-through decoration-red-300/50 decoration-2 font-medium">
+                    <div className="flex items-end justify-between gap-3 flex-wrap">
+                        <div className="flex flex-col gap-1.5">
+                            <div className="flex items-center gap-2">
+                                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">{t('priceLabel')}</span>
+                                {isSale && discountPercent > 0 && (
+                                    <span className="bg-red-500 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm shadow-red-500/30">
+                                        <Tag className="w-2.5 h-2.5" /> -{discountPercent}%
+                                    </span>
+                                )}
+                            </div>
+                            <div className="flex items-end gap-2.5">
+                                <span className={`text-[2rem] md:text-4xl leading-none font-serif font-black ${isSale ? 'text-red-600' : 'text-brand-dark'}`}>
+                                    {String(displayPrice).includes('₾') ? displayPrice : `${displayPrice} ₾`}
+                                </span>
+                                {regularPrice && isSale && (
+                                    <span className="text-base md:text-lg text-gray-400 line-through decoration-red-300/60 decoration-2 font-medium mb-0.5">
                                         {String(regularPrice).includes('₾') ? regularPrice : `${regularPrice} ₾`}
                                     </span>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="flex items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+                        {/* Buy Now — inline on desktop */}
                         {!isProductOutOfStock && (
                             <button
                                 onClick={handleBuyNow}
                                 disabled={isBuyNowDisabled}
-                                className="flex-1 sm:flex-none bg-black text-white px-8 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-brand-DEFAULT transition-all shadow-lg shadow-brand-dark/10 active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap h-12 cursor-pointer"
+                                className="hidden sm:flex bg-black text-white px-7 h-12 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-brand-DEFAULT transition-all shadow-lg shadow-brand-dark/10 active:scale-95 items-center justify-center gap-2 whitespace-nowrap cursor-pointer"
                             >
                                 <CreditCard className="w-4 h-4" /> {t('buyNow')}
                             </button>
                         )}
-
-                        <button
-                            onClick={handleWishlist}
-                            className={`h-12 w-12 flex items-center justify-center border rounded-xl transition shadow-sm group active:scale-90 cursor-pointer ${isLiked
-                                    ? 'bg-red-50 border-red-200 text-red-500'
-                                    : 'bg-white border-gray-200 hover:border-red-200 hover:text-red-500'
-                                }`}
-                        >
-                            <Heart className={`w-5 h-5 group-hover:scale-110 transition-transform ${isLiked ? 'fill-current' : ''}`} />
-                        </button>
                     </div>
+
+                    {/* Stock count */}
+                    {!isProductOutOfStock && displayStockQuantity !== undefined && displayStockQuantity > 0 && (
+                        <div className="mt-3 pt-3 border-t border-gray-100/80 flex items-center gap-2 text-xs font-bold">
+                            {displayStockQuantity <= 5 ? (
+                                <span className="flex items-center gap-1.5 text-orange-600">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
+                                    დარჩა მხოლოდ {displayStockQuantity} ცალი
+                                </span>
+                            ) : (
+                                <span className="flex items-center gap-1.5 text-green-600">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                                    მარაგშია {displayStockQuantity} ცალი
+                                </span>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Buy Now — full width on mobile */}
+                    {!isProductOutOfStock && (
+                        <button
+                            onClick={handleBuyNow}
+                            disabled={isBuyNowDisabled}
+                            className="sm:hidden mt-3 w-full bg-black text-white h-12 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-brand-DEFAULT transition-all shadow-lg shadow-brand-dark/10 active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                        >
+                            <CreditCard className="w-4 h-4" /> {t('buyNow')}
+                        </button>
+                    )}
                 </div>
 
                 {colorOptions.length > 0 && (
